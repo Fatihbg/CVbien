@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test PDF Reading</title>
+</head>
+<body>
+    <h1>Test de lecture de PDF</h1>
+    <input type="file" id="pdfInput" accept=".pdf" />
+    <div id="result"></div>
+
+    <script type="module">
+        document.getElementById('pdfInput').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                try {
+                    console.log('Lecture du PDF:', file.name);
+                    
+                    // Pour l'instant, afficher un message d'information
+                    document.getElementById('result').innerHTML = `
+                        <h3>PDF détecté :</h3>
+                        <p><strong>Nom du fichier :</strong> ${file.name}</p>
+                        <p><strong>Taille :</strong> ${(file.size / 1024).toFixed(2)} KB</p>
+                        <p><strong>Type :</strong> ${file.type}</p>
+                        <p style="color: #666; font-style: italic;">
+                            Note: L'extraction PDF complète sera implémentée prochainement. 
+                            Pour l'instant, l'application peut traiter les fichiers PDF mais utilise un contenu exemple.
+                        </p>
+                    `;
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    document.getElementById('result').innerHTML = `<p style="color: red;">Erreur: ${error.message}</p>`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

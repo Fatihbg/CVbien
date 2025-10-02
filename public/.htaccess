@@ -1,0 +1,131 @@
+# CVbien - Configuration Apache pour optimisations SEO et performances
+
+# Activation de la compression GZIP
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# Cache des fichiers statiques
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # Images
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    
+    # CSS et JavaScript
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType application/x-javascript "access plus 1 month"
+    
+    # Fonts
+    ExpiresByType font/woff "access plus 1 month"
+    ExpiresByType font/woff2 "access plus 1 month"
+    ExpiresByType application/font-woff "access plus 1 month"
+    ExpiresByType application/font-woff2 "access plus 1 month"
+    
+    # HTML
+    ExpiresByType text/html "access plus 1 hour"
+    
+    # JSON
+    ExpiresByType application/json "access plus 1 hour"
+</IfModule>
+
+# Headers de cache
+<IfModule mod_headers.c>
+    # Cache des fichiers statiques
+    <FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+    
+    # Cache des pages HTML
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "public, max-age=3600"
+    </FilesMatch>
+    
+    # Sécurité
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # CORS pour les API
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization"
+</IfModule>
+
+# Redirections pour SEO
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Redirection HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    
+    # Redirection www vers non-www
+    RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+    
+    # Redirection des anciennes URLs
+    RewriteRule ^cv-optimizer/?$ / [R=301,L]
+    RewriteRule ^cv-generator/?$ / [R=301,L]
+    RewriteRule ^resume-generator/?$ /en [R=301,L]
+    
+    # Gestion des langues
+    RewriteCond %{HTTP:Accept-Language} ^en [NC]
+    RewriteRule ^$ /en [R=302,L]
+    
+    # SPA routing
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.html [L]
+</IfModule>
+
+# Compression des fichiers
+<IfModule mod_mime.c>
+    AddType application/font-woff .woff
+    AddType application/font-woff2 .woff2
+    AddType application/vnd.ms-fontobject .eot
+    AddType font/truetype .ttf
+    AddType font/opentype .otf
+</IfModule>
+
+# Sécurité
+<IfModule mod_headers.c>
+    # Protection contre le clickjacking
+    Header always append X-Frame-Options SAMEORIGIN
+    
+    # Protection XSS
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # Protection MIME type sniffing
+    Header set X-Content-Type-Options nosniff
+    
+    # HSTS (HTTP Strict Transport Security)
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+</IfModule>
+
+# Blocage des accès aux fichiers sensibles
+<FilesMatch "\.(env|log|ini|conf|sql|bak|backup)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Blocage des accès aux dossiers sensibles
+RedirectMatch 403 /\..*$
+RedirectMatch 403 /node_modules/.*$
+RedirectMatch 403 /src/.*$

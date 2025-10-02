@@ -1,0 +1,44 @@
+JEAN DUPONT
+Développeur Full-Stack Senior
+jean.dupont@email.com
+06 12 34 56 78
+Paris, France
+linkedin.com/in/jeandupont
+
+PROFIL
+Développeur Full-Stack avec 5 ans d'expérience dans le développement d'applications web modernes. Passionné par les technologies React, Node.js et les architectures cloud. Expertise en développement frontend et backend avec une forte orientation vers l'innovation technologique.
+
+EXPÉRIENCE PROFESSIONNELLE
+
+Développeur Senior - TechCorp
+Paris, France | 2021 - 2024
+Développement d'applications web avec React et Node.js. Gestion d'équipe de 3 développeurs et architecture de solutions cloud. Mise en place de processus DevOps et optimisation des performances.
+
+Développeur Full-Stack - StartupXYZ
+Lyon, France | 2019 - 2021
+Développement de fonctionnalités frontend et backend. Intégration d'APIs et optimisation des performances. Collaboration étroite avec les équipes produit et design.
+
+Développeur Junior - WebAgency
+Lyon, France | 2018 - 2019
+Développement de sites web avec HTML, CSS, JavaScript. Apprentissage des frameworks modernes et des bonnes pratiques de développement.
+
+FORMATION
+
+Master en Informatique - Université de Paris
+Paris, France | 2017 - 2019
+Mention Bien - Spécialisation en développement web et bases de données
+
+Licence en Informatique - Université de Lyon
+Lyon, France | 2014 - 2017
+Mention Assez Bien
+
+COMPÉTENCES
+
+Technologies: React, TypeScript, Node.js, PostgreSQL, MongoDB, AWS, Docker, Git
+Méthodologies: Agile, Scrum, TDD, CI/CD
+Langues: Français (natif), Anglais (courant)
+
+CERTIFICATIONS
+
+AWS Certified Developer - Amazon Web Services (2023)
+Certification Google Cloud Platform - Google (2022)

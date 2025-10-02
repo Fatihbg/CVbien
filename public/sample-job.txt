@@ -1,0 +1,18 @@
+Titre du poste: Développeur React Senior
+Entreprise: TechStartup
+Localisation: Paris, France
+
+Description du poste:
+Nous recherchons un Développeur React Senior pour rejoindre notre équipe de développement. Vous serez responsable de la conception et du développement d'applications web modernes utilisant React, TypeScript et Node.js. Vous travaillerez en étroite collaboration avec les équipes produit et design pour créer des expériences utilisateur exceptionnelles.
+
+Exigences et compétences requises:
+- Maîtrise de React et TypeScript
+- Expérience avec Node.js et Express
+- Connaissance de PostgreSQL et MongoDB
+- Expérience avec les outils de build (Webpack, Vite)
+- Maîtrise de Git et des workflows de développement
+- Connaissance des méthodologies Agile
+- Expérience avec les tests unitaires et d'intégration
+- Connaissance des architectures cloud (AWS, Azure)
+- Expérience avec Docker et Kubernetes
+- Maîtrise de l'anglais technique

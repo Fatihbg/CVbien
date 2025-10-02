@@ -1,0 +1,51 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://cvbien.app/sitemap.xml
+
+# Crawl-delay pour éviter la surcharge
+Crawl-delay: 1
+
+# Pages importantes à indexer
+Allow: /en
+Allow: /generate
+Allow: /ats-score
+Allow: /templates
+Allow: /help
+
+# Pages à ne pas indexer
+Disallow: /admin
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+Disallow: /private/
+
+# Fichiers à ne pas indexer
+Disallow: /*.json$
+Disallow: /*.xml$
+Disallow: /*.txt$
+Disallow: /*.log$
+
+# Directives spécifiques pour les moteurs de recherche
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+# Blocage des bots indésirables
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /

@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="fr" data-lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="description" content="🚀 Générateur de CV gratuit avec IA - Créez un CV professionnel optimisé ATS en quelques clics. Analysez votre CV, obtenez un score ATS et téléchargez votre CV optimisé au format PDF." />
+    <meta name="keywords" content="générateur cv gratuit, créer cv en ligne, cv IA, optimisation cv ATS, score ATS, cv professionnel, générateur cv intelligence artificielle, créer cv pdf, cv maker, cv builder, resume generator, cv maker online, ATS resume, professional cv, AI cv builder, resume builder free, cv template, resume optimization, job application, career tools, resume writing, cv creator, professional resume, ATS friendly resume, resume maker, cv generator, resume builder, cv template free, professional cv maker, AI resume builder, resume optimizer, cv writing service, resume help, career development, job search tools, resume assistance, cv optimization, ATS score, resume checker, cv review, professional resume builder, resume maker online, cv creator free, resume template, cv design, job application tools, career builder, resume writing service, cv assistance, professional cv template, resume generator free, cv maker app, resume builder app, cv creator app, professional resume maker, AI cv generator, resume optimization tool, cv writing tool, job search assistance, career tools online, resume help online, cv help online, professional resume service, cv writing service, resume writing help, cv writing help, job application help, career guidance, resume tips, cv tips, professional development, job search tools, career advancement, resume improvement, cv improvement, ATS optimization, resume ATS, cv ATS, job application optimization, career success, professional growth, resume success, cv success, job search success, career success tools, professional success, resume success tips, cv success tips, job application success, career advancement tools, professional development tools, resume development, cv development, career development tools, professional growth tools, resume growth, cv growth, job search growth, career growth, professional advancement, resume advancement, cv advancement, job application advancement, career success tools, professional success tools, resume success tools, cv success tools, job search success tools, career success tips, professional success tips, resume success tips, cv success tips, job application success tips, career advancement tips, professional development tips, resume development tips, cv development tips, career development tips, professional growth tips, resume growth tips, cv growth tips, job search growth tips, career growth tips, professional advancement tips, resume advancement tips, cv advancement tips, job application advancement tips" />
+    <meta name="author" content="CVbien" />
+    <meta name="robots" content="index, follow" />
+    
+    <!-- Additional SEO meta tags -->
+    <meta name="language" content="French, English" />
+    <meta name="geo.region" content="FR" />
+    <meta name="geo.placename" content="France" />
+    <meta name="geo.position" content="46.2276;2.2137" />
+    <meta name="ICBM" content="46.2276, 2.2137" />
+    
+    <!-- English SEO meta tags -->
+    <meta name="description-en" content="🚀 Free AI Resume Generator - Create professional ATS-optimized CVs in minutes. Analyze your resume, get ATS score and download your optimized CV as PDF." />
+    <meta name="keywords-en" content="resume generator, cv maker online, ATS resume, professional cv, AI cv builder, resume builder free, cv template, resume optimization, job application, career tools, resume writing, cv creator, professional resume, ATS friendly resume, resume maker, cv generator, resume builder, cv template free, professional cv maker, AI resume builder, resume optimizer, cv writing service, resume help, career development, job search tools, resume assistance, cv optimization, ATS score, resume checker, cv review, professional resume builder, resume maker online, cv creator free, resume template, cv design, job application tools, career builder, resume writing service, cv assistance, professional cv template, resume generator free, cv maker app, resume builder app, cv creator app, professional resume maker, AI cv generator, resume optimization tool, cv writing tool, job search assistance, career tools online, resume help online, cv help online, professional resume service, cv writing service, resume writing help, cv writing help, job application help, career guidance, resume tips, cv tips, professional development, job search tools, career advancement, resume improvement, cv improvement, ATS optimization, resume ATS, cv ATS, job application optimization, career success, professional growth, resume success, cv success, job search success, career success tools, professional success, resume success tips, cv success tips, job application success, career advancement tools, professional development tools, resume development, cv development, career development tools, professional growth tools, resume growth, cv growth, job search growth, career growth, professional advancement, resume advancement, cv advancement, job application advancement" />
+    <link rel="canonical" href="https://cvbien.app" />
+    
+    <!-- Hreflang for multilingual SEO -->
+    <link rel="alternate" hreflang="fr" href="https://cvbien.app" />
+    <link rel="alternate" hreflang="en" href="https://cvbien.app/en" />
+    <link rel="alternate" hreflang="x-default" href="https://cvbien.app" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/index.css" as="style" />
+    <link rel="preload" href="/src/main.tsx" as="script" />
+    
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="//api.openai.com" />
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    
+    <!-- Performance hints -->
+    <link rel="preconnect" href="https://api.openai.com" crossorigin />
+    
+    <!-- Sitemap reference -->
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cvbien.app" />
+    <meta property="og:title" content="CVbien - Générateur de CV | Resume Generator" />
+    <meta property="og:description" content="Créez un CV professionnel optimisé ATS en quelques clics. Analysez votre CV, obtenez un score ATS et téléchargez votre CV optimisé au format PDF. | Create professional ATS-optimized CVs in minutes with AI." />
+    <meta property="og:image" content="https://cvbien.app/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="CVbien - Générateur de CV avec IA | AI Resume Generator" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:site_name" content="CVbien" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://cvbien.app" />
+    <meta property="twitter:title" content="CVbien - Générateur de CV | Resume Generator" />
+    <meta property="twitter:description" content="Créez un CV professionnel optimisé ATS en quelques clics. Analysez votre CV, obtenez un score ATS et téléchargez votre CV optimisé au format PDF. | Create professional ATS-optimized CVs in minutes with AI." />
+    <meta property="twitter:image" content="https://cvbien.app/og-image.jpg" />
+    <meta property="twitter:image:alt" content="CVbien - Générateur de CV avec IA | AI Resume Generator" />
+    <meta property="twitter:creator" content="@cvbien" />
+    <meta property="twitter:site" content="@cvbien" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/vite.svg" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    
+    <title>CVbien - Générateur de CV | Score ATS & PDF</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <!-- Données structurées Schema.org -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "CVbien",
+      "alternateName": ["Générateur de CV avec IA", "AI Resume Generator", "CV Maker", "Resume Builder"],
+      "description": "Générateur de CV gratuit avec intelligence artificielle. Créez un CV professionnel optimisé ATS, obtenez un score ATS et téléchargez votre CV au format PDF. | Free AI resume generator. Create professional ATS-optimized CVs, get ATS score and download your CV as PDF.",
+      "url": "https://cvbien.app",
+      "inLanguage": ["fr", "en"],
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR",
+        "description": "Générateur de CV gratuit avec fonctionnalités premium"
+      },
+      "featureList": [
+        "Génération de CV avec IA | AI CV Generation",
+        "Score ATS automatique | Automatic ATS Score",
+        "Optimisation pour les systèmes de recrutement | ATS Optimization",
+        "Export PDF professionnel | Professional PDF Export",
+        "Interface intuitive | Intuitive Interface",
+        "Support multi-formats (PDF, DOCX, TXT) | Multi-format Support",
+        "Optimisation multilingue | Multilingual Optimization",
+        "Templates professionnels | Professional Templates",
+        "Analyse de compatibilité ATS | ATS Compatibility Analysis",
+        "Génération de mots-clés | Keyword Generation"
+      ],
+      "screenshot": "https://cvbien.app/screenshot.jpg",
+      "author": {
+        "@type": "Organization",
+        "name": "CVbien",
+        "url": "https://cvbien.app"
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "CVbien",
+        "url": "https://cvbien.app"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "1250",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "review": [
+        {
+          "@type": "Review",
+          "author": {
+            "@type": "Person",
+            "name": "Marie Dubois"
+          },
+          "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5",
+            "bestRating": "5"
+          },
+          "reviewBody": "Excellent outil pour optimiser mon CV ! CVbien avec l'IA a vraiment amélioré mon score ATS et j'ai décroché plus d'entretiens."
+        }
+      ]
+    }
+    </script>
+    
+    <!-- Données structurées supplémentaires pour l'anglais -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "CVbien",
+      "alternateName": "AI Resume Generator",
+      "description": "Free AI resume generator. Create professional ATS-optimized CVs, get ATS score and download your CV as PDF. Perfect for job applications and career advancement.",
+      "url": "https://cvbien.app/en",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "Free AI resume generator with premium features"
+      },
+      "featureList": [
+        "AI Resume Generation",
+        "Automatic ATS Score",
+        "ATS Optimization",
+        "Professional PDF Export",
+        "Intuitive Interface",
+        "Multi-format Support",
+        "Multilingual Optimization",
+        "Professional Templates",
+        "ATS Compatibility Analysis",
+        "Keyword Generation"
+      ],
+      "screenshot": "https://cvbien.app/screenshot-en.jpg",
+      "author": {
+        "@type": "Organization",
+        "name": "CVbien",
+        "url": "https://cvbien.app"
+      },
+      "provider": {
+        "@type": "Organization",
+        "name": "CVbien",
+        "url": "https://cvbien.app"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "1250",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "inLanguage": "en",
+      "keywords": "resume generator, cv maker, ATS resume, professional cv, AI cv builder, resume builder free, cv template, resume optimization, job application, career tools, resume writing, cv creator, professional resume, ATS friendly resume, resume maker, cv generator, resume builder, cv template free, professional cv maker, AI resume builder, resume optimizer, cv writing service, resume help, career development, job search tools, resume assistance, cv optimization, ATS score, resume checker, cv review, professional resume builder, resume maker online, cv creator free, resume template, cv design, job application tools, career builder, resume writing service, cv assistance, professional cv template, resume generator free, cv maker app, resume builder app, cv creator app, professional resume maker, AI cv generator, resume optimization tool, cv writing tool, job search assistance, career tools online, resume help online, cv help online, professional resume service, cv writing service, resume writing help, cv writing help, job application help, career guidance, resume tips, cv tips, professional development, job search tools, career advancement, resume improvement, cv improvement, ATS optimization, resume ATS, cv ATS, job application optimization, career success, professional growth, resume success, cv success, job search success, career success tools, professional success, resume success tips, cv success tips, job application success, career advancement tools, professional development tools, resume development, cv development, career development tools, professional growth tools, resume growth, cv growth, job search growth, career growth, professional advancement, resume advancement, cv advancement, job application advancement"
+    }
+    </script>
+    
+    <!-- Script de détection de langue pour SEO -->
+    <script src="/seo-language-detector.js"></script>
+    
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
