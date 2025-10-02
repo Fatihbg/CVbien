@@ -1,145 +1,178 @@
-# CV Optimizer - PWA
+# 🚀 CVbien - Générateur de CV avec IA
 
-Une application web progressive (PWA) qui utilise l'intelligence artificielle pour optimiser votre CV en fonction d'une description de poste, avec un système de scoring ATS.
+> **Générateur de CV professionnel optimisé ATS avec intelligence artificielle**
 
-## 🚀 Fonctionnalités
+[![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=flat&logo=vercel)](https://vercel.com)
+[![Railway](https://img.shields.io/badge/Backend-Railway-0B0D0E?style=flat&logo=railway)](https://railway.app)
+[![OpenAI](https://img.shields.io/badge/Powered%20by-OpenAI-412991?style=flat&logo=openai)](https://openai.com)
+[![Stripe](https://img.shields.io/badge/Payments-Stripe-635BFF?style=flat&logo=stripe)](https://stripe.com)
 
-- **Extraction de données CV** : Support des formats PDF, DOCX, et TXT
-- **Génération IA** : Utilise GPT-4o pour optimiser le CV selon la description du poste
-- **Scoring ATS** : Calcule et affiche le score ATS du CV original et optimisé
-- **Aperçu et édition** : Prévisualisation du CV avec possibilité d'édition en temps réel
-- **Génération PDF** : Téléchargement du CV optimisé en PDF
-- **Système de crédits** : Gestion des utilisateurs avec système de crédits
-- **PWA** : Installation sur mobile et desktop
+## ✨ Fonctionnalités
 
-## 🛠️ Technologies utilisées
+- 🤖 **Optimisation IA** : Utilise GPT-4o pour optimiser votre CV
+- 📊 **Score ATS** : Calcul automatique du score de compatibilité ATS
+- 📄 **Génération PDF** : Export professionnel au format PDF
+- 💳 **Paiements Stripe** : Système de crédits intégré
+- 🌍 **Multilingue** : Support français et anglais
+- 📱 **Responsive** : Interface adaptée mobile et desktop
+- 🔍 **SEO Optimisé** : Référencement naturel optimisé
 
-### Frontend
-- **React 18** avec TypeScript
-- **Vite** pour le build
-- **Tailwind CSS** pour le styling
-- **Zustand** pour la gestion d'état
-- **React Query** pour les appels API
-- **Lucide React** pour les icônes
+## 🚀 Déploiement Rapide
 
-### Services
-- **OpenAI GPT-4o** pour la génération de CV
-- **Mammoth.js** pour l'extraction de données DOCX
-- **jsPDF** pour la génération PDF
-
-## 📦 Installation
-
-1. **Cloner le projet**
+### Frontend (Vercel)
 ```bash
-git clone <repository-url>
-cd cv-generator-pwa
+# 1. Connecter le repository GitHub
+# 2. Configurer les variables d'environnement
+VITE_API_BASE_URL=https://votre-backend.railway.app
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_...
+VITE_OPENAI_API_KEY=sk-...
 ```
 
-2. **Installer les dépendances**
+### Backend (Railway)
 ```bash
+# 1. Connecter le repository GitHub
+# 2. Sélectionner le dossier backend/
+# 3. Configurer les variables d'environnement
+OPENAI_API_KEY=sk-...
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_PUBLISHABLE_KEY=pk_live_...
+CORS_ORIGINS=https://votre-frontend.vercel.app
+```
+
+## 🛠️ Développement Local
+
+### Prérequis
+- Node.js 18+
+- Python 3.9+
+- Clés API OpenAI et Stripe
+
+### Installation
+```bash
+# Cloner le repository
+git clone https://github.com/Fatihbg/CVbien.git
+cd CVbien
+
+# Frontend
 npm install
-```
-
-3. **Configurer les variables d'environnement**
-Créer un fichier `.env` :
-```env
-VITE_API_URL=http://localhost:3001/api
-VITE_OPENAI_API_KEY=your_openai_api_key
-```
-
-4. **Lancer le serveur de développement**
-```bash
 npm run dev
+
+# Backend
+cd backend
+pip install -r requirements.txt
+uvicorn main_simple:app --reload --port 8003
 ```
-
-## 🏗️ Architecture
-
-### Structure des dossiers
-```
-src/
-├── components/          # Composants React
-│   ├── Auth/           # Composants d'authentification
-│   ├── CV/             # Composants de génération CV
-│   └── Layout/         # Composants de mise en page
-├── pages/              # Pages de l'application
-├── services/           # Services API et utilitaires
-├── store/              # Stores Zustand
-└── types/              # Types TypeScript
-```
-
-### Flux de données
-1. **Upload CV** → Extraction des données avec LlamaIndex
-2. **Description poste** → Saisie des informations du poste
-3. **Génération IA** → Optimisation avec GPT-4o
-4. **Scoring ATS** → Calcul des scores de compatibilité
-5. **Aperçu/Édition** → Prévisualisation et modifications
-6. **Téléchargement** → Export en PDF
-
-## 🔧 Configuration
 
 ### Variables d'environnement
-- `VITE_API_URL` : URL de l'API backend
-- `VITE_OPENAI_API_KEY` : Clé API OpenAI
-
-### Configuration PWA
-Le fichier `public/manifest.json` contient la configuration PWA :
-- Nom et description de l'app
-- Icônes et thème
-- Mode d'affichage (standalone)
-
-## 🚀 Déploiement
-
-### Build de production
 ```bash
-npm run build
+# Frontend (.env)
+VITE_API_BASE_URL=http://localhost:8003
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+VITE_OPENAI_API_KEY=sk-...
+
+# Backend (backend/.env)
+OPENAI_API_KEY=sk-...
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+CORS_ORIGINS=http://localhost:5173
 ```
 
-### Déploiement sur Vercel/Netlify
-1. Connecter le repository
-2. Configurer les variables d'environnement
-3. Déployer automatiquement
+## 📁 Structure du Projet
 
-## 📱 Fonctionnalités PWA
+```
+CVbien/
+├── 📁 src/                    # Frontend React
+│   ├── 📁 components/         # Composants réutilisables
+│   ├── 📁 pages/             # Pages principales
+│   ├── 📁 services/          # Services API
+│   ├── 📁 store/             # État global (Zustand)
+│   └── 📁 i18n/              # Traductions
+├── 📁 backend/               # Backend FastAPI
+│   ├── main_simple.py        # API principale
+│   ├── requirements.txt      # Dépendances Python
+│   └── railway.json         # Configuration Railway
+├── 📁 public/                # Assets statiques
+├── vercel.json              # Configuration Vercel
+├── DEPLOYMENT.md            # Guide de déploiement
+└── README.md               # Ce fichier
+```
 
-- **Installation** : Ajout à l'écran d'accueil
-- **Mode hors ligne** : Service worker pour la mise en cache
-- **Responsive** : Adaptation mobile et desktop
-- **Notifications** : Possibilité d'ajouter des notifications push
+## 🔧 Technologies Utilisées
+
+### Frontend
+- **React 18** - Interface utilisateur
+- **TypeScript** - Typage statique
+- **Vite** - Build tool moderne
+- **Tailwind CSS** - Framework CSS
+- **Zustand** - Gestion d'état
+- **React Query** - Gestion des données
+
+### Backend
+- **FastAPI** - Framework Python moderne
+- **OpenAI GPT-4o** - Intelligence artificielle
+- **Stripe** - Paiements en ligne
+- **ReportLab** - Génération PDF
+- **Uvicorn** - Serveur ASGI
+
+### Déploiement
+- **Vercel** - Frontend (gratuit)
+- **Railway** - Backend (gratuit)
+- **GitHub** - Version control
+
+## 📊 API Endpoints
+
+### Backend
+- `GET /` - Health check
+- `POST /optimize-cv` - Optimisation CV avec IA
+- `POST /extract-pdf` - Extraction texte PDF
+
+### Frontend
+- Interface utilisateur complète
+- Upload de fichiers
+- Génération de CV
+- Téléchargement PDF
 
 ## 🔐 Sécurité
 
-- Authentification JWT
-- Validation des fichiers uploadés
-- Sanitisation des données utilisateur
-- Rate limiting sur l'API
+- ✅ Variables d'environnement pour les clés API
+- ✅ Validation des données côté serveur
+- ✅ CORS configuré
+- ✅ Headers de sécurité
+- ✅ Pas de clés hardcodées
 
-## 📈 Roadmap
+## 📈 Performance
 
-- [ ] Intégration Stripe pour les paiements
-- [ ] Base de données utilisateurs
-- [ ] Templates de CV personnalisables
-- [ ] Analytics et métriques
-- [ ] Support multilingue
-- [ ] API de webhooks
+- ⚡ Build optimisé avec Vite
+- 🚀 Lazy loading des composants
+- 📱 PWA ready
+- 🔍 SEO optimisé
+- 💾 Cache intelligent
 
 ## 🤝 Contribution
 
 1. Fork le projet
-2. Créer une branche feature
-3. Commit les changements
-4. Push vers la branche
+2. Créer une branche (`git checkout -b feature/AmazingFeature`)
+3. Commit (`git commit -m 'Add some AmazingFeature'`)
+4. Push (`git push origin feature/AmazingFeature`)
 5. Ouvrir une Pull Request
 
 ## 📄 Licence
 
 Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
-## 📞 Support
+## 🆘 Support
 
-Pour toute question ou problème :
-- Ouvrir une issue sur GitHub
-- Contacter l'équipe de développement
+- 📧 Email: support@cvbien.app
+- 🐛 Issues: [GitHub Issues](https://github.com/Fatihbg/CVbien/issues)
+- 📖 Documentation: [DEPLOYMENT.md](DEPLOYMENT.md)
+
+## 🎯 Roadmap
+
+- [ ] Support de plus de formats de CV
+- [ ] Templates de CV personnalisables
+- [ ] Analytics avancées
+- [ ] API publique
+- [ ] Application mobile
 
 ---
 
-**Note** : Ce projet est en version de démonstration. Pour un usage en production, il est recommandé d'ajouter une authentification robuste, une base de données, et des tests automatisés.
+**🚀 Déployé avec ❤️ par [Fatih](https://github.com/Fatihbg)**

@@ -1,133 +1,112 @@
-# 🚀 Guide de Déploiement - CVbien
+# 🚀 Guide de Déploiement CVbien
 
 ## 📋 Prérequis
 
-- **Node.js** (v18+)
-- **Python** (v3.9+)
-- **Compte Stripe** (clés live)
-- **Serveur VPS** (Ubuntu/CentOS)
+- Compte GitHub
+- Compte Vercel (gratuit)
+- Compte Railway (gratuit)
+- Clés API OpenAI et Stripe
 
-## 🔧 Configuration
+## 🔧 Configuration des Variables d'Environnement
 
-### 1. Clés Stripe Live
-
-1. Connectez-vous à votre [dashboard Stripe](https://dashboard.stripe.com)
-2. Passez en mode **Live** (bouton en haut à droite)
-3. Récupérez vos clés live :
-   - **Clé publique** : `pk_live_...`
-   - **Clé secrète** : `sk_live_...`
-
-### 2. Configuration Backend
-
+### Frontend (Vercel)
 ```bash
-cd backend
-cp .env.production .env
-nano .env
+VITE_API_BASE_URL=https://votre-backend.railway.app
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_...
+VITE_OPENAI_API_KEY=sk-...
 ```
 
-Remplacez les valeurs :
-```env
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_votre_vraie_cle_publique
-STRIPE_SECRET_KEY=sk_live_votre_vraie_cle_secrete
-SECRET_KEY=votre_secret_key_super_securise
-```
-
-### 3. Configuration Frontend
-
+### Backend (Railway)
 ```bash
-nano .env
+OPENAI_API_KEY=sk-...
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_PUBLISHABLE_KEY=pk_live_...
+CORS_ORIGINS=https://votre-frontend.vercel.app
 ```
 
-```env
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_votre_vraie_cle_publique
-```
+## 🌐 Déploiement Frontend (Vercel)
 
-## 🚀 Déploiement
+1. **Connecter le repository**
+   - Va sur [vercel.com](https://vercel.com)
+   - Clique sur "New Project"
+   - Importe le repository GitHub
 
-### Option 1: Script automatique
-```bash
-./deploy.sh
-```
+2. **Configuration**
+   - Framework: Vite
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+   - Install Command: `npm install`
 
-### Option 2: Manuel
+3. **Variables d'environnement**
+   - Va dans Settings → Environment Variables
+   - Ajoute toutes les variables VITE_*
 
-1. **Frontend** :
-```bash
-npm install
-npm run build
-```
+## 🔧 Déploiement Backend (Railway)
 
-2. **Backend** :
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python init_db.py
-```
+1. **Connecter le repository**
+   - Va sur [railway.app](https://railway.app)
+   - Clique sur "New Project"
+   - Importe le repository GitHub
+   - Sélectionne le dossier `backend/`
 
-## 🌐 Serveur de Production
+2. **Configuration**
+   - Runtime: Python 3.9
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `uvicorn main_simple:app --host 0.0.0.0 --port $PORT`
 
-### Nginx Configuration
-```nginx
-server {
-    listen 80;
-    server_name votre-domaine.com;
-    
-    # Frontend
-    location / {
-        root /path/to/cv-generator-pwa/dist;
-        try_files $uri $uri/ /index.html;
-    }
-    
-    # Backend API
-    location /api/ {
-        proxy_pass http://localhost:8001;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
+3. **Variables d'environnement**
+   - Va dans Variables
+   - Ajoute toutes les variables OPENAI_* et STRIPE_*
 
-### PM2 pour le backend
-```bash
-npm install -g pm2
-cd backend
-pm2 start main_auth.py --name "cvbien-backend" --interpreter python
-pm2 start main_simple.py --name "cvbien-cv" --interpreter python
-pm2 save
-pm2 startup
-```
+## 🔗 Configuration des URLs
 
-## 🔒 Sécurité
+### Frontend
+- Mettre à jour `VITE_API_BASE_URL` avec l'URL Railway
+- Mettre à jour `CORS_ORIGINS` dans le backend
 
-- ✅ **HTTPS** obligatoire
-- ✅ **Clés Stripe live** sécurisées
-- ✅ **SECRET_KEY** fort et unique
-- ✅ **Firewall** configuré
-- ✅ **Backup** base de données
+### Backend
+- Mettre à jour `CORS_ORIGINS` avec l'URL Vercel
+
+## ✅ Test de Déploiement
+
+1. **Frontend**
+   - Vérifier que l'app se charge
+   - Tester l'upload de CV
+   - Tester la génération
+
+2. **Backend**
+   - Vérifier les logs Railway
+   - Tester l'endpoint `/`
+   - Tester l'endpoint `/optimize-cv`
+
+## 🚨 Dépannage
+
+### Erreur CORS
+- Vérifier `CORS_ORIGINS` dans le backend
+- Ajouter l'URL Vercel exacte
+
+### Erreur 500 Backend
+- Vérifier les variables d'environnement
+- Vérifier les logs Railway
+
+### Erreur Frontend
+- Vérifier les variables VITE_*
+- Vérifier la console du navigateur
 
 ## 📊 Monitoring
 
-```bash
-# Vérifier les logs
-pm2 logs cvbien-backend
-pm2 logs cvbien-cv
+- **Vercel**: Analytics et logs
+- **Railway**: Logs et métriques
+- **Stripe**: Dashboard des paiements
 
-# Status des services
-pm2 status
-```
+## 🔄 Mise à jour
 
-## 🎯 URLs de Production
+1. Push sur GitHub
+2. Vercel et Railway se mettent à jour automatiquement
+3. Vérifier que tout fonctionne
 
-- **Frontend** : `https://votre-domaine.com`
-- **API Auth** : `https://votre-domaine.com/api/auth/`
-- **API CV** : `https://votre-domaine.com/api/cv/`
+---
 
-## 💰 Coûts Estimés
-
-- **VPS** : 5-10€/mois
-- **Domaine** : 10-15€/an
-- **Stripe** : 1.4% + 0.25€ par transaction
-- **Total** : ~15-20€/mois
-
+**🎯 Ton app sera accessible sur :**
+- Frontend: `https://cvbien.vercel.app`
+- Backend: `https://cvbien-backend.railway.app`
