@@ -176,3 +176,4 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 ---
 
 **🚀 Déployé avec ❤️ par [Fatih](https://github.com/Fatihbg)**# CVbien
+# Force Vercel redeploy - Fri Oct  3 18:33:02 CEST 2025
