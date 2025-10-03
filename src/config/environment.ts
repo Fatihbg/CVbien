@@ -15,8 +15,8 @@ export const config = {
   IS_DEVELOPMENT: import.meta.env.VITE_NODE_ENV === 'development',
 
   // URLs de l'API - TEMPORAIREMENT HARDCODÉ
-  API_BASE_URL: 'http://localhost:8003', // import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002',
-  AUTH_API_URL: import.meta.env.VITE_AUTH_API_URL || 'http://localhost:8001',
+  API_BASE_URL: 'http://https://cvbien-production.up.railway.app', // import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002',
+  AUTH_API_URL: import.meta.env.VITE_AUTH_API_URL || 'http://https://cvbien-production.up.railway.app',
 
   // Application
   APP_NAME: import.meta.env.VITE_APP_NAME || 'CVbien',
