@@ -181,3 +181,4 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 # Force Vercel redeploy - Fix admin.ts API URL - Fri Oct  3 18:55:16 CEST 2025
 # Force Vercel redeploy - Fix environment variables - Fri Oct  3 19:14:38 CEST 2025
 # Force Vercel redeploy - Fix API URL protocol - Fri Oct  3 19:20:21 CEST 2025
+# Force Vercel redeploy - Debug URLs - Fri Oct  3 19:23:22 CEST 2025
