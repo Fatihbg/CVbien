@@ -1,0 +1,493 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Variables CSS pour le thème futuriste */
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b7280;
+  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Animation pour le spinner de vérification email */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animation de fond dynamique */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+    animation: backgroundShift 20s ease-in-out infinite;
+    z-index: -1;
+  }
+
+  @keyframes backgroundShift {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+  }
+}
+
+@layer components {
+  /* Boutons futuristes */
+  .btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+    font-weight: 600;
+    padding: 16px 32px;
+    border-radius: 16px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(10px);
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--shadow-glow), var(--shadow-soft);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  .btn-secondary {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    color: var(--text-primary);
+    font-weight: 500;
+    padding: 16px 32px;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 16px;
+    box-shadow: var(--shadow-soft);
+  }
+
+  .btn-secondary:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Champs de saisie futuristes */
+  .input-field {
+    width: 100%;
+    padding: 20px 24px;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    font-size: 16px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    color: var(--text-primary);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .input-field::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+  }
+
+  .input-field:focus {
+    border-color: rgba(102, 126, 234, 0.5);
+    box-shadow: 
+      0 0 0 4px rgba(102, 126, 234, 0.1),
+      var(--shadow-glow);
+    transform: translateY(-1px);
+  }
+
+  /* Cartes futuristes */
+  .card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    box-shadow: var(--shadow-soft);
+    padding: 32px;
+    border: 1px solid var(--glass-border);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.1),
+      0 0 40px rgba(102, 126, 234, 0.1);
+  }
+
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(30px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: var(--shadow-soft);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shimmer 3s infinite;
+    pointer-events: none;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+  }
+
+  /* Effets de zoom et de profondeur */
+  .zoom-hover {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .zoom-hover:hover {
+    transform: scale(1.02) translateY(-2px);
+  }
+
+  /* Animations d'entrée */
+  .fade-in {
+    animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .slide-up {
+    animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .slide-in-left {
+    animation: slideInLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .slide-in-right {
+    animation: slideInRight 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0; 
+      transform: translateY(30px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  @keyframes slideInLeft {
+    from { 
+      opacity: 0; 
+      transform: translateX(-30px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
+
+  @keyframes slideInRight {
+    from { 
+      opacity: 0; 
+      transform: translateX(30px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateX(0); 
+    }
+  }
+
+  /* Barre de progression futuriste */
+  .progress-bar {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    height: 8px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--glass-border);
+  }
+
+  .progress-fill {
+    background: var(--accent-gradient);
+    height: 100%;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: progressShimmer 2s infinite;
+  }
+
+  @keyframes progressShimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  /* Effet de particules flottantes */
+  .floating-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(102, 126, 234, 0.3);
+    border-radius: 50%;
+    animation: float 6s infinite linear;
+  }
+
+  @keyframes float {
+    0% {
+      transform: translateY(100vh) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-100px) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  /* Animations supplémentaires */
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Effet de hover pour les cartes */
+  .card:hover::after {
+    animation: shimmer 1.5s ease-in-out;
+  }
+
+  /* Animation de chargement */
+  .loading-dots {
+    display: inline-block;
+  }
+
+  .loading-dots::after {
+    content: '';
+    animation: loadingDots 1.5s infinite;
+  }
+
+  @keyframes loadingDots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+  }
+
+  /* Effet de focus pour les inputs */
+  .input-field:focus {
+    animation: inputFocus 0.3s ease-out;
+  }
+
+  @keyframes inputFocus {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+
+  /* Animation d'apparition progressive */
+  .stagger-animation > * {
+    animation: slideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-animation > *:nth-child(5) { animation-delay: 0.5s; }
+
+  /* Styles spécifiques pour mobile */
+  @media (max-width: 768px) {
+    /* Améliorer la lisibilité sur mobile */
+    body {
+      font-size: 16px; /* Éviter le zoom automatique sur iOS */
+    }
+    
+    /* Optimiser les cartes pour mobile */
+    .glass-card {
+      padding: 16px !important;
+      margin: 8px !important;
+      border-radius: 16px !important;
+    }
+    
+    /* Améliorer les boutons tactiles */
+    button {
+      min-height: 44px; /* Taille minimum recommandée pour le tactile */
+      min-width: 44px;
+    }
+    
+    /* Optimiser les inputs pour mobile */
+    input, textarea {
+      font-size: 16px !important; /* Éviter le zoom sur iOS */
+      padding: 12px !important;
+      border-radius: 12px !important;
+    }
+    
+    /* Améliorer l'espacement pour les doigts */
+    .zoom-hover {
+      padding: 12px !important;
+    }
+    
+    /* Navigation mobile */
+    nav {
+      margin: 8px !important;
+      padding: 12px 16px !important;
+    }
+    
+    /* Contenu principal mobile */
+    .main-content {
+      padding: 8px !important;
+      gap: 12px !important;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    /* Très petits écrans (iPhone SE, etc.) */
+    .glass-card {
+      padding: 12px !important;
+      margin: 6px !important;
+      border-radius: 12px !important;
+    }
+    
+    /* Réduire les gaps sur très petits écrans */
+    .main-content {
+      padding: 6px !important;
+      gap: 8px !important;
+    }
+    
+    /* Textes plus petits sur très petits écrans */
+    h1 {
+      font-size: 18px !important;
+    }
+    
+    h3 {
+      font-size: 14px !important;
+    }
+  }
+  
+  /* Améliorer les performances sur mobile */
+  @media (max-width: 768px) {
+    /* Réduire les effets coûteux sur mobile */
+    .glass-card {
+      backdrop-filter: blur(20px) !important; /* Moins de blur */
+    }
+    
+    /* Simplifier les animations sur mobile */
+    .zoom-hover:hover {
+      transform: scale(1.02) !important; /* Moins d'effet zoom */
+    }
+    
+    /* Optimiser les ombres */
+    .glass-card {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+    }
+  }
+}
