@@ -60,3 +60,4 @@ if (config.IS_PRODUCTION) {
 }
 
 export default config;
+// Force redeploy Fri Oct  3 17:51:03 CEST 2025
