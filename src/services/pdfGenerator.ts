@@ -1,20 +1,153 @@
 import { config } from '../config/environment';
 
 export class PDFGenerator {
-    static async generateCVPDF(cvText: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
-      try {
-        console.log('=== GÉNÉRATION PDF DESIGN HYBRIDE ===');
-        console.log('Mélange du design de l\'aperçu avec le PDF...');
-        
-        // Utiliser une approche hybride : CSS vers PDF
-        await this.generateHybridPDF(cvText, filename);
-        
-      } catch (error) {
-        console.error('Erreur génération hybride, utilisation du fallback jsPDF:', error);
-        // Fallback vers jsPDF si l'hybride échoue
-        await this.generateFallbackPDF(cvText, filename);
-      }
+  static async generateCVPDF(cvText: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
+    try {
+      console.log('=== GÉNÉRATION PDF RONALDO PRIME ===');
+      console.log('Utilisation du design Ronaldo Prime qui fonctionne...');
+      
+      // Utiliser directement le design Ronaldo Prime
+      await this.generateRonaldoPrimePDF(cvText, filename);
+      
+    } catch (error) {
+      console.error('Erreur génération Ronaldo Prime:', error);
+      throw error;
     }
+  }
+
+  private static async generateRonaldoPrimePDF(cvText: string, filename: string): Promise<void> {
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Configuration optimisée pour le design Ronaldo Prime
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 15;
+      const maxWidth = pageWidth - (2 * margin);
+      let currentY = margin;
+
+      // Fonction pour ajouter du texte avec le style Ronaldo Prime
+      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
+        if (currentY > pageHeight - 20) return;
+        
+        doc.setFontSize(fontSize);
+        if (isBold) {
+          doc.setFont('helvetica', 'bold');
+        } else {
+          doc.setFont('helvetica', 'normal');
+        }
+        doc.setTextColor(color);
+        
+        const lines = doc.splitTextToSize(text, maxWidth);
+        
+        lines.forEach((line: string) => {
+          if (currentY > pageHeight - 20) return;
+          let xPos = margin;
+          let align: any = 'left';
+          
+          if (isCenter) {
+            xPos = pageWidth / 2;
+            align = 'center';
+          }
+          
+          doc.text(line, xPos, currentY, { align });
+          currentY += fontSize * 0.4;
+        });
+      };
+
+      // Parser intelligent pour le design Ronaldo Prime
+      const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
+      
+      let isHeader = true;
+      let currentSection = '';
+
+      lines.forEach((line, index) => {
+        if (currentY > pageHeight - 20) return;
+
+        // Header (nom, contact, titre) - CENTRÉ
+        if (isHeader && index < 8) {
+          // Nom en majuscules - CENTRÉ et BLEU
+          if (line.length > 3 && line.length < 50 && line === line.toUpperCase() && 
+              !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE')) {
+            addText(line, 18, true, true, '#1e3a8a'); // Nom centré en bleu sérieux
+            currentY += 3;
+          } 
+          // Contact - CENTRÉ
+          else if (line.includes('@') || line.includes('|') || line.includes('+')) {
+            addText(line, 10, false, true, '#000000'); // Contact centré
+            currentY += 1;
+          } 
+          // Titre de poste - CENTRÉ et GRAS
+          else if (line.length > 5 && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') && 
+                   !line.includes('FORMATION') && !line.includes('SKILLS')) {
+            addText(line, 14, true, true, '#000000'); // Titre centré en gras
+            currentY += 3;
+          }
+        }
+        
+        // Détecter la fin du header
+        if (isHeader && (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('FORMATION'))) {
+          isHeader = false;
+          currentY += 4;
+        }
+        
+        // Sections principales - avec lignes horizontales BLEUES
+        if (line === 'PROFESSIONAL EXPERIENCE' || 
+            line === 'EDUCATION' || 
+            line === 'TECHNICAL SKILLS' || 
+            line === 'CERTIFICATIONS & ACHIEVEMENTS' ||
+            line === 'EXPÉRIENCE PROFESSIONNELLE' ||
+            line === 'FORMATION' ||
+            line === 'COMPETENCES' ||
+            line === 'COMPÉTENCES' ||
+            line === 'PROJECTS' ||
+            line === 'OTHER') {
+          
+          currentY += 4;
+          // Ligne horizontale BLEUE
+          doc.setDrawColor(30, 58, 138); // Bleu sérieux
+          doc.setLineWidth(1.0);
+          doc.line(margin, currentY - 2, pageWidth - margin, currentY - 2);
+          
+          addText(line, 12, true, false, '#1e3a8a'); // Sections en bleu sérieux
+          currentY += 3;
+          currentSection = line;
+        }
+        // Postes/titres dans les sections - EN GRAS
+        else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
+                 line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
+          // Vérifier si c'est un poste
+          const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
+                              'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner'];
+          if (jobKeywords.some(keyword => line.toLowerCase().includes(keyword))) {
+            addText(line, 11, true, false, '#000000'); // Postes en gras
+            currentY += 1;
+          }
+        }
+        // Contenu des sections
+        else if (currentSection && line.length > 0) {
+          // Formatage spécial pour les puces
+          if (line.startsWith('•') || line.startsWith('-')) {
+            addText('    ' + line, 9, false, false, '#000000'); // Puces indentées
+          } else {
+            addText(line, 9, false, false, '#000000'); // Texte normal
+          }
+        }
+      });
+
+      doc.save(filename);
+      console.log('✅ PDF Ronaldo Prime généré avec succès');
+    } catch (error) {
+      console.error('Erreur génération Ronaldo Prime:', error);
+      throw error;
+    }
+  }
 
   private static async generateHybridPDF(cvText: string, filename: string): Promise<void> {
     try {
