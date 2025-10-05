@@ -213,86 +213,95 @@ export class OpenAIService {
             throw new Error('Le fichier n\'est pas un PDF valide');
           }
           
-          // Utiliser pdfjs-dist pour l'extraction PDF côté frontend
-          try {
-            const pdfjsLib = await import('pdfjs-dist');
-            console.log('📚 PDF.js chargé avec succès');
-            
-            // Configurer le worker
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
-            
-            const arrayBuffer = await file.arrayBuffer();
-            console.log('📄 ArrayBuffer créé, taille:', arrayBuffer.byteLength);
-            
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            console.log('📖 PDF chargé, nombre de pages:', pdf.numPages);
-            
-            let fullText = '';
-            
-            // Extraire le texte de toutes les pages
-            for (let i = 1; i <= pdf.numPages; i++) {
-              console.log(`📄 Extraction page ${i}/${pdf.numPages}`);
-              const page = await pdf.getPage(i);
-              const textContent = await page.getTextContent();
-              const pageText = textContent.items
-                .map((item: any) => item.str)
-                .join(' ');
-              fullText += pageText + '\n';
-            }
-            
-            const result = fullText.trim();
-            console.log('✅ Texte extrait du PDF (frontend):', result.substring(0, 200) + '...');
-            console.log('📊 Longueur totale:', result.length, 'caractères');
-            
-            if (!result || result.length < 10) {
-              throw new Error('Aucun texte valide trouvé dans le PDF');
-            }
-            
-            return result;
-            
-          } catch (pdfError) {
-            console.error('Erreur extraction PDF frontend:', pdfError);
-          }
-          
-          // Fallback: essayer le backend
+          // Utiliser le backend pour l'extraction PDF
           try {
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('cv_file', file);
             
             const response = await fetch(`${config.API_BASE_URL}/extract-pdf`, {
               method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              },
               body: formData
             });
-            
-            if (response.ok) {
-              const result = await response.json();
-              console.log('Texte extrait du PDF (backend):', result.text?.substring(0, 200) + '...');
-              return result.text || 'Aucun texte extrait du PDF';
+
+            if (!response.ok) {
+              throw new Error(`Erreur backend: ${response.status}`);
             }
+
+            const result = await response.json();
+            
+            if (result.success && result.text) {
+              console.log('✅ Texte extrait du PDF (backend):', result.text.substring(0, 200) + '...');
+              console.log('📊 Longueur totale:', result.text.length, 'caractères');
+              console.log('📄 Nombre de pages:', result.pages);
+              
+              if (!result.text || result.text.length < 10) {
+                throw new Error('Aucun texte valide trouvé dans le PDF');
+              }
+              
+              return result.text;
+            } else {
+              throw new Error(result.error || 'Erreur extraction PDF backend');
+            }
+            
           } catch (backendError) {
-            console.error('Erreur backend PDF:', backendError);
+            console.error('Erreur extraction PDF backend:', backendError);
+            // Fallback vers pdfjs-dist si le backend échoue
+            return await this.extractTextFromPDFFrontend(file);
           }
           
-          // Fallback final: extraction simplifiée
-          console.log('PDF détecté - extraction simplifiée (fallback)');
-          return `CV Professionnel
-
-EXPERIENCE PROFESSIONNELLE
-- Poste actuel - Entreprise (2020-2024)
-- Poste précédent - Entreprise (2018-2020)
-
-FORMATION
-- Diplôme - Institution (2016-2020)
-
-COMPETENCES
-- Compétences techniques
-- Langues
-- Certifications
-
-NOTE: Extraction PDF simplifiée - le contenu réel sera extrait lors de l'implémentation complète`;
-        } catch (error) {
-          console.error('Erreur lors de l\'extraction PDF:', error);
           throw new Error('Impossible de lire le fichier PDF');
+        } catch (error) {
+          console.error('Erreur générale dans extractTextFromPDF:', error);
+          throw error;
+        }
+      }
+
+      // Fallback: extraction PDF côté frontend avec pdfjs-dist
+      private static async extractTextFromPDFFrontend(file: File): Promise<string> {
+        try {
+          console.log('🔄 Fallback: extraction PDF frontend...');
+          
+          const pdfjsLib = await import('pdfjs-dist');
+          console.log('📚 PDF.js chargé avec succès');
+          
+          // Configurer le worker
+          pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+          
+          const arrayBuffer = await file.arrayBuffer();
+          console.log('📄 ArrayBuffer créé, taille:', arrayBuffer.byteLength);
+          
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          console.log('📖 PDF chargé, nombre de pages:', pdf.numPages);
+          
+          let fullText = '';
+          
+          // Extraire le texte de toutes les pages
+          for (let i = 1; i <= pdf.numPages; i++) {
+            console.log(`📄 Extraction page ${i}/${pdf.numPages}`);
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+              .map((item: any) => item.str)
+              .join(' ');
+            fullText += pageText + '\n';
+          }
+          
+          const result = fullText.trim();
+          console.log('✅ Texte extrait du PDF (frontend fallback):', result.substring(0, 200) + '...');
+          console.log('📊 Longueur totale:', result.length, 'caractères');
+          
+          if (!result || result.length < 10) {
+            throw new Error('Aucun texte valide trouvé dans le PDF');
+          }
+          
+          return result;
+          
+        } catch (error) {
+          console.error('Erreur extraction PDF frontend fallback:', error);
+          throw error;
         }
       }
 
