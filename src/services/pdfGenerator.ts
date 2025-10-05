@@ -22,16 +22,30 @@ export class PDFGenerator {
 
       console.log('PDF reçu du backend Python');
       
-      // Le backend retourne un PDF, on le télécharge directement
-      const pdfBlob = await response.blob();
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // Le backend retourne un JSON avec le PDF en hexadécimal
+      const result = await response.json();
+      console.log('Résultat backend:', result);
+      
+      if (result.success && result.pdf_content) {
+        // Convertir l'hexadécimal en blob
+        const hexString = result.pdf_content;
+        const bytes = new Uint8Array(hexString.length / 2);
+        for (let i = 0; i < hexString.length; i += 2) {
+          bytes[i / 2] = parseInt(hexString.substr(i, 2), 16);
+        }
+        
+        const pdfBlob = new Blob([bytes], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = result.filename || filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        throw new Error('Erreur: PDF non généré par le backend');
+      }
       
       console.log('PDF téléchargé avec succès !');
       
