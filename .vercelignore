@@ -1,0 +1,12 @@
+backend/
+cvbien-backend/
+cvbien-backend-clean/
+cvbien-backend-final/
+requirements.txt
+Dockerfile
+railway.toml
+nixpacks.toml
+Procfile
+start.py
+start.sh
+runtime.txt
