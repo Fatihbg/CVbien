@@ -169,14 +169,14 @@ COMPETENCES
       console.log('Résultat reçu:', result);
       console.log('Type du résultat:', typeof result);
       console.log('Clés du résultat:', Object.keys(result));
-      console.log('result.optimized_cv:', result.optimized_cv);
-      console.log('result.ats_score:', result.ats_score);
+      console.log('result.optimizedCV:', result.optimizedCV);
+      console.log('result.atsScore:', result.atsScore);
       console.log('result.improvements:', result.improvements);
       
       // Vérifications de sécurité avant d'accéder aux propriétés
-      const optimizedCV = result?.optimizedCV || result?.optimized_cv || result?.data?.optimized_cv || null;
-      const atsScore = result?.atsScore || result?.optimized_cv?.score || result?.ats_score || result?.data?.ats_score || 0;
-      const improvements = result?.improvements || result?.optimized_cv?.suggestions || result?.improvements || result?.data?.improvements || [];
+      const optimizedCV = result?.optimizedCV || null;
+      const atsScore = result?.atsScore || 0;
+      const improvements = result?.improvements || [];
       
       console.log('Données sécurisées:', { optimizedCV, atsScore, improvements });
       console.log('Type optimizedCV:', typeof optimizedCV);
