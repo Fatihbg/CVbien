@@ -187,9 +187,39 @@ export class PDFGenerator {
             currentY += 0.5;
           }
         }
-        // Puces et contenu
+        // Éducation et autres sections - formatage spécial
+        else if (currentSection && (currentSection.includes('EDUCATION') || currentSection.includes('FORMATION')) &&
+                 line.length > 3 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
+          
+          // Vérifier s'il y a une date sur la même ligne
+          const parts = line.split(' • ');
+          if (parts.length === 2) {
+            addText(parts[0], 10, true, false, false, '#000000'); // Institution en gras à gauche
+            addText(parts[1], 9, false, false, true, '#000000'); // Date à droite
+          } else {
+            addText(line, 10, true, false, false, '#000000'); // Institution en gras
+          }
+          currentY += 0.5;
+        }
+        // Compétences et certifications - formatage simple
+        else if (currentSection && (currentSection.includes('SKILLS') || currentSection.includes('COMPETENCES') || 
+                 currentSection.includes('CERTIFICATIONS') || currentSection.includes('ACHIEVEMENTS')) &&
+                 line.length > 0) {
+          
+          // Formatage spécial pour les sous-catégories
+          if (line.includes(':') && !line.startsWith('•')) {
+            addText(line, 10, true, false, false, '#000000'); // Sous-catégorie en gras
+          } else {
+            addText(line, 9, false, false, false, '#000000'); // Contenu normal
+          }
+          currentY += 0.3;
+        }
+        // Puces et contenu - formatage indenté
         else if (line.startsWith('•') || line.startsWith('-')) {
-          addText(line, 9, false, false, false, '#000000'); // Puces
+          // Indenter les puces
+          const indentedLine = '    ' + line;
+          addText(indentedLine, 9, false, false, false, '#000000'); // Puces indentées
+          currentY += 0.2;
         }
         // Texte normal
         else if (line.length > 0) {
