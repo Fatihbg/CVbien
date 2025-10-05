@@ -61,54 +61,69 @@ export class PDFGenerator {
         });
       };
 
-      // Parser intelligent pour le design Ronaldo Prime
+      // Parser amélioré pour capturer TOUT le contenu
       const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
+      
+      console.log('📄 Lignes du CV à traiter:', lines.length);
+      console.log('📄 Premières lignes:', lines.slice(0, 10));
       
       let isHeader = true;
       let currentSection = '';
+      let headerProcessed = 0;
 
       lines.forEach((line, index) => {
         if (currentY > pageHeight - 20) return;
 
-        // Header (nom, contact, titre) - CENTRÉ
-        if (isHeader && index < 8) {
+        // Header (nom, contact, titre) - CENTRÉ - Limiter à 5 lignes max
+        if (isHeader && headerProcessed < 5) {
           // Nom en majuscules - CENTRÉ et BLEU
           if (line.length > 3 && line.length < 50 && line === line.toUpperCase() && 
-              !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE')) {
+              !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') &&
+              !line.includes('SUMMARY') && !line.includes('RÉSUMÉ')) {
             addText(line, 18, true, true, '#1e3a8a'); // Nom centré en bleu sérieux
             currentY += 3;
+            headerProcessed++;
+            console.log('✅ Nom détecté:', line);
           } 
           // Contact - CENTRÉ
-          else if (line.includes('@') || line.includes('|') || line.includes('+')) {
+          else if (line.includes('@') || line.includes('|') || line.includes('+') || line.includes('phone') || line.includes('tel')) {
             addText(line, 10, false, true, '#000000'); // Contact centré
             currentY += 1;
+            headerProcessed++;
+            console.log('✅ Contact détecté:', line);
           } 
           // Titre de poste - CENTRÉ et GRAS
-          else if (line.length > 5 && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') && 
-                   !line.includes('FORMATION') && !line.includes('SKILLS')) {
+          else if (line.length > 5 && line.length < 80 && 
+                   !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') && 
+                   !line.includes('FORMATION') && !line.includes('SKILLS') &&
+                   !line.includes('SUMMARY') && !line.includes('RÉSUMÉ') &&
+                   !line.includes('EDUCATION') && !line.includes('CERTIFICATIONS')) {
             addText(line, 14, true, true, '#000000'); // Titre centré en gras
             currentY += 3;
+            headerProcessed++;
+            console.log('✅ Titre détecté:', line);
           }
         }
         
-        // Détecter la fin du header
-        if (isHeader && (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('FORMATION'))) {
+        // Détecter la fin du header - plus flexible
+        if (isHeader && (line.includes('PROFESSIONAL SUMMARY') || line.includes('RÉSUMÉ PROFESSIONNEL') ||
+                         line.includes('PROFESSIONAL EXPERIENCE') || line.includes('EXPÉRIENCE PROFESSIONNELLE') ||
+                         line.includes('EDUCATION') || line.includes('FORMATION') ||
+                         line.includes('SKILLS') || line.includes('COMPETENCES'))) {
           isHeader = false;
           currentY += 4;
+          console.log('✅ Fin du header détectée avec:', line);
         }
         
-        // Sections principales - avec lignes horizontales BLEUES
-        if (line === 'PROFESSIONAL EXPERIENCE' || 
-            line === 'EDUCATION' || 
-            line === 'TECHNICAL SKILLS' || 
-            line === 'CERTIFICATIONS & ACHIEVEMENTS' ||
-            line === 'EXPÉRIENCE PROFESSIONNELLE' ||
-            line === 'FORMATION' ||
-            line === 'COMPETENCES' ||
-            line === 'COMPÉTENCES' ||
-            line === 'PROJECTS' ||
-            line === 'OTHER') {
-          
+        // Sections principales - avec lignes horizontales BLEUES - Plus flexible
+        const sectionKeywords = ['EXPERIENCE', 'EDUCATION', 'SKILLS', 'CERTIFICATIONS', 'ACHIEVEMENTS', 
+                                'FORMATION', 'COMPETENCES', 'PROJECTS', 'OTHER', 'SUMMARY', 'RÉSUMÉ'];
+        
+        const isSection = sectionKeywords.some(keyword => 
+          line.toUpperCase().includes(keyword) && line.length < 50
+        );
+        
+        if (isSection && !isHeader) {
           currentY += 4;
           // Ligne horizontale BLEUE
           doc.setDrawColor(30, 58, 138); // Bleu sérieux
@@ -118,25 +133,36 @@ export class PDFGenerator {
           addText(line, 12, true, false, '#1e3a8a'); // Sections en bleu sérieux
           currentY += 3;
           currentSection = line;
+          console.log('✅ Section détectée:', line);
         }
-        // Postes/titres dans les sections - EN GRAS
+        // Postes/titres dans les sections - EN GRAS - Plus flexible
         else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
-                 line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
-          // Vérifier si c'est un poste
+                 line.length > 5 && line.length < 100 && !line.startsWith('•') && !line.startsWith('-')) {
+          // Vérifier si c'est un poste ou entreprise
           const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
-                              'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner'];
-          if (jobKeywords.some(keyword => line.toLowerCase().includes(keyword))) {
-            addText(line, 11, true, false, '#000000'); // Postes en gras
+                              'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner',
+                              'company', 'corporation', 'ltd', 'inc', 'srl', 'gmbh', 'sa'];
+          const isJobOrCompany = jobKeywords.some(keyword => line.toLowerCase().includes(keyword));
+          
+          if (isJobOrCompany || line.includes(' - ') || line.includes(' | ') || line.includes(' • ')) {
+            addText(line, 11, true, false, '#000000'); // Postes/entreprises en gras
             currentY += 1;
+            console.log('✅ Poste/Entreprise détecté:', line);
+          } else {
+            // Texte normal dans les sections
+            addText(line, 9, false, false, '#000000');
+            console.log('✅ Contenu section:', line);
           }
         }
-        // Contenu des sections
-        else if (currentSection && line.length > 0) {
+        // TOUT LE RESTE - capturer absolument tout
+        else if (!isHeader && line.length > 0) {
           // Formatage spécial pour les puces
-          if (line.startsWith('•') || line.startsWith('-')) {
+          if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
             addText('    ' + line, 9, false, false, '#000000'); // Puces indentées
+            console.log('✅ Puce détectée:', line);
           } else {
             addText(line, 9, false, false, '#000000'); // Texte normal
+            console.log('✅ Texte normal:', line);
           }
         }
       });
