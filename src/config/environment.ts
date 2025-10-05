@@ -61,6 +61,13 @@ if (config.IS_PRODUCTION) {
   if (missingVars.length > 0) {
     console.error('🚨 Variables d\'environnement manquantes en production:', missingVars);
   }
+  
+  // Logs de debugging pour les variables importantes
+  console.log('🔧 Variables d\'environnement détectées:');
+  console.log('🔑 VITE_OPENAI_API_KEY:', import.meta.env.VITE_OPENAI_API_KEY ? 'Présente' : 'Manquante');
+  console.log('🌐 VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL || 'Non définie');
+  console.log('🔐 VITE_AUTH_API_URL:', import.meta.env.VITE_AUTH_API_URL || 'Non définie');
+  console.log('📊 Mode production:', isProduction);
 }
 
 export default config;
