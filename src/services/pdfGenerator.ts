@@ -1,3 +1,5 @@
+import { config } from '../config/environment';
+
 export class PDFGenerator {
     static async generateCVPDF(cvText: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
       try {
@@ -5,12 +7,15 @@ export class PDFGenerator {
         console.log('Utilisation du backend ReportLab pour design identique à l\'aperçu...');
         
         // Utiliser le backend ReportLab qui peut reproduire le design CSS
+        const formData = new FormData();
+        formData.append('cv_text', cvText);
+        
         const response = await fetch(`${config.API_BASE_URL}/generate-pdf`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
           },
-          body: new FormData().append('cv_text', cvText)
+          body: formData
         });
 
         if (!response.ok) {
