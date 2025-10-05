@@ -102,22 +102,22 @@ export class PDFGenerator {
 
       // Phase 2: Afficher le header formaté
       if (name) {
-        addText(name, 16, true, true, '#000000'); // Nom centré
+        addText(name, 16, true, true, false, '#000000'); // Nom centré
         currentY += 3;
       }
       
       if (contact) {
-        addText(contact, 10, false, true, '#000000'); // Contact centré
+        addText(contact, 10, false, true, false, '#000000'); // Contact centré
         currentY += 2;
       }
       
       if (jobTitle) {
-        addText(jobTitle, 12, false, true, '#000000'); // Titre centré
+        addText(jobTitle, 12, false, true, false, '#000000'); // Titre centré
         currentY += 3;
       }
       
       if (summary) {
-        addText(summary.trim(), 10, false, false, '#000000'); // Résumé justifié
+        addText(summary.trim(), 10, false, false, false, '#000000'); // Résumé justifié
         currentY += 3;
       }
 
@@ -145,7 +145,7 @@ export class PDFGenerator {
             line === 'OTHER' || line === 'SKILLS') {
           
           currentY += 3;
-          addText(line, 12, true, false, '#000000'); // Sections en gras
+          addText(line, 12, true, false, false, '#000000'); // Sections en gras
           currentY += 1;
           currentSection = line;
         }
@@ -189,11 +189,11 @@ export class PDFGenerator {
         }
         // Puces et contenu
         else if (line.startsWith('•') || line.startsWith('-')) {
-          addText(line, 9, false, false, '#000000'); // Puces
+          addText(line, 9, false, false, false, '#000000'); // Puces
         }
         // Texte normal
         else if (line.length > 0) {
-          addText(line, 9, false, false, '#000000');
+          addText(line, 9, false, false, false, '#000000');
         }
       });
 
