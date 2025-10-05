@@ -195,22 +195,32 @@ export class OpenAIService {
       static async extractTextFromPDF(file: File): Promise<string> {
         try {
           console.log('=== EXTRACTION PDF ===');
-          console.log('Fichier PDF:', file.name, 'Taille:', file.size);
+          console.log('Fichier PDF:', file.name, 'Taille:', file.size, 'Type:', file.type);
+          
+          // Vérifier que c'est bien un PDF
+          if (!file.type.includes('pdf') && !file.name.toLowerCase().endsWith('.pdf')) {
+            throw new Error('Le fichier n\'est pas un PDF valide');
+          }
           
           // Utiliser pdfjs-dist pour l'extraction PDF côté frontend
           try {
             const pdfjsLib = await import('pdfjs-dist');
+            console.log('📚 PDF.js chargé avec succès');
             
             // Configurer le worker
             pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
             
             const arrayBuffer = await file.arrayBuffer();
+            console.log('📄 ArrayBuffer créé, taille:', arrayBuffer.byteLength);
+            
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            console.log('📖 PDF chargé, nombre de pages:', pdf.numPages);
             
             let fullText = '';
             
             // Extraire le texte de toutes les pages
             for (let i = 1; i <= pdf.numPages; i++) {
+              console.log(`📄 Extraction page ${i}/${pdf.numPages}`);
               const page = await pdf.getPage(i);
               const textContent = await page.getTextContent();
               const pageText = textContent.items
@@ -219,8 +229,15 @@ export class OpenAIService {
               fullText += pageText + '\n';
             }
             
-            console.log('Texte extrait du PDF (frontend):', fullText.substring(0, 200) + '...');
-            return fullText.trim() || 'Aucun texte trouvé dans le PDF';
+            const result = fullText.trim();
+            console.log('✅ Texte extrait du PDF (frontend):', result.substring(0, 200) + '...');
+            console.log('📊 Longueur totale:', result.length, 'caractères');
+            
+            if (!result || result.length < 10) {
+              throw new Error('Aucun texte valide trouvé dans le PDF');
+            }
+            
+            return result;
             
           } catch (pdfError) {
             console.error('Erreur extraction PDF frontend:', pdfError);
