@@ -67,12 +67,19 @@ export class PDFGenerator {
       console.log('📄 Lignes du CV à traiter:', lines.length);
       console.log('📄 Premières lignes:', lines.slice(0, 10));
       
+      // ANALYSE INTELLIGENTE - Validation du contenu avant génération
+      const contentAnalysis = this.analyzeContentIntelligence(lines);
+      console.log('🧠 Analyse intelligente:', contentAnalysis);
+      
+      // Ajuster les lignes selon l'analyse
+      const validatedLines = this.validateAndCleanLines(lines, contentAnalysis);
+      
       let isHeader = true;
       let currentSection = '';
       let headerProcessed = 0;
 
-      for (let index = 0; index < lines.length; index++) {
-        const line = lines[index];
+      for (let index = 0; index < validatedLines.length; index++) {
+        const line = validatedLines[index];
         if (currentY > pageHeight - 20) break;
 
         // Header (nom, contact, titre) - CENTRÉ - Limiter à 5 lignes max
@@ -296,6 +303,133 @@ export class PDFGenerator {
       console.error('Erreur génération Ronaldo Prime:', error);
       throw error;
     }
+  }
+
+  // ANALYSE INTELLIGENTE - Éviter les mises en forme bizarres
+  private static analyzeContentIntelligence(lines: string[]): any {
+    const analysis = {
+      hasName: false,
+      hasContact: false,
+      hasTitle: false,
+      hasSummary: false,
+      sections: [],
+      language: 'unknown',
+      issues: []
+    };
+
+    // Détecter la langue
+    const text = lines.join(' ').toLowerCase();
+    if (text.includes('professional experience') || text.includes('education') || text.includes('technical skills')) {
+      analysis.language = 'english';
+    } else if (text.includes('expérience professionnelle') || text.includes('formation') || text.includes('compétences')) {
+      analysis.language = 'french';
+    }
+
+    // Détecter les sections principales
+    const sectionKeywords = {
+      experience: ['professional experience', 'expérience professionnelle', 'work experience', 'expérience'],
+      education: ['education', 'formation', 'academic', 'académique'],
+      skills: ['technical skills', 'compétences techniques', 'skills', 'compétences'],
+      certifications: ['certifications', 'certificats', 'achievements', 'réalisations']
+    };
+
+    lines.forEach((line, index) => {
+      const upperLine = line.toUpperCase();
+      
+      // Détecter les sections
+      Object.keys(sectionKeywords).forEach(sectionType => {
+        if (sectionKeywords[sectionType].some(keyword => upperLine.includes(keyword.toUpperCase()))) {
+          analysis.sections.push({
+            type: sectionType,
+            line: line,
+            index: index
+          });
+        }
+      });
+
+      // Détecter le nom (ligne en majuscules, pas trop longue)
+      if (!analysis.hasName && line.length > 3 && line.length < 50 && line === line.toUpperCase() && 
+          !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE')) {
+        analysis.hasName = true;
+      }
+
+      // Détecter le contact
+      if (!analysis.hasContact && (line.includes('@') || line.includes('|') || line.includes('+'))) {
+        analysis.hasContact = true;
+      }
+
+      // Détecter le titre de poste
+      if (!analysis.hasTitle && line.length > 5 && line.length < 80 && 
+          !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') && 
+          !line.includes('FORMATION') && !line.includes('SKILLS')) {
+        analysis.hasTitle = true;
+      }
+    });
+
+    // Détecter les problèmes
+    if (!analysis.hasName) analysis.issues.push('Pas de nom détecté');
+    if (!analysis.hasContact) analysis.issues.push('Pas de contact détecté');
+    if (!analysis.hasTitle) analysis.issues.push('Pas de titre de poste détecté');
+    if (analysis.sections.length < 3) analysis.issues.push('Pas assez de sections détectées');
+
+    return analysis;
+  }
+
+  // VALIDATION ET NETTOYAGE - Corriger les problèmes détectés
+  private static validateAndCleanLines(lines: string[], analysis: any): string[] {
+    let cleanedLines = [...lines];
+
+    // Si pas assez de sections, réorganiser intelligemment
+    if (analysis.sections.length < 3) {
+      console.log('🔧 Réorganisation intelligente des sections...');
+      
+      // Regrouper les lignes par type de contenu
+      const organizedLines = [];
+      let currentSection = '';
+      
+      lines.forEach(line => {
+        const upperLine = line.toUpperCase();
+        
+        // Détecter les nouvelles sections
+        if (upperLine.includes('PROFESSIONAL EXPERIENCE') || upperLine.includes('EXPÉRIENCE PROFESSIONNELLE')) {
+          currentSection = 'experience';
+          organizedLines.push('PROFESSIONAL EXPERIENCE');
+        } else if (upperLine.includes('EDUCATION') || upperLine.includes('FORMATION')) {
+          currentSection = 'education';
+          organizedLines.push('EDUCATION');
+        } else if (upperLine.includes('TECHNICAL SKILLS') || upperLine.includes('COMPÉTENCES TECHNIQUES')) {
+          currentSection = 'skills';
+          organizedLines.push('TECHNICAL SKILLS');
+        } else if (upperLine.includes('CERTIFICATIONS') || upperLine.includes('CERTIFICATS')) {
+          currentSection = 'certifications';
+          organizedLines.push('CERTIFICATIONS');
+        } else {
+          organizedLines.push(line);
+        }
+      });
+      
+      cleanedLines = organizedLines;
+    }
+
+    // Supprimer les lignes vides excessives
+    cleanedLines = cleanedLines.filter((line, index) => {
+      if (line.trim() === '') {
+        // Garder seulement une ligne vide entre les sections
+        const nextNonEmpty = cleanedLines.slice(index + 1).find(l => l.trim() !== '');
+        const prevNonEmpty = cleanedLines.slice(0, index).reverse().find(l => l.trim() !== '');
+        
+        if (nextNonEmpty && prevNonEmpty) {
+          const nextIsSection = ['PROFESSIONAL EXPERIENCE', 'EDUCATION', 'TECHNICAL SKILLS', 'CERTIFICATIONS'].some(s => nextNonEmpty.includes(s));
+          const prevIsSection = ['PROFESSIONAL EXPERIENCE', 'EDUCATION', 'TECHNICAL SKILLS', 'CERTIFICATIONS'].some(s => prevNonEmpty.includes(s));
+          
+          return nextIsSection || prevIsSection;
+        }
+      }
+      return true;
+    });
+
+    console.log('✅ Lignes nettoyées et validées:', cleanedLines.length);
+    return cleanedLines;
   }
 
   private static async generateHybridPDF(cvText: string, filename: string): Promise<void> {
