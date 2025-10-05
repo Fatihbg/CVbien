@@ -125,9 +125,11 @@ export const useCVGenerationStore = create<CVGenerationState>((set, get) => ({
       const formData = new FormData();
       
       // Créer un fichier blob avec le texte du CV
-      const cvBlob = new Blob([cvText], { type: 'text/plain' });
+      const cvTextSafe = cvText || '';
+      const jobDescriptionSafe = jobDescription || '';
+      const cvBlob = new Blob([cvTextSafe], { type: 'text/plain' });
       formData.append('cv_file', cvBlob, 'cv.txt');
-      formData.append('job_offer', jobDescription);
+      formData.append('job_offer', jobDescriptionSafe);
 
       const response = await fetch(`${config.API_BASE_URL}/optimize-cv`, {
         method: 'POST',

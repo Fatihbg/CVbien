@@ -196,6 +196,17 @@ export const HomePage: React.FC = () => {
     console.log('Fichier uploadé:', uploadedFile);
     console.log('Texte CV:', cvText);
     console.log('Description job:', jobDescription);
+    
+    // Vérifications supplémentaires
+    if (!cvText || cvText.trim().length === 0) {
+      alert('Aucun texte de CV disponible. Veuillez d\'abord uploader un CV.');
+      return;
+    }
+    
+    if (!jobDescription || jobDescription.trim().length === 0) {
+      alert('Veuillez saisir une description de poste.');
+      return;
+    }
 
     try {
       // D'abord extraire le texte du CV si nécessaire
@@ -214,7 +225,7 @@ export const HomePage: React.FC = () => {
       }
 
       // Puis générer le CV optimisé
-      if (jobDescription) {
+      if (jobDescription && cvText) {
         console.log('Génération du CV optimisé...');
         await generateOptimizedCV();
         
@@ -1546,7 +1557,7 @@ export const HomePage: React.FC = () => {
                   {t.main.improvements.toUpperCase()} :
                 </h4>
                 <ul style={{ fontSize: '12px', color: 'var(--text-secondary)', paddingLeft: '16px', margin: '0 0 12px 0' }}>
-                  {improvements.map((improvement, index) => (
+                  {(improvements || []).map((improvement, index) => (
                     <li key={index} style={{ marginBottom: '6px', lineHeight: '1.4' }}>{improvement}</li>
                   ))}
                 </ul>
