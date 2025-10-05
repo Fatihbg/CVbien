@@ -508,7 +508,7 @@ export class PDFGenerator {
       const maxWidth = pageWidth - (2 * margin);
       let currentY = margin;
 
-      // Fonction pour ajouter du texte (lignes rapprochées)
+      // Fonction pour ajouter du texte - VERSION MIMI PRIME
       const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
         if (currentY > pageHeight - 20) return;
         
@@ -528,7 +528,7 @@ export class PDFGenerator {
           if (currentY > pageHeight - 20) return;
           const xPos = isCenter ? (pageWidth - doc.getTextWidth(line)) / 2 : margin;
           doc.text(line, xPos, currentY);
-          currentY += fontSize * 0.3; // Lignes plus rapprochées (0.3 au lieu de 0.4)
+          currentY += fontSize * 0.4; // Espacement Mimi Prime
         });
       };
 
@@ -565,20 +565,20 @@ export class PDFGenerator {
       if (cvStructure.summary && cvStructure.summary.trim()) {
         // Pas de titre, directement le contenu
         addText(cvStructure.summary, 11, false, false, '#000000');
-        currentY += 4; // Moins d'espace
+        currentY += 6; // Espacement Mimi Prime
       }
 
-      // EXPÉRIENCE PROFESSIONNELLE
+      // EXPÉRIENCE PROFESSIONNELLE - VERSION MIMI PRIME
       if (cvStructure.experience && cvStructure.experience.length > 0) {
-        // Titre de section avec ligne (NOIR)
-        addText('PROFESSIONAL EXPERIENCE', 12, true, false, '#000000');
-        const lineY = currentY + 2; // Plus proche
-        doc.setDrawColor(0, 0, 0); // NOIR
-        doc.setLineWidth(0.3); // Plus fin
+        // Titre de section avec ligne (BLEU SÉRIEUX)
+        addText('PROFESSIONAL EXPERIENCE', 12, true, false, '#1e40af');
+        const lineY = currentY + 3; // Espacement Mimi Prime
+        doc.setDrawColor(30, 64, 175); // Bleu sérieux
+        doc.setLineWidth(0.5); // Épaisseur Mimi Prime
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 4; // Moins d'espace
+        currentY = lineY + 6; // Espacement Mimi Prime
 
-        // Chaque expérience
+        // Chaque expérience - VERSION MIMI PRIME
         cvStructure.experience.forEach((exp: any, index: number) => {
           if (currentY > pageHeight - 30) return;
 
@@ -589,10 +589,10 @@ export class PDFGenerator {
             const dateText = exp.startDate && exp.endDate ? ` (${exp.startDate} - ${exp.endDate})` : '';
             
             addText(`${titleText}${companyText}${dateText}`, 11, true, false, '#000000');
-            currentY += 1;
+            currentY += 2; // Espacement Mimi Prime
           }
 
-          // Description OBLIGATOIRE et plus longue
+          // Description avec tirets
           if (exp.description && exp.description.trim()) {
             const descriptionLines = exp.description.split('\n').filter((line: string) => line.trim());
             descriptionLines.forEach((line: string) => {
@@ -600,28 +600,24 @@ export class PDFGenerator {
               const cleanLine = line.replace(/^[-•]\s*/, '').trim();
               if (cleanLine) {
                 addText(`- ${cleanLine}`, 10, false, false, '#000000');
-                currentY += 0.5; // Très rapproché
+                currentY += 1; // Espacement Mimi Prime
               }
             });
-          } else {
-            // Si pas de description, en ajouter une par défaut
-            addText('- Responsabilités détaillées et réalisations significatives dans ce poste', 10, false, false, '#000000');
-            currentY += 0.5;
           }
           
-          currentY += 1;
+          currentY += 2; // Espacement Mimi Prime
         });
       }
 
-      // FORMATION
+      // FORMATION - VERSION MIMI PRIME
       if (cvStructure.education && cvStructure.education.length > 0) {
-        // Titre de section avec ligne (NOIR)
-        addText('EDUCATION', 12, true, false, '#000000');
-        const lineY = currentY + 2; // Plus proche
-        doc.setDrawColor(0, 0, 0); // NOIR
-        doc.setLineWidth(0.3); // Plus fin
+        // Titre de section avec ligne (BLEU SÉRIEUX)
+        addText('EDUCATION', 12, true, false, '#1e40af');
+        const lineY = currentY + 3; // Espacement Mimi Prime
+        doc.setDrawColor(30, 64, 175); // Bleu sérieux
+        doc.setLineWidth(0.5); // Épaisseur Mimi Prime
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 4; // Moins d'espace
+        currentY = lineY + 6; // Espacement Mimi Prime
 
         // Chaque formation
         cvStructure.education.forEach((edu: any, index: number) => {
@@ -634,10 +630,10 @@ export class PDFGenerator {
             const dateText = edu.startDate && edu.endDate ? ` (${edu.startDate} - ${edu.endDate})` : '';
             
             addText(`${degreeText}${schoolText}${dateText}`, 11, true, false, '#000000');
-            currentY += 1;
+            currentY += 2; // Espacement Mimi Prime
           }
 
-          // Description OBLIGATOIRE et plus longue
+          // Description avec tirets
           if (edu.description && edu.description.trim()) {
             const descriptionLines = edu.description.split('\n').filter((line: string) => line.trim());
             descriptionLines.forEach((line: string) => {
@@ -645,28 +641,24 @@ export class PDFGenerator {
               const cleanLine = line.replace(/^[-•]\s*/, '').trim();
               if (cleanLine) {
                 addText(`- ${cleanLine}`, 10, false, false, '#000000');
-                currentY += 0.5; // Très rapproché
+                currentY += 1; // Espacement Mimi Prime
               }
             });
-          } else {
-            // Si pas de description, en ajouter une par défaut
-            addText('- Formation approfondie avec acquisition de compétences techniques et théoriques', 10, false, false, '#000000');
-            currentY += 0.5;
           }
           
-          currentY += 1;
+          currentY += 2; // Espacement Mimi Prime
         });
       }
 
-      // COMPÉTENCES TECHNIQUES (avec sous-catégories)
+      // COMPÉTENCES TECHNIQUES - VERSION MIMI PRIME
       if (cvStructure.skills && cvStructure.skills.length > 0) {
-        // Titre de section avec ligne (NOIR)
-        addText('TECHNICAL SKILLS', 12, true, false, '#000000');
-        const lineY = currentY + 2; // Plus proche
-        doc.setDrawColor(0, 0, 0); // NOIR
-        doc.setLineWidth(0.3); // Plus fin
+        // Titre de section avec ligne (BLEU SÉRIEUX)
+        addText('TECHNICAL SKILLS', 12, true, false, '#1e40af');
+        const lineY = currentY + 3; // Espacement Mimi Prime
+        doc.setDrawColor(30, 64, 175); // Bleu sérieux
+        doc.setLineWidth(0.5); // Épaisseur Mimi Prime
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 4; // Moins d'espace
+        currentY = lineY + 6; // Espacement Mimi Prime
 
         // Grouper les compétences par catégorie (comme dans l'image)
         const technicalSkills = [];
@@ -710,23 +702,23 @@ export class PDFGenerator {
         currentY += 2;
       }
 
-      // CERTIFICATIONS & ACHIEVEMENTS (SECTION CONDITIONNELLE)
+      // CERTIFICATIONS & ACHIEVEMENTS - VERSION MIMI PRIME
       if (cvStructure.certifications && cvStructure.certifications.length > 0) {
-        // Titre de section avec ligne (NOIR)
-        addText('CERTIFICATIONS & ACHIEVEMENTS', 12, true, false, '#000000');
-        const lineY = currentY + 2; // Plus proche
-        doc.setDrawColor(0, 0, 0); // NOIR
-        doc.setLineWidth(0.3); // Plus fin
+        // Titre de section avec ligne (BLEU SÉRIEUX)
+        addText('CERTIFICATIONS & ACHIEVEMENTS', 12, true, false, '#1e40af');
+        const lineY = currentY + 3; // Espacement Mimi Prime
+        doc.setDrawColor(30, 64, 175); // Bleu sérieux
+        doc.setLineWidth(0.5); // Épaisseur Mimi Prime
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 4; // Moins d'espace
+        currentY = lineY + 6; // Espacement Mimi Prime
 
-        // Certifications avec tirets (retirer les ronds)
+        // Certifications avec tirets
         cvStructure.certifications.forEach((cert: any, index: number) => {
           if (currentY > pageHeight - 20) return;
           const certText = typeof cert === 'string' ? cert : cert.name || cert.title;
           const cleanCertText = certText.replace(/^[•·]\s*/, ''); // Retirer les ronds
           addText(`- ${cleanCertText}`, 10, false, false, '#000000');
-          currentY += 0.5; // Très rapproché
+          currentY += 1; // Espacement Mimi Prime
         });
       }
       // Si pas de certifications, la section n'apparaît PAS du tout
