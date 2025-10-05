@@ -182,11 +182,23 @@ COMPETENCES
       const result = await response.json();
       
       console.log('Résultat reçu:', result);
+      console.log('Type du résultat:', typeof result);
+      console.log('Clés du résultat:', Object.keys(result));
+      console.log('result.optimized_cv:', result.optimized_cv);
+      console.log('result.ats_score:', result.ats_score);
+      console.log('result.improvements:', result.improvements);
+      
+      // Vérifications de sécurité avant d'accéder aux propriétés
+      const optimizedCV = result?.optimized_cv || result?.data?.optimized_cv || null;
+      const atsScore = result?.ats_score || result?.data?.ats_score || 0;
+      const improvements = result?.improvements || result?.data?.improvements || [];
+      
+      console.log('Données sécurisées:', { optimizedCV, atsScore, improvements });
       
       set({
-        generatedCV: result.optimized_cv,
-        atsScore: result.ats_score,
-        improvements: result.improvements,
+        generatedCV: optimizedCV,
+        atsScore: atsScore,
+        improvements: improvements,
         isGenerating: false,
         progress: 100,
         progressMessage: 'CV généré avec succès !'
