@@ -159,8 +159,11 @@ export const HomePage: React.FC = () => {
     }
     const file = event.target.files?.[0];
     if (file) {
+      console.log('📁 Fichier sélectionné:', file.name, file.type, file.size);
       setUploadedFile(file);
-      // L'extraction se fera automatiquement via extractCVText() dans le store
+      // Déclencher l'extraction automatiquement
+      console.log('🔄 Déclenchement de l\'extraction...');
+      await extractCVText();
     }
   };
 
@@ -172,8 +175,11 @@ export const HomePage: React.FC = () => {
     }
     const file = event.dataTransfer.files[0];
     if (file) {
+      console.log('📁 Fichier déposé:', file.name, file.type, file.size);
       setUploadedFile(file);
-      // L'extraction se fera automatiquement via extractCVText() dans le store
+      // Déclencher l'extraction automatiquement
+      console.log('🔄 Déclenchement de l\'extraction...');
+      await extractCVText();
     }
   };
 
@@ -1015,6 +1021,31 @@ export const HomePage: React.FC = () => {
                     }} />
                         Extraction du texte...
                   </div>
+                </div>
+              )}
+              
+              {/* Bouton d'extraction manuelle si fichier uploadé mais pas de texte */}
+              {uploadedFile && !cvText && !isExtracting && (
+                <div style={{ marginTop: '12px' }}>
+                  <button
+                    onClick={async () => {
+                      console.log('🔄 Extraction manuelle déclenchée');
+                      await extractCVText();
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    🔄 Extraire le texte du CV
+                  </button>
                 </div>
               )}
             </div>
