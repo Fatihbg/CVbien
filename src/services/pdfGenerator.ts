@@ -102,7 +102,7 @@ export class PDFGenerator {
           currentSection = line;
         }
         // Postes/titres dans les sections
-        else if (currentSection && ('EXPERIENCE' in currentSection || 'PROJECTS' in currentSection) &&
+        else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
                  line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
           // Vérifier si c'est un poste
           const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
