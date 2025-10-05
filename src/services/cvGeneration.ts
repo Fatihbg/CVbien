@@ -167,8 +167,8 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant:
 
     // Vérifier la présence des mots-clés du poste
     const jobKeywords = [
-      ...jobDescription.requirements,
-      ...jobDescription.description.toLowerCase().split(' ').filter(word => word.length > 3)
+      ...(jobDescription.requirements || []),
+      ...(jobDescription.description || '').toLowerCase().split(' ').filter(word => word.length > 3)
     ];
 
     const cvText = [
@@ -182,16 +182,16 @@ Réponds UNIQUEMENT avec un objet JSON valide contenant:
       cvText.includes(keyword.toLowerCase())
     );
 
-    score += (matchingKeywords.length / jobKeywords.length) * 40;
+    score += ((matchingKeywords?.length || 0) / (jobKeywords?.length || 1)) * 40;
 
     // Vérifier la structure du CV
     if (cv.personalInfo.name) score += 10;
     if (cv.personalInfo.email) score += 10;
     if (cv.personalInfo.phone) score += 10;
     if (cv.summary && cv.summary.length > 50) score += 10;
-    if (cv.experience.length > 0) score += 10;
-    if (cv.education.length > 0) score += 5;
-    if (cv.skills.length > 0) score += 5;
+    if (cv.experience && cv.experience.length > 0) score += 10;
+    if (cv.education && cv.education.length > 0) score += 5;
+    if (cv.skills && cv.skills.length > 0) score += 5;
 
     return Math.min(Math.round(score), maxScore);
   }

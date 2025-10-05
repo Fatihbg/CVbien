@@ -68,11 +68,11 @@ export class LlamaIndexService {
     let languagesLines: string[] = [];
 
     // Phase 1: Extraction du header (nom, titre, contact)
-    for (let i = 0; i < Math.min(10, lines.length); i++) {
+    for (let i = 0; i < Math.min(10, lines?.length || 0); i++) {
       const line = lines[i];
       
       // Nom (généralement en majuscules en début de CV)
-      if (!data.name && line.length > 3 && line.length < 50 && 
+      if (!data.name && line && line.length > 3 && line.length < 50 && 
           line === line.toUpperCase() && !line.includes('@') && !line.includes('http') && 
           !line.toLowerCase().includes('cv') && !line.toLowerCase().includes('resume')) {
         data.name = line;

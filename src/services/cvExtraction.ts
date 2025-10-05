@@ -27,7 +27,7 @@ export class CVExtractionService {
 
   private async extractFromText(text: string): Promise<CVData> {
     // Utilisation d'expressions régulières pour extraire les informations
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const lines = (text || '').split('\n').map(line => line.trim()).filter(line => line && line.length > 0);
     
     const personalInfo = this.extractPersonalInfo(lines);
     const summary = this.extractSummary(lines);
@@ -85,8 +85,8 @@ export class CVExtractionService {
     const summaryKeywords = ['résumé', 'profil', 'summary', 'about', 'à propos'];
     let summaryStart = -1;
 
-    for (let i = 0; i < lines.length; i++) {
-      if (summaryKeywords.some(keyword => lines[i].toLowerCase().includes(keyword))) {
+    for (let i = 0; i < (lines?.length || 0); i++) {
+      if (summaryKeywords.some(keyword => lines[i]?.toLowerCase()?.includes(keyword))) {
         summaryStart = i + 1;
         break;
       }
@@ -95,8 +95,8 @@ export class CVExtractionService {
     if (summaryStart === -1) return '';
 
     let summary = '';
-    for (let i = summaryStart; i < Math.min(summaryStart + 3, lines.length); i++) {
-      if (lines[i].length > 20) {
+    for (let i = summaryStart; i < Math.min(summaryStart + 3, lines?.length || 0); i++) {
+      if (lines[i] && lines[i].length > 20) {
         summary += lines[i] + ' ';
       }
     }
@@ -109,7 +109,7 @@ export class CVExtractionService {
     const expKeywords = ['expérience', 'experience', 'emploi', 'travail', 'work'];
     let expStart = -1;
 
-    for (let i = 0; i < lines.length; i++) {
+    for (let i = 0; i < (lines?.length || 0); i++) {
       if (expKeywords.some(keyword => lines[i].toLowerCase().includes(keyword))) {
         expStart = i + 1;
         break;
@@ -119,9 +119,9 @@ export class CVExtractionService {
     if (expStart === -1) return experience;
 
     // Logique simplifiée pour extraire l'expérience
-    for (let i = expStart; i < lines.length; i++) {
+    for (let i = expStart; i < (lines?.length || 0); i++) {
       const line = lines[i];
-      if (line.length > 10 && !line.includes('Formation') && !line.includes('Compétences')) {
+      if (line && line.length > 10 && !line.includes('Formation') && !line.includes('Compétences')) {
         // Détection basique d'un poste
         if (line.includes('Chef') || line.includes('Développeur') || line.includes('Manager') || line.includes('Ingénieur')) {
           experience.push({
@@ -145,7 +145,7 @@ export class CVExtractionService {
     const eduKeywords = ['formation', 'éducation', 'education', 'diplôme', 'diploma'];
     let eduStart = -1;
 
-    for (let i = 0; i < lines.length; i++) {
+    for (let i = 0; i < (lines?.length || 0); i++) {
       if (eduKeywords.some(keyword => lines[i].toLowerCase().includes(keyword))) {
         eduStart = i + 1;
         break;
@@ -154,7 +154,7 @@ export class CVExtractionService {
 
     if (eduStart === -1) return education;
 
-    for (let i = eduStart; i < lines.length; i++) {
+    for (let i = eduStart; i < (lines?.length || 0); i++) {
       const line = lines[i];
       if (line.includes('Master') || line.includes('Licence') || line.includes('Bac') || line.includes('École')) {
         education.push({
@@ -174,7 +174,7 @@ export class CVExtractionService {
     const skillKeywords = ['compétences', 'skills', 'technologies', 'outils'];
     let skillStart = -1;
 
-    for (let i = 0; i < lines.length; i++) {
+    for (let i = 0; i < (lines?.length || 0); i++) {
       if (skillKeywords.some(keyword => lines[i].toLowerCase().includes(keyword))) {
         skillStart = i + 1;
         break;
@@ -183,12 +183,12 @@ export class CVExtractionService {
 
     if (skillStart === -1) return skills;
 
-    for (let i = skillStart; i < Math.min(skillStart + 5, lines.length); i++) {
+    for (let i = skillStart; i < Math.min(skillStart + 5, lines?.length || 0); i++) {
       const line = lines[i];
       if (line.includes(',') || line.includes('•') || line.includes('-')) {
-        const lineSkills = line.split(/[,•-]/).map(s => s.trim()).filter(s => s.length > 0);
+        const lineSkills = line.split(/[,•-]/).map(s => s.trim()).filter(s => s && s.length > 0);
         skills.push(...lineSkills);
-      } else if (line.length > 2 && line.length < 30) {
+      } else if (line && line.length > 2 && line.length < 30) {
         skills.push(line);
       }
     }
