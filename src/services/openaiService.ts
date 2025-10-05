@@ -685,7 +685,9 @@ RÉPONSE (Inclure les balises <NAME>, <CONTACT>, <TITLE>, <SUMMARY>, et utiliser
       console.error('Stack trace:', error instanceof Error ? error.stack : 'Pas de stack trace');
       
       // Retourner un CV de fallback avec les vraies données
-      const lines = request.cvText.split('\n').filter(line => line.trim());
+      const cvText = request.cvText || '';
+      const jobDesc = request.jobDescription || '';
+      const lines = cvText.split('\n').filter(line => line.trim());
       const name = lines.find(line => line.length > 3 && line.length < 50 && line === line.toUpperCase()) || 'Candidat';
       const email = lines.find(line => line.includes('@')) || '';
       const phone = lines.find(line => line.match(/[\+]?[0-9\s\-\(\)]{10,}/)) || '';
@@ -706,7 +708,7 @@ Formation pertinente pour le poste
 COMPETENCES
 Compétences adaptées au poste
 
-${request.jobDescription.substring(0, 200)}...`,
+${jobDesc.substring(0, 200)}...`,
             atsScore: 75,
             improvements: [
               'Structure de base du CV établie',
