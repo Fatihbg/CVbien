@@ -3,28 +3,194 @@ import { config } from '../config/environment';
 export class PDFGenerator {
   static async generateCVPDF(cvData: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
     try {
-      console.log('=== GÉNÉRATION PDF RONALDO PRIME ===');
+      console.log('=== GÉNÉRATION PDF - STRUCTURE INTELLIGENTE OBLIGATOIRE ===');
       
-      // Détecter si c'est du JSON (structure de l'aperçu) ou du texte brut
+      // TOUJOURS essayer de parser en JSON d'abord (structure de l'aperçu)
       let cvStructure;
       try {
         cvStructure = JSON.parse(cvData);
-        console.log('📊 Structure JSON détectée - utilisation de l\'aperçu:', cvStructure);
+        console.log('📊 Structure JSON détectée - utilisation de l\'aperçu intelligent:', cvStructure);
         
-        // Utiliser la structure de l'aperçu pour générer le PDF
+        // Utiliser la structure de l'aperçu pour générer le PDF (TOUJOURS)
         await this.generatePDFFromStructure(cvStructure, filename);
         
       } catch (parseError) {
-        console.log('📄 Texte brut détecté - parsing traditionnel');
+        console.log('📄 Texte brut détecté - conversion en structure intelligente...');
         
-        // Fallback: utiliser le parsing traditionnel
-        await this.generateRonaldoPrimePDF(cvData, filename);
+        // Convertir le texte brut en structure JSON intelligente
+        cvStructure = this.convertTextToIntelligentStructure(cvData);
+        console.log('🧠 Structure intelligente créée:', cvStructure);
+        
+        // Utiliser la structure convertie pour générer le PDF
+        await this.generatePDFFromStructure(cvStructure, filename);
       }
       
     } catch (error) {
       console.error('Erreur génération PDF:', error);
       throw error;
     }
+  }
+
+  // CONVERSION INTELLIGENTE - Convertir le texte brut en structure JSON propre
+  private static convertTextToIntelligentStructure(cvText: string): any {
+    console.log('🔄 Conversion intelligente du texte brut en structure...');
+    
+    const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
+    const structure = {
+      personalInfo: {
+        name: '',
+        email: '',
+        phone: '',
+        location: '',
+        title: ''
+      },
+      summary: '',
+      experience: [],
+      education: [],
+      skills: [],
+      certifications: []
+    };
+
+    let currentSection = '';
+    let currentExperience = null;
+    let currentEducation = null;
+    let inDescription = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const upperLine = line.toUpperCase();
+
+      // Détecter le nom (première ligne en majuscules, pas trop longue)
+      if (!structure.personalInfo.name && line.length > 3 && line.length < 50 && 
+          line === line.toUpperCase() && !line.includes('@') && !line.includes('PROFESSIONAL')) {
+        structure.personalInfo.name = line;
+        continue;
+      }
+
+      // Détecter le contact (email, téléphone, localisation)
+      if (line.includes('@') || line.includes('|') || line.includes('+') || line.includes('www.')) {
+        const contactParts = line.split('|').map(part => part.trim());
+        contactParts.forEach(part => {
+          if (part.includes('@')) structure.personalInfo.email = part;
+          else if (part.match(/\d{10,}/)) structure.personalInfo.phone = part;
+          else if (part.includes('www.') || part.includes('http')) structure.personalInfo.website = part;
+          else if (part.length > 3 && !part.includes('PROFESSIONAL')) structure.personalInfo.location = part;
+        });
+        continue;
+      }
+
+      // Détecter le titre de poste (ligne en majuscules, pas trop longue, après le contact)
+      if (!structure.personalInfo.title && line.length > 5 && line.length < 80 && 
+          line === line.toUpperCase() && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') &&
+          !line.includes('EDUCATION') && !line.includes('SKILLS') && !line.includes('CERTIFICATIONS')) {
+        structure.personalInfo.title = line;
+        continue;
+      }
+
+      // Détecter les sections
+      if (upperLine.includes('PROFESSIONAL EXPERIENCE') || upperLine.includes('EXPÉRIENCE PROFESSIONNELLE')) {
+        currentSection = 'experience';
+        continue;
+      } else if (upperLine.includes('EDUCATION') || upperLine.includes('FORMATION')) {
+        currentSection = 'education';
+        continue;
+      } else if (upperLine.includes('TECHNICAL SKILLS') || upperLine.includes('COMPÉTENCES TECHNIQUES')) {
+        currentSection = 'skills';
+        continue;
+      } else if (upperLine.includes('CERTIFICATIONS') || upperLine.includes('CERTIFICATS')) {
+        currentSection = 'certifications';
+        continue;
+      }
+
+      // Traiter selon la section
+      if (currentSection === 'experience') {
+        // Nouvelle expérience (titre en gras ou ligne avec entreprise)
+        if (line.includes(' - ') || line.includes('(') && line.includes(')')) {
+          if (currentExperience) {
+            structure.experience.push(currentExperience);
+          }
+          
+          const parts = line.split(' - ');
+          const title = parts[0]?.trim() || '';
+          const companyAndDate = parts[1]?.trim() || '';
+          const dateMatch = companyAndDate.match(/\(([^)]+)\)/);
+          const company = companyAndDate.replace(/\([^)]+\)/, '').trim();
+          const dates = dateMatch ? dateMatch[1] : '';
+          
+          currentExperience = {
+            title: title,
+            company: company,
+            startDate: dates.split(' - ')[0]?.trim() || '',
+            endDate: dates.split(' - ')[1]?.trim() || '',
+            description: ''
+          };
+        } else if (currentExperience && line.startsWith('-')) {
+          // Description de l'expérience
+          currentExperience.description += (currentExperience.description ? '\n' : '') + line.substring(1).trim();
+        }
+      } else if (currentSection === 'education') {
+        // Nouvelle formation
+        if (line.includes(' - ') || line.includes('(') && line.includes(')')) {
+          if (currentEducation) {
+            structure.education.push(currentEducation);
+          }
+          
+          const parts = line.split(' - ');
+          const degree = parts[0]?.trim() || '';
+          const schoolAndDate = parts[1]?.trim() || '';
+          const dateMatch = schoolAndDate.match(/\(([^)]+)\)/);
+          const school = schoolAndDate.replace(/\([^)]+\)/, '').trim();
+          const dates = dateMatch ? dateMatch[1] : '';
+          
+          currentEducation = {
+            degree: degree,
+            school: school,
+            startDate: dates.split(' - ')[0]?.trim() || '',
+            endDate: dates.split(' - ')[1]?.trim() || '',
+            description: ''
+          };
+        } else if (currentEducation && line.startsWith('-')) {
+          // Description de la formation
+          currentEducation.description += (currentEducation.description ? '\n' : '') + line.substring(1).trim();
+        }
+      } else if (currentSection === 'skills') {
+        // Compétences (lignes avec deux points ou listes séparées par virgules)
+        if (line.includes(':')) {
+          const parts = line.split(':');
+          const category = parts[0]?.trim();
+          const skills = parts[1]?.split(',').map(s => s.trim()).filter(s => s) || [];
+          structure.skills.push(...skills);
+        } else if (line.includes(',')) {
+          const skills = line.split(',').map(s => s.trim()).filter(s => s);
+          structure.skills.push(...skills);
+        }
+      } else if (currentSection === 'certifications') {
+        // Certifications
+        if (line.startsWith('-')) {
+          structure.certifications.push(line.substring(1).trim());
+        } else if (line.trim()) {
+          structure.certifications.push(line.trim());
+        }
+      } else if (!currentSection && line.length > 20 && !line.includes('@') && !line.includes('|')) {
+        // Probablement le résumé (avant les sections)
+        if (!structure.summary) {
+          structure.summary = line;
+        } else {
+          structure.summary += ' ' + line;
+        }
+      }
+    }
+
+    // Ajouter les dernières entrées
+    if (currentExperience) {
+      structure.experience.push(currentExperience);
+    }
+    if (currentEducation) {
+      structure.education.push(currentEducation);
+    }
+
+    console.log('✅ Structure intelligente créée:', structure);
+    return structure;
   }
 
   private static async generateRonaldoPrimePDF(cvText: string, filename: string): Promise<void> {
@@ -386,8 +552,9 @@ export class PDFGenerator {
         }
       }
 
-      // PROFIL/RÉSUMÉ
+      // PROFIL/RÉSUMÉ (SANS TITRE "PROFESSIONAL SUMMARY")
       if (cvStructure.summary) {
+        // Pas de titre, directement le contenu
         addText(cvStructure.summary, 11, false, false, '#000000');
         currentY += 6;
       }
@@ -470,7 +637,7 @@ export class PDFGenerator {
         });
       }
 
-      // COMPÉTENCES
+      // COMPÉTENCES TECHNIQUES (avec sous-catégories)
       if (cvStructure.skills && cvStructure.skills.length > 0) {
         // Titre de section avec ligne
         addText('TECHNICAL SKILLS', 12, true, false, '#1e40af');
@@ -480,26 +647,59 @@ export class PDFGenerator {
         doc.line(margin, lineY, pageWidth - margin, lineY);
         currentY = lineY + 6;
 
-        // Compétences
-        const skillsText = cvStructure.skills.map((skill: any) => 
-          typeof skill === 'string' ? skill : skill.name || skill.skill
-        ).join(', ');
+        // Grouper les compétences par catégorie (comme dans l'image)
+        const technicalSkills = [];
+        const softSkills = [];
+        const tools = [];
+        const languages = [];
         
-        addText(skillsText, 10, false, false, '#000000');
-        currentY += 4;
+        cvStructure.skills.forEach((skill: any) => {
+          const skillText = typeof skill === 'string' ? skill : skill.name || skill.skill;
+          const lowerSkill = skillText.toLowerCase();
+          
+          if (lowerSkill.includes('soft') || lowerSkill.includes('communication') || lowerSkill.includes('leadership')) {
+            softSkills.push(skillText);
+          } else if (lowerSkill.includes('tool') || lowerSkill.includes('office') || lowerSkill.includes('google')) {
+            tools.push(skillText);
+          } else if (lowerSkill.includes('français') || lowerSkill.includes('anglais') || lowerSkill.includes('langue')) {
+            languages.push(skillText);
+          } else {
+            technicalSkills.push(skillText);
+          }
+        });
+
+        // Afficher les sous-catégories avec deux points (pas de tirets)
+        if (technicalSkills.length > 0) {
+          addText(`Compétences techniques: ${technicalSkills.join(', ')}`, 10, false, false, '#000000');
+          currentY += 1;
+        }
+        if (softSkills.length > 0) {
+          addText(`Soft skills: ${softSkills.join(', ')}`, 10, false, false, '#000000');
+          currentY += 1;
+        }
+        if (tools.length > 0) {
+          addText(`Outils: ${tools.join(', ')}`, 10, false, false, '#000000');
+          currentY += 1;
+        }
+        if (languages.length > 0) {
+          addText(`Langues: ${languages.join(', ')}`, 10, false, false, '#000000');
+          currentY += 1;
+        }
+        
+        currentY += 2;
       }
 
-      // CERTIFICATIONS
+      // CERTIFICATIONS & ACHIEVEMENTS (SECTION CONDITIONNELLE)
       if (cvStructure.certifications && cvStructure.certifications.length > 0) {
         // Titre de section avec ligne
-        addText('CERTIFICATIONS', 12, true, false, '#1e40af');
+        addText('CERTIFICATIONS & ACHIEVEMENTS', 12, true, false, '#1e40af');
         const lineY = currentY + 3;
         doc.setDrawColor(30, 64, 175);
         doc.setLineWidth(0.8);
         doc.line(margin, lineY, pageWidth - margin, lineY);
         currentY = lineY + 6;
 
-        // Certifications
+        // Certifications avec tirets
         cvStructure.certifications.forEach((cert: any, index: number) => {
           if (currentY > pageHeight - 20) return;
           const certText = typeof cert === 'string' ? cert : cert.name || cert.title;
@@ -507,6 +707,7 @@ export class PDFGenerator {
           currentY += 1;
         });
       }
+      // Si pas de certifications, la section n'apparaît PAS du tout
 
       doc.save(filename);
       console.log('✅ PDF généré avec succès à partir de la structure de l\'aperçu');
