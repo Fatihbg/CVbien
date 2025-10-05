@@ -35,8 +35,14 @@ export class PDFGenerator {
         if (currentY > pageHeight - 20) return;
         
         doc.setFontSize(fontSize);
-        doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-        doc.setTextColor(color);
+        // FORCER LE GRAS avec setTextColor et setFont correctement
+        if (isBold) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(0, 0, 0); // Noir pur pour le gras
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(0, 0, 0); // Noir normal
+        }
         
         const lines = doc.splitTextToSize(text, maxWidth);
         
@@ -147,10 +153,10 @@ export class PDFGenerator {
           currentY += 4; // Plus d'espace avant
           addText(line, 12, true, false, false, '#000000'); // Sections EN GRAS
           
-          // Ajouter une ligne en dessous du titre
+          // Ajouter une ligne en dessous du titre - FORCER LA VISIBILITÉ
           doc.setDrawColor(0, 0, 0); // Couleur noire
-          doc.setLineWidth(0.5);
-          doc.line(margin, currentY + 2, pageWidth - margin, currentY + 2);
+          doc.setLineWidth(1.0); // Ligne plus épaisse
+          doc.line(margin, currentY + 3, pageWidth - margin, currentY + 3); // Position ajustée
           
           currentY += 5; // Espace d'une ligne après le titre
           currentSection = line;
