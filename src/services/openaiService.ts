@@ -19,6 +19,13 @@ export class OpenAIService {
 
       private static initializeOpenAI() {
         if (!OpenAIService.openai) {
+          console.log('🔑 Initialisation OpenAI avec clé API:', OPENAI_API_KEY ? 'Clé présente' : 'Clé manquante');
+          console.log('🔑 Clé API (premiers caractères):', OPENAI_API_KEY ? OPENAI_API_KEY.substring(0, 10) + '...' : 'Non définie');
+          
+          if (!OPENAI_API_KEY) {
+            throw new Error('Clé API OpenAI manquante');
+          }
+          
           OpenAIService.openai = new OpenAI({
             apiKey: OPENAI_API_KEY,
             dangerouslyAllowBrowser: true,
