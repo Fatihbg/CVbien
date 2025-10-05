@@ -76,21 +76,23 @@ export class PDFGenerator {
 
         // Header (nom, contact, titre) - CENTRÉ - Limiter à 5 lignes max
         if (isHeader && headerProcessed < 5) {
-          // Nom en majuscules - CENTRÉ et BLEU
+          // Nom en majuscules - CENTRÉ et NOIR
           if (line.length > 3 && line.length < 50 && line === line.toUpperCase() && 
               !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') &&
               !line.includes('SUMMARY') && !line.includes('RÉSUMÉ')) {
-            addText(line, 18, true, true, '#1e3a8a'); // Nom centré en bleu sérieux
+            const cleanLine = line.replace(/<[^>]*>/g, '');
+            addText(cleanLine, 18, true, true, '#000000'); // Nom centré en noir
             currentY += 3;
             headerProcessed++;
-            console.log('✅ Nom détecté:', line);
+            console.log('✅ Nom détecté:', cleanLine);
           } 
           // Contact - CENTRÉ
           else if (line.includes('@') || line.includes('|') || line.includes('+') || line.includes('phone') || line.includes('tel')) {
-            addText(line, 10, false, true, '#000000'); // Contact centré
+            const cleanLine = line.replace(/<[^>]*>/g, '');
+            addText(cleanLine, 10, false, true, '#000000'); // Contact centré
             currentY += 1;
             headerProcessed++;
-            console.log('✅ Contact détecté:', line);
+            console.log('✅ Contact détecté:', cleanLine);
           } 
           // Titre de poste - CENTRÉ et GRAS
           else if (line.length > 5 && line.length < 80 && 
@@ -98,10 +100,11 @@ export class PDFGenerator {
                    !line.includes('FORMATION') && !line.includes('SKILLS') &&
                    !line.includes('SUMMARY') && !line.includes('RÉSUMÉ') &&
                    !line.includes('EDUCATION') && !line.includes('CERTIFICATIONS')) {
-            addText(line, 14, true, true, '#000000'); // Titre centré en gras
+            const cleanLine = line.replace(/<[^>]*>/g, '');
+            addText(cleanLine, 14, true, true, '#000000'); // Titre centré en gras
             currentY += 3;
             headerProcessed++;
-            console.log('✅ Titre détecté:', line);
+            console.log('✅ Titre détecté:', cleanLine);
           }
         }
         
@@ -125,15 +128,20 @@ export class PDFGenerator {
         
         if (isSection && !isHeader) {
           currentY += 4;
-          // Ligne horizontale BLEUE
-          doc.setDrawColor(30, 58, 138); // Bleu sérieux
-          doc.setLineWidth(1.0);
-          doc.line(margin, currentY - 2, pageWidth - margin, currentY - 2);
           
-          addText(line, 12, true, false, '#1e3a8a'); // Sections en bleu sérieux
+          // Nettoyer les balises HTML
+          const cleanLine = line.replace(/<[^>]*>/g, '');
+          
+          addText(cleanLine, 12, true, false, '#000000'); // Sections en noir
           currentY += 3;
-          currentSection = line;
-          console.log('✅ Section détectée:', line);
+          
+          // Ligne horizontale NOIRE SOUS le titre
+          doc.setDrawColor(0, 0, 0); // Noir
+          doc.setLineWidth(1.0);
+          doc.line(margin, currentY - 1, pageWidth - margin, currentY - 1);
+          
+          currentSection = cleanLine;
+          console.log('✅ Section détectée:', cleanLine);
         }
         // Postes/titres dans les sections - EN GRAS - Plus flexible
         else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
@@ -145,24 +153,29 @@ export class PDFGenerator {
           const isJobOrCompany = jobKeywords.some(keyword => line.toLowerCase().includes(keyword));
           
           if (isJobOrCompany || line.includes(' - ') || line.includes(' | ') || line.includes(' • ')) {
-            addText(line, 11, true, false, '#000000'); // Postes/entreprises en gras
+            const cleanLine = line.replace(/<[^>]*>/g, '');
+            addText(cleanLine, 11, true, false, '#000000'); // Postes/entreprises en gras
             currentY += 1;
-            console.log('✅ Poste/Entreprise détecté:', line);
+            console.log('✅ Poste/Entreprise détecté:', cleanLine);
           } else {
             // Texte normal dans les sections
-            addText(line, 9, false, false, '#000000');
-            console.log('✅ Contenu section:', line);
+            const cleanLine = line.replace(/<[^>]*>/g, '');
+            addText(cleanLine, 9, false, false, '#000000');
+            console.log('✅ Contenu section:', cleanLine);
           }
         }
         // TOUT LE RESTE - capturer absolument tout
         else if (!isHeader && line.length > 0) {
+          // Nettoyer les balises HTML
+          const cleanLine = line.replace(/<[^>]*>/g, '');
+          
           // Formatage spécial pour les puces
-          if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
-            addText('    ' + line, 9, false, false, '#000000'); // Puces indentées
-            console.log('✅ Puce détectée:', line);
+          if (cleanLine.startsWith('•') || cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
+            addText('    ' + cleanLine, 9, false, false, '#000000'); // Puces indentées
+            console.log('✅ Puce détectée:', cleanLine);
           } else {
-            addText(line, 9, false, false, '#000000'); // Texte normal
-            console.log('✅ Texte normal:', line);
+            addText(cleanLine, 9, false, false, '#000000'); // Texte normal
+            console.log('✅ Texte normal:', cleanLine);
           }
         }
       });
