@@ -71,8 +71,9 @@ export class PDFGenerator {
       let currentSection = '';
       let headerProcessed = 0;
 
-      lines.forEach((line, index) => {
-        if (currentY > pageHeight - 20) return;
+      for (let index = 0; index < lines.length; index++) {
+        const line = lines[index];
+        if (currentY > pageHeight - 20) break;
 
         // Header (nom, contact, titre) - CENTRÉ - Limiter à 5 lignes max
         if (isHeader && headerProcessed < 5) {
@@ -139,6 +140,7 @@ export class PDFGenerator {
             console.log('✅ Résumé ajouté:', cleanSummary.substring(0, 100) + '...');
           }
           // Ignorer les lignes du résumé dans la boucle principale
+          index = j - 1; // Ajuster l'index pour sauter les lignes du résumé
           continue;
         }
         
@@ -228,7 +230,7 @@ export class PDFGenerator {
             console.log('✅ Texte nettoyé:', cleanLine);
           }
         }
-      });
+      }
 
       doc.save(filename);
       console.log('✅ PDF Ronaldo Prime généré avec succès');
