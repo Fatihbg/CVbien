@@ -1,20 +1,20 @@
 app = "cvbien-backend"
-primary_region = "par"
+primary_region = "scl"
 
 [build]
+  builder = "paketobuildpacks/python"
 
 [env]
-  PORT = "8080"
+  PORT = "8000"
 
 [http_service]
-  internal_port = 8080
+  internal_port = 8000
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
-  processes = ["app"]
 
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
-  memory_mb = 256
+  memory = "256mb"
