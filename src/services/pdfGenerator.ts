@@ -1,17 +1,52 @@
 export class PDFGenerator {
-  static async generateCVPDF(cvText: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
-    try {
-      console.log('=== GÉNÉRATION PDF RONALDO PRIME ===');
-      console.log('Utilisation du design Ronaldo Prime avec jsPDF...');
-      
-      // Utiliser directement le design Ronaldo Prime (jsPDF)
-      await this.generateFallbackPDF(cvText, filename);
-      
-    } catch (error) {
-      console.error('Erreur lors de la génération du PDF:', error);
-      throw new Error('Impossible de générer le PDF');
+    static async generateCVPDF(cvText: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
+      try {
+        console.log('=== GÉNÉRATION PDF BACKEND REPORTLAB ===');
+        console.log('Utilisation du backend ReportLab pour design identique à l\'aperçu...');
+        
+        // Utiliser le backend ReportLab qui peut reproduire le design CSS
+        const response = await fetch(`${config.API_BASE_URL}/generate-pdf`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: new FormData().append('cv_text', cvText)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erreur backend: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.success && result.pdf_content) {
+          // Convertir le contenu hexadécimal en Blob
+          const pdfBytes = new Uint8Array(
+            result.pdf_content.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
+          );
+          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+          
+          // Télécharger le PDF
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          
+          console.log('✅ PDF généré avec succès via backend ReportLab');
+        } else {
+          throw new Error('Erreur backend PDF');
+        }
+        
+      } catch (error) {
+        console.error('Erreur backend PDF, utilisation du fallback jsPDF:', error);
+        // Fallback vers jsPDF si le backend échoue
+        await this.generateFallbackPDF(cvText, filename);
+      }
     }
-  }
 
   private static async generateFallbackPDF(cvText: string, filename: string): Promise<void> {
     try {
