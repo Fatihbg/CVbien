@@ -1,60 +1,15 @@
 export class PDFGenerator {
   static async generateCVPDF(cvText: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
     try {
-      console.log('=== GÉNÉRATION PDF PROFESSIONNEL ===');
-      console.log('Utilisation du backend Python pour un PDF de qualité...');
+      console.log('=== GÉNÉRATION PDF RONALDO PRIME ===');
+      console.log('Utilisation du design Ronaldo Prime avec jsPDF...');
       
-      // Utiliser le nouvel endpoint PDF du backend
-      const formData = new FormData();
-      formData.append('cv_text', cvText);
-
-      console.log('🔍 CV envoyé au backend (premiers 200 caractères):', cvText.substring(0, 200));
-      console.log('Envoi vers le backend Python pour génération PDF...');
-      
-      const response = await fetch('https://cvbien-backend-api-production.up.railway.app/generate-pdf', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erreur backend: ${response.status} ${response.statusText}`);
-      }
-
-      console.log('PDF reçu du backend Python');
-      
-      // Le backend retourne un JSON avec le PDF en hexadécimal
-      const result = await response.json();
-      console.log('Résultat backend:', result);
-      
-      if (result.success && result.pdf_content) {
-        // Convertir l'hexadécimal en blob
-        const hexString = result.pdf_content;
-        const bytes = new Uint8Array(hexString.length / 2);
-        for (let i = 0; i < hexString.length; i += 2) {
-          bytes[i / 2] = parseInt(hexString.substr(i, 2), 16);
-        }
-        
-        const pdfBlob = new Blob([bytes], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(pdfBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = result.filename || filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      } else {
-        throw new Error('Erreur: PDF non généré par le backend');
-      }
-      
-      console.log('PDF téléchargé avec succès !');
+      // Utiliser directement le design Ronaldo Prime (jsPDF)
+      await this.generateFallbackPDF(cvText, filename);
       
     } catch (error) {
       console.error('Erreur lors de la génération du PDF:', error);
-      
-      // Fallback: utiliser jsPDF en cas d'erreur
-      console.log('Fallback vers jsPDF...');
-      await this.generateFallbackPDF(cvText, filename);
+      throw new Error('Impossible de générer le PDF');
     }
   }
 
@@ -75,7 +30,7 @@ export class PDFGenerator {
       const maxWidth = pageWidth - (2 * margin);
       let currentY = margin;
 
-      // Fonction pour ajouter du texte avec formatage
+      // Fonction pour ajouter du texte avec formatage Ronaldo Prime
       const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#374151') => {
         if (currentY > pageHeight - 20) return;
         
@@ -88,11 +43,11 @@ export class PDFGenerator {
         lines.forEach((line: string) => {
           if (currentY > pageHeight - 20) return;
           doc.text(line, isCenter ? pageWidth / 2 : margin, currentY, { align: isCenter ? 'center' : 'left' });
-          currentY += fontSize * 0.4;
+          currentY += fontSize * 0.35; // Espacement plus compact
         });
       };
 
-      // Parser et formater le CV
+      // Parser intelligent pour formatage Ronaldo Prime
       const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
       
       let isHeader = true;
@@ -101,16 +56,23 @@ export class PDFGenerator {
       lines.forEach((line, index) => {
         if (currentY > pageHeight - 30) return;
 
-        // Header (nom, contact)
-        if (isHeader && index < 5) {
-          if (line.length > 3 && line.length < 50 && line === line.toUpperCase() && !line.includes('@')) {
-            addText(line, 16, true, true, '#2563eb'); // Bleu pour le nom
-            currentY += 3;
-          } else if (line.includes('@') || line.includes('|')) {
-            addText(line, 10, false, true, '#4b5563'); // Gris pour les contacts
+        // Header (nom, contact, titre)
+        if (isHeader && index < 8) {
+          // Nom en majuscules
+          if (line.length > 3 && line.length < 50 && line === line.toUpperCase() && 
+              !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE')) {
+            addText(line, 18, true, false, '#1e3a8a'); // Bleu sérieux pour le nom
             currentY += 2;
-          } else if (line.length > 5 && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE')) {
-            addText(line, 12, true, true, '#1e40af'); // Bleu foncé pour le titre
+          } 
+          // Contact
+          else if (line.includes('@') || line.includes('|') || line.includes('+')) {
+            addText(line, 9, false, false, '#000000'); // Contact en noir
+            currentY += 1;
+          } 
+          // Titre de poste
+          else if (line.length > 5 && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') && 
+                   !line.includes('FORMATION') && !line.includes('SKILLS')) {
+            addText(line, 12, true, false, '#1e3a8a'); // Titre en bleu sérieux
             currentY += 2;
           }
         }
@@ -118,7 +80,7 @@ export class PDFGenerator {
         // Détecter la fin du header
         if (isHeader && (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('FORMATION'))) {
           isHeader = false;
-          currentY += 2;
+          currentY += 3;
         }
         
         // Sections principales
@@ -127,23 +89,36 @@ export class PDFGenerator {
             line === 'PROFESSIONAL EXPERIENCE' || 
             line === 'TECHNICAL SKILLS' || 
             line === 'CERTIFICATIONS & ACHIEVEMENTS' ||
-            line === 'EXPERIENCE PROFESSIONNELLE' ||
+            line === 'EXPÉRIENCE PROFESSIONNELLE' ||
             line === 'FORMATION' ||
             line === 'COMPETENCES' ||
-            line === 'COMPÉTENCES') {
+            line === 'COMPÉTENCES' ||
+            line === 'PROJECTS' ||
+            line === 'OTHER') {
           
           currentY += 2;
-          addText(line, 12, true, false, '#1e40af'); // Bleu foncé pour les titres de section
+          addText(line, 11, true, false, '#1e3a8a'); // Sections en bleu sérieux
           currentY += 1;
           currentSection = line;
+        }
+        // Postes/titres dans les sections
+        else if (currentSection && ('EXPERIENCE' in currentSection || 'PROJECTS' in currentSection) &&
+                 line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
+          // Vérifier si c'est un poste
+          const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
+                              'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner'];
+          if (jobKeywords.some(keyword => line.toLowerCase().includes(keyword))) {
+            addText(line, 10, true, false, '#000000'); // Postes en gras
+            currentY += 0.5;
+          }
         }
         // Contenu des sections
         else if (currentSection && line.length > 0) {
           // Formatage spécial pour les puces
           if (line.startsWith('•') || line.startsWith('-')) {
-            addText(line, 9, false, false, '#374151'); // Gris foncé pour les puces
+            addText(line, 9, false, false, '#000000'); // Puces en noir
           } else {
-            addText(line, 9, false, false, '#374151'); // Gris foncé pour le texte normal
+            addText(line, 9, false, false, '#000000'); // Texte normal
           }
         }
       });
