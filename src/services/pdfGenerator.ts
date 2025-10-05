@@ -11,7 +11,7 @@ export class PDFGenerator {
       console.log('🔍 CV envoyé au backend (premiers 200 caractères):', cvText.substring(0, 200));
       console.log('Envoi vers le backend Python pour génération PDF...');
       
-      const response = await fetch('https://cvbien-production.up.railway.app/generate-pdf', {
+      const response = await fetch('https://cvbien-backend-api-production.up.railway.app/generate-pdf', {
         method: 'POST',
         body: formData
       });
