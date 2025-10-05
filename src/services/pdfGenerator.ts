@@ -145,12 +145,12 @@ export class PDFGenerator {
             line === 'OTHER' || line === 'SKILLS') {
           
           currentY += 4; // Plus d'espace avant
-          addText(line, 12, true, false, false, '#000000'); // Sections en gras
+          addText(line, 12, true, false, false, '#000000'); // Sections EN GRAS
           
           // Ajouter une ligne en dessous du titre
           doc.setDrawColor(0, 0, 0); // Couleur noire
           doc.setLineWidth(0.5);
-          doc.line(margin, currentY + 1, pageWidth - margin, currentY + 1);
+          doc.line(margin, currentY + 2, pageWidth - margin, currentY + 2);
           
           currentY += 5; // Espace d'une ligne après le titre
           currentSection = line;
@@ -170,10 +170,10 @@ export class PDFGenerator {
             // Vérifier s'il y a une date/lieu sur la même ligne
             const parts = cleanLine.split(' • ');
             if (parts.length === 2) {
-              addText(parts[0], 10, true, false, false, '#000000'); // Entreprise en gras à gauche
+              addText(parts[0], 10, true, false, false, '#000000'); // Entreprise EN GRAS à gauche
               addText(parts[1], 9, false, false, true, '#000000'); // Lieu à droite
             } else {
-              addText(cleanLine, 10, true, false, false, '#000000'); // Entreprise en gras
+              addText(cleanLine, 10, true, false, false, '#000000'); // Entreprise EN GRAS
             }
             currentY += 1; // Plus d'espace
           }
@@ -206,13 +206,30 @@ export class PDFGenerator {
           // Nettoyer les balises HTML
           const cleanLine = line.replace(/<[^>]*>/g, '');
           
-          // Vérifier s'il y a une date sur la même ligne
-          const parts = cleanLine.split(' • ');
-          if (parts.length === 2) {
-            addText(parts[0], 10, true, false, false, '#000000'); // Institution en gras à gauche
-            addText(parts[1], 9, false, false, true, '#000000'); // Date à droite
+          // Détecter les diplômes et formations à mettre en gras
+          const educationKeywords = ['master', 'bachelor', 'degree', 'diploma', 'certificate', 'phd', 'doctorate', 
+                                   'licence', 'maîtrise', 'bachelier', 'master', 'diplôme', 'certification'];
+          
+          const isEducation = educationKeywords.some(keyword => cleanLine.toLowerCase().includes(keyword));
+          
+          if (isEducation) {
+            // Vérifier s'il y a une date sur la même ligne
+            const parts = cleanLine.split(' • ');
+            if (parts.length === 2) {
+              addText(parts[0], 10, true, false, false, '#000000'); // Diplôme EN GRAS à gauche
+              addText(parts[1], 9, false, false, true, '#000000'); // Date à droite
+            } else {
+              addText(cleanLine, 10, true, false, false, '#000000'); // Diplôme EN GRAS
+            }
           } else {
-            addText(cleanLine, 10, true, false, false, '#000000'); // Institution en gras
+            // Institution normale
+            const parts = cleanLine.split(' • ');
+            if (parts.length === 2) {
+              addText(parts[0], 10, true, false, false, '#000000'); // Institution EN GRAS à gauche
+              addText(parts[1], 9, false, false, true, '#000000'); // Date à droite
+            } else {
+              addText(cleanLine, 10, true, false, false, '#000000'); // Institution EN GRAS
+            }
           }
           currentY += 1; // Plus d'espace
         }
@@ -226,7 +243,7 @@ export class PDFGenerator {
           
           // Formatage spécial pour les sous-catégories
           if (cleanLine.includes(':') && !cleanLine.startsWith('•')) {
-            addText(cleanLine, 10, true, false, false, '#000000'); // Sous-catégorie en gras
+            addText(cleanLine, 10, true, false, false, '#000000'); // Sous-catégorie EN GRAS
           } else {
             addText(cleanLine, 9, false, false, false, '#000000'); // Contenu normal
           }
