@@ -158,28 +158,13 @@ COMPETENCES
         await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      console.log('Appel au backend pour génération CV...');
+      console.log('Appel direct à OpenAI (mode local sophistiqué)...');
       
-      // Appel au backend avec FormData (comme attendu par le backend)
-      const formData = new FormData();
-      
-      // Créer un fichier blob avec le texte du CV
-      const cvTextSafe = cvText || '';
-      const jobDescriptionSafe = jobDescription || '';
-      const cvBlob = new Blob([cvTextSafe], { type: 'text/plain' });
-      formData.append('cv_file', cvBlob, 'cv.txt');
-      formData.append('job_offer', jobDescriptionSafe);
-
-      const response = await fetch(`${config.API_BASE_URL}/optimize-cv`, {
-        method: 'POST',
-        body: formData // Pas de Content-Type header avec FormData
+      // Utiliser directement le service OpenAI local avec le prompt "Ronaldo Prime"
+      const result = await OpenAIService.generateOptimizedCV({
+        cvText: cvText || '',
+        jobDescription: jobDescription || ''
       });
-
-      if (!response.ok) {
-        throw new Error(`Erreur backend: ${response.status}`);
-      }
-
-      const result = await response.json();
       
       console.log('Résultat reçu:', result);
       console.log('Type du résultat:', typeof result);
@@ -189,9 +174,9 @@ COMPETENCES
       console.log('result.improvements:', result.improvements);
       
       // Vérifications de sécurité avant d'accéder aux propriétés
-      const optimizedCV = result?.optimized_cv || result?.data?.optimized_cv || null;
-      const atsScore = result?.optimized_cv?.score || result?.ats_score || result?.data?.ats_score || 0;
-      const improvements = result?.optimized_cv?.suggestions || result?.improvements || result?.data?.improvements || [];
+      const optimizedCV = result?.optimizedCV || result?.optimized_cv || result?.data?.optimized_cv || null;
+      const atsScore = result?.atsScore || result?.optimized_cv?.score || result?.ats_score || result?.data?.ats_score || 0;
+      const improvements = result?.improvements || result?.optimized_cv?.suggestions || result?.improvements || result?.data?.improvements || [];
       
       console.log('Données sécurisées:', { optimizedCV, atsScore, improvements });
       console.log('Type optimizedCV:', typeof optimizedCV);

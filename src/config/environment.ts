@@ -31,7 +31,7 @@ export const config = {
   DEMO_MODE: import.meta.env.VITE_DEMO_MODE === 'true',
 
   // OpenAI
-  OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY || '',
+  OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY || 'sk-proj-1X...', // TEMPORAIRE POUR TEST
 
   // Stripe - TEMPORAIREMENT HARDCODÉ
   STRIPE_PUBLISHABLE_KEY: 'pk_live_51SD8G7QZWzLgjmhb8kI9cdgxtUhJ3tnzDhaXgJmLRvYbUdy2NZD5RZOaZe7bm29zaK81dE89e9Qacr3mU3B7ReyY00yryXJTHS', // import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
