@@ -162,13 +162,21 @@ export class PDFGenerator {
           const textY = currentY;
           addText(cleanLine, 12, true, false, '#000000'); // Sections en noir
           
-          // Ligne horizontale NOIRE DIRECTEMENT SOUS le titre (plus fine et plus proche)
-          doc.setDrawColor(0, 0, 0); // Noir
-          doc.setLineWidth(0.5); // Plus fine
-          const lineY = textY + 3; // Plus proche du texte
-          doc.line(margin, lineY, pageWidth - margin, lineY);
+          // Vérifier si c'est la dernière section (pas de ligne pour la dernière)
+          const isLastSection = cleanLine.includes('CERTIFICATIONS') || cleanLine.includes('ACHIEVEMENTS') || 
+                               cleanLine.includes('CERTIFICATIONS & ACHIEVEMENTS');
           
-          currentY = lineY + 4; // Espace après la ligne
+          if (!isLastSection) {
+            // Ligne horizontale NOIRE DIRECTEMENT SOUS le titre (plus fine et plus proche)
+            doc.setDrawColor(0, 0, 0); // Noir
+            doc.setLineWidth(0.5); // Plus fine
+            const lineY = textY + 3; // Plus proche du texte
+            doc.line(margin, lineY, pageWidth - margin, lineY);
+            currentY = lineY + 4; // Espace après la ligne
+          } else {
+            currentY += 3; // Juste un espace sans ligne pour la dernière section
+          }
+          
           currentSection = cleanLine;
           console.log('✅ Section détectée:', cleanLine);
         }
