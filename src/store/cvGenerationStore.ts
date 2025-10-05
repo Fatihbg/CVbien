@@ -89,9 +89,16 @@ export const useCVGenerationStore = create<CVGenerationState>((set, get) => ({
     const { cvText, jobDescription } = get();
     console.log('generateOptimizedCV appelé avec:', { cvText, jobDescription });
     
-    if (!cvText || !jobDescription) {
-      console.log('Données manquantes pour la génération');
-      alert('Veuillez d\'abord uploader un CV et saisir une description de poste');
+    // Vérifications plus robustes
+    if (!cvText || !cvText.trim()) {
+      console.log('CV texte manquant ou vide');
+      alert('Veuillez d\'abord uploader un CV');
+      return;
+    }
+    
+    if (!jobDescription || !jobDescription.trim()) {
+      console.log('Description de poste manquante ou vide');
+      alert('Veuillez saisir une description de poste');
       return;
     }
     

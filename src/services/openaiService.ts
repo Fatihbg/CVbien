@@ -439,8 +439,13 @@ COMPETENCES
   static async generateOptimizedCV(request: CVGenerationRequest): Promise<CVGenerationResponse> {
     try {
       console.log('=== DÉBUT GÉNÉRATION CV AVEC BACKEND PYTHON ===');
-      console.log('CV Text length:', request.cvText.length);
-      console.log('Job Description length:', request.jobDescription.length);
+      console.log('CV Text length:', request.cvText?.length || 0);
+      console.log('Job Description length:', request.jobDescription?.length || 0);
+      
+      // Vérifier que les données requises sont présentes
+      if (!request.cvText || !request.jobDescription) {
+        throw new Error('Données manquantes: cvText ou jobDescription est undefined');
+      }
       
       // Utiliser le backend Python avec LlamaIndex
       const formData = new FormData();
