@@ -3,55 +3,156 @@ import { config } from '../config/environment';
 export class PDFGenerator {
     static async generateCVPDF(cvText: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
       try {
-        console.log('=== GÉNÉRATION PDF BACKEND REPORTLAB ===');
-        console.log('Utilisation du backend ReportLab pour design identique à l\'aperçu...');
+        console.log('=== GÉNÉRATION PDF DESIGN HYBRIDE ===');
+        console.log('Mélange du design de l\'aperçu avec le PDF...');
         
-        // Utiliser le backend ReportLab qui peut reproduire le design CSS
-        const formData = new FormData();
-        formData.append('cv_text', cvText);
-        
-        const response = await fetch(`${config.API_BASE_URL}/generate-pdf`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-          body: formData
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erreur backend: ${response.status}`);
-        }
-
-        const result = await response.json();
-        
-        if (result.success && result.pdf_content) {
-          // Convertir le contenu hexadécimal en Blob
-          const pdfBytes = new Uint8Array(
-            result.pdf_content.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))
-          );
-          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-          
-          // Télécharger le PDF
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          
-          console.log('✅ PDF généré avec succès via backend ReportLab');
-        } else {
-          throw new Error('Erreur backend PDF');
-        }
+        // Utiliser une approche hybride : CSS vers PDF
+        await this.generateHybridPDF(cvText, filename);
         
       } catch (error) {
-        console.error('Erreur backend PDF, utilisation du fallback jsPDF:', error);
-        // Fallback vers jsPDF si le backend échoue
+        console.error('Erreur génération hybride, utilisation du fallback jsPDF:', error);
+        // Fallback vers jsPDF si l'hybride échoue
         await this.generateFallbackPDF(cvText, filename);
       }
     }
+
+  private static async generateHybridPDF(cvText: string, filename: string): Promise<void> {
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Configuration optimisée pour remplir la page
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 10; // Marges très réduites
+      const maxWidth = pageWidth - (2 * margin);
+      let currentY = margin;
+
+      // Fonction pour ajouter du texte avec le style de l'aperçu
+      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, isRight: boolean = false, color: string = '#000000') => {
+        if (currentY > pageHeight - 15) return;
+        
+        doc.setFontSize(fontSize);
+        if (isBold) {
+          doc.setFont('helvetica', 'bold');
+        } else {
+          doc.setFont('helvetica', 'normal');
+        }
+        doc.setTextColor(color);
+        
+        const lines = doc.splitTextToSize(text, maxWidth);
+        
+        lines.forEach((line: string) => {
+          if (currentY > pageHeight - 15) return;
+          let xPos = margin;
+          let align: any = 'left';
+          
+          if (isCenter) {
+            xPos = pageWidth / 2;
+            align = 'center';
+          } else if (isRight) {
+            xPos = pageWidth - margin;
+            align = 'right';
+          }
+          
+          doc.text(line, xPos, currentY, { align });
+          currentY += fontSize * 0.35; // Espacement très compact
+        });
+      };
+
+      // Parser identique à l'aperçu pour le même rendu
+      const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
+      
+      let isHeader = true;
+      let currentSection = '';
+
+      lines.forEach((line, index) => {
+        if (currentY > pageHeight - 15) return;
+
+        // Header (nom, contact, titre) - CENTRÉ comme l'aperçu
+        if (isHeader && index < 8) {
+          // Nom en majuscules - CENTRÉ
+          if (line.length > 3 && line.length < 50 && line === line.toUpperCase() && 
+              !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE')) {
+            addText(line, 16, true, true, false, '#1e3a8a'); // Nom centré en bleu
+            currentY += 2;
+          } 
+          // Contact - CENTRÉ
+          else if (line.includes('@') || line.includes('|') || line.includes('+')) {
+            addText(line, 9, false, true, false, '#000000'); // Contact centré
+            currentY += 1;
+          } 
+          // Titre de poste - CENTRÉ et plus grand
+          else if (line.length > 5 && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') && 
+                   !line.includes('FORMATION') && !line.includes('SKILLS')) {
+            addText(line, 12, true, true, false, '#000000'); // Titre centré en gras
+            currentY += 2;
+          }
+        }
+        
+        // Détecter la fin du header
+        if (isHeader && (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('FORMATION'))) {
+          isHeader = false;
+          currentY += 3;
+        }
+        
+        // Sections principales - avec lignes horizontales
+        if (line === 'PROFESSIONAL EXPERIENCE' || 
+            line === 'EDUCATION' || 
+            line === 'PROFESSIONAL EXPERIENCE' || 
+            line === 'TECHNICAL SKILLS' || 
+            line === 'CERTIFICATIONS & ACHIEVEMENTS' ||
+            line === 'EXPÉRIENCE PROFESSIONNELLE' ||
+            line === 'FORMATION' ||
+            line === 'COMPETENCES' ||
+            line === 'COMPÉTENCES' ||
+            line === 'PROJECTS' ||
+            line === 'OTHER') {
+          
+          currentY += 3;
+          // Ligne horizontale
+          doc.setDrawColor(30, 58, 138); // Bleu sérieux
+          doc.setLineWidth(0.5);
+          doc.line(margin, currentY - 1, pageWidth - margin, currentY - 1);
+          
+          addText(line, 10, true, false, false, '#1e3a8a'); // Sections en bleu sérieux
+          currentY += 2;
+          currentSection = line;
+        }
+        // Postes/titres dans les sections - EN GRAS
+        else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
+                 line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
+          // Vérifier si c'est un poste
+          const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
+                              'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner'];
+          if (jobKeywords.some(keyword => line.toLowerCase().includes(keyword))) {
+            addText(line, 10, true, false, false, '#000000'); // Postes en gras
+            currentY += 0.5;
+          }
+        }
+        // Contenu des sections
+        else if (currentSection && line.length > 0) {
+          // Formatage spécial pour les puces
+          if (line.startsWith('•') || line.startsWith('-')) {
+            addText('    ' + line, 8, false, false, false, '#000000'); // Puces indentées
+          } else {
+            addText(line, 8, false, false, false, '#000000'); // Texte normal
+          }
+        }
+      });
+
+      doc.save(filename);
+      console.log('✅ PDF hybride généré avec succès');
+    } catch (error) {
+      console.error('Erreur génération hybride:', error);
+      throw error;
+    }
+  }
 
   private static async generateFallbackPDF(cvText: string, filename: string): Promise<void> {
     try {
