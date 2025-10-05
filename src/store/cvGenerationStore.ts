@@ -190,8 +190,8 @@ COMPETENCES
       
       // Vérifications de sécurité avant d'accéder aux propriétés
       const optimizedCV = result?.optimized_cv || result?.data?.optimized_cv || null;
-      const atsScore = result?.ats_score || result?.data?.ats_score || 0;
-      const improvements = result?.improvements || result?.data?.improvements || [];
+      const atsScore = result?.optimized_cv?.score || result?.ats_score || result?.data?.ats_score || 0;
+      const improvements = result?.optimized_cv?.suggestions || result?.improvements || result?.data?.improvements || [];
       
       console.log('Données sécurisées:', { optimizedCV, atsScore, improvements });
       
