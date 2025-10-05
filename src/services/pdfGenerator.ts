@@ -127,44 +127,53 @@ export class PDFGenerator {
         );
         
         if (isSection && !isHeader) {
-          currentY += 4;
+          currentY += 6; // Plus d'espace avant les sections
           
           // Nettoyer les balises HTML
           const cleanLine = line.replace(/<[^>]*>/g, '');
           
+          // Calculer la position exacte du texte
+          const textY = currentY;
           addText(cleanLine, 12, true, false, '#000000'); // Sections en noir
-          currentY += 3;
           
-          // Ligne horizontale NOIRE SOUS le titre
+          // Ligne horizontale NOIRE DIRECTEMENT SOUS le titre (soulignement)
           doc.setDrawColor(0, 0, 0); // Noir
           doc.setLineWidth(1.0);
-          doc.line(margin, currentY - 1, pageWidth - margin, currentY - 1);
+          const lineY = textY + 4; // Juste sous le texte
+          doc.line(margin, lineY, pageWidth - margin, lineY);
           
+          currentY = lineY + 4; // Espace après la ligne
           currentSection = cleanLine;
           console.log('✅ Section détectée:', cleanLine);
         }
-        // Postes/titres dans les sections - EN GRAS - Plus flexible
-        else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
+        // Postes/titres dans les sections - EN GRAS avec espacement
+        else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS') || currentSection.includes('EDUCATION') || currentSection.includes('FORMATION')) &&
                  line.length > 5 && line.length < 100 && !line.startsWith('•') && !line.startsWith('-')) {
-          // Vérifier si c'est un poste ou entreprise
-          const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
-                              'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner',
-                              'company', 'corporation', 'ltd', 'inc', 'srl', 'gmbh', 'sa'];
-          const isJobOrCompany = jobKeywords.some(keyword => line.toLowerCase().includes(keyword));
           
-          if (isJobOrCompany || line.includes(' - ') || line.includes(' | ') || line.includes(' • ')) {
-            const cleanLine = line.replace(/<[^>]*>/g, '');
-            addText(cleanLine, 11, true, false, '#000000'); // Postes/entreprises en gras
-            currentY += 1;
-            console.log('✅ Poste/Entreprise détecté:', cleanLine);
+          const cleanLine = line.replace(/<[^>]*>/g, '');
+          
+          // Détecter si c'est le début d'une nouvelle expérience/éducation (contient des mots-clés ou des dates)
+          const experienceKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
+                                     'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner',
+                                     'master', 'bachelor', 'degree', 'diploma', 'certificate', 'phd', 'doctorate',
+                                     'licence', 'maîtrise', 'bachelier', 'diplôme', 'certification'];
+          
+          const hasDate = /\d{4}/.test(cleanLine) || cleanLine.includes(' - ') || cleanLine.includes(' | ') || cleanLine.includes(' • ');
+          const isNewEntry = experienceKeywords.some(keyword => cleanLine.toLowerCase().includes(keyword)) || hasDate;
+          
+          if (isNewEntry) {
+            currentY += 3; // Espace avant chaque nouvelle expérience/éducation
+            addText(cleanLine, 11, true, false, '#000000'); // Titre en gras
+            currentY += 2; // Espace après le titre
+            console.log('✅ Nouvelle expérience/éducation:', cleanLine);
           } else {
             // Texte normal dans les sections
-            const cleanLine = line.replace(/<[^>]*>/g, '');
             addText(cleanLine, 9, false, false, '#000000');
+            currentY += 1; // Petit espace entre les lignes
             console.log('✅ Contenu section:', cleanLine);
           }
         }
-        // TOUT LE RESTE - capturer absolument tout
+        // TOUT LE RESTE - capturer absolument tout avec espacement
         else if (!isHeader && line.length > 0) {
           // Nettoyer les balises HTML
           const cleanLine = line.replace(/<[^>]*>/g, '');
@@ -172,9 +181,11 @@ export class PDFGenerator {
           // Formatage spécial pour les puces
           if (cleanLine.startsWith('•') || cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
             addText('    ' + cleanLine, 9, false, false, '#000000'); // Puces indentées
+            currentY += 1.5; // Espace entre les puces
             console.log('✅ Puce détectée:', cleanLine);
           } else {
             addText(cleanLine, 9, false, false, '#000000'); // Texte normal
+            currentY += 0.5; // Petit espace entre les lignes
             console.log('✅ Texte normal:', cleanLine);
           }
         }
