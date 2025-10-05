@@ -194,9 +194,19 @@ COMPETENCES
       const improvements = result?.optimized_cv?.suggestions || result?.improvements || result?.data?.improvements || [];
       
       console.log('Données sécurisées:', { optimizedCV, atsScore, improvements });
+      console.log('Type optimizedCV:', typeof optimizedCV);
+      console.log('Contenu optimizedCV:', optimizedCV);
+      if (optimizedCV && typeof optimizedCV === 'object') {
+        console.log('Clés optimizedCV:', Object.keys(optimizedCV));
+        console.log('optimizedCV.content:', optimizedCV.content);
+        console.log('optimizedCV.title:', optimizedCV.title);
+      }
+      
+      // Extraire le contenu du CV de l'objet
+      const cvContent = optimizedCV?.content || optimizedCV?.title || (typeof optimizedCV === 'string' ? optimizedCV : '');
       
       set({
-        generatedCV: optimizedCV,
+        generatedCV: cvContent, // Passer le contenu textuel du CV
         atsScore: atsScore,
         improvements: improvements,
         isGenerating: false,
