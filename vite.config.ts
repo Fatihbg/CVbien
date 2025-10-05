@@ -9,6 +9,9 @@ export default defineConfig({
     host: true
   },
   define: {
-    'process.env': {}
+    'process.env': {},
+        'import.meta.env.VITE_API_BASE_URL': JSON.stringify('https://cvbien-production.up.railway.app'),
+        'import.meta.env.VITE_AUTH_API_URL': JSON.stringify('https://cvbien-production.up.railway.app'),
+    'import.meta.env.VITE_NODE_ENV': JSON.stringify('production')
   }
 })

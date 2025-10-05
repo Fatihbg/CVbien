@@ -34,7 +34,14 @@ class AuthService {
     try {
       console.log('🔐 Tentative de connexion avec:', credentials.email);
       
-      const response = await fetch(`${AuthService.API_BASE_URL}/api/auth/login`, {
+      // FORCER L'URL EN PRODUCTION
+      const apiUrl = window.location.hostname === 'cvbien4.vercel.app' 
+        ? 'https://cvbien-production.up.railway.app'  // Railway backend
+        : AuthService.API_BASE_URL;
+      
+      console.log('🔧 URL utilisée:', apiUrl);
+      
+      const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +73,14 @@ class AuthService {
     try {
       console.log('📝 Tentative d\'inscription avec:', credentials.email);
       
-      const response = await fetch(`${AuthService.API_BASE_URL}/api/auth/register`, {
+      // FORCER L'URL EN PRODUCTION
+      const apiUrl = window.location.hostname === 'cvbien4.vercel.app' 
+        ? 'https://cvbien-production.up.railway.app'  // Railway backend
+        : AuthService.API_BASE_URL;
+      
+      console.log('🔧 URL utilisée:', apiUrl);
+      
+      const response = await fetch(`${apiUrl}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -8,15 +8,19 @@ console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
 console.log('VITE_STRIPE_PUBLISHABLE_KEY:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? 'Définie' : 'Non définie');
 console.log('VITE_DEMO_MODE:', import.meta.env.VITE_DEMO_MODE);
 
+// FORCER LES URLs EN PRODUCTION
+const isProduction = import.meta.env.MODE === 'production' || window.location.hostname !== 'localhost';
+console.log('🔧 Mode production détecté:', isProduction);
+
 export const config = {
   // Mode de l'application
   NODE_ENV: import.meta.env.VITE_NODE_ENV || 'development',
   IS_PRODUCTION: import.meta.env.VITE_NODE_ENV === 'production',
   IS_DEVELOPMENT: import.meta.env.VITE_NODE_ENV === 'development',
 
-  // URLs de l'API - TEMPORAIREMENT HARDCODÉ
-  API_BASE_URL: 'http://localhost:8003', // import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002',
-  AUTH_API_URL: import.meta.env.VITE_AUTH_API_URL || 'http://localhost:8001',
+// URLs de l'API - RAILWAY BACKEND
+API_BASE_URL: isProduction ? 'https://cvbien-production.up.railway.app' : 'http://localhost:8000',
+AUTH_API_URL: isProduction ? 'https://cvbien-production.up.railway.app' : 'http://localhost:8000',
 
   // Application
   APP_NAME: import.meta.env.VITE_APP_NAME || 'CVbien',

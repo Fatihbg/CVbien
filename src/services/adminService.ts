@@ -35,7 +35,7 @@ export interface AdminData {
 }
 
 export class AdminService {
-  private static API_BASE_URL = 'http://localhost:8001';
+  private static API_BASE_URL = 'https://cvbien-production.up.railway.app';
 
   static async getAdminData(): Promise<AdminData> {
     try {

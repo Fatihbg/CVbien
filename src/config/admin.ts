@@ -1,7 +1,7 @@
 // Configuration pour l'accès à l'administration
 export const ADMIN_CONFIG = {
   // URL de base pour l'administration en production
-  ADMIN_URL: process.env.NODE_ENV === 'production' 
+  ADMIN_URL: import.meta.env.MODE === 'production' 
     ? 'https://votre-domaine.com/admin' 
     : 'http://localhost:5173/admin',
   
@@ -12,9 +12,9 @@ export const ADMIN_CONFIG = {
   ADMIN_ENABLED: true,
   
   // URL de l'API backend
-  API_BASE_URL: process.env.NODE_ENV === 'production'
-    ? 'https://votre-domaine.com/api'
-    : 'http://localhost:8001',
+API_BASE_URL: import.meta.env.MODE === 'production'
+  ? 'https://cvbien-production.up.railway.app'
+  : 'https://cvbien-production.up.railway.app',
 };
 
 // Instructions pour l'accès en production

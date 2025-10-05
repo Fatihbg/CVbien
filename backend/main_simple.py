@@ -1079,11 +1079,11 @@ async def extract_pdf(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Seuls les fichiers PDF sont acceptés.")
     
     try:
-        import PyPDF2  # type: ignore
+        import pypdf  # type: ignore
         content = await file.read()
         
         # Créer un objet PDF reader
-        pdf_reader = PyPDF2.PdfReader(BytesIO(content))
+        pdf_reader = pypdf.PdfReader(BytesIO(content))
         
         # Extraire le texte de toutes les pages
         text = ""

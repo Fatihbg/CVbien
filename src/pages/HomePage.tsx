@@ -6,7 +6,6 @@ import { CVDisplay } from '../components/CV/CVDisplay';
 import { AuthModal } from '../components/Auth/AuthModal';
 import { UserProfile } from '../components/User/UserProfile';
 import { PaymentModal } from '../components/Payment/PaymentModal';
-import { OpenAIService } from '../services/openaiService';
 import { useTranslation } from '../hooks/useTranslation';
 import { LanguageSelector } from '../components/LanguageSelector';
 
@@ -161,15 +160,7 @@ export const HomePage: React.FC = () => {
     const file = event.target.files?.[0];
     if (file) {
       setUploadedFile(file);
-      try {
-        console.log('Extraction du texte du fichier:', file.name);
-        const text = await OpenAIService.extractTextFromFile(file);
-        // Mettre à jour le store avec le texte extrait
-        useCVGenerationStore.setState({ cvText: text });
-        console.log('Texte extrait:', text.substring(0, 200) + '...');
-      } catch (error) {
-        console.error('Erreur lors de l\'extraction du fichier:', error);
-      }
+      // L'extraction se fera automatiquement via extractCVText() dans le store
     }
   };
 
@@ -182,15 +173,7 @@ export const HomePage: React.FC = () => {
     const file = event.dataTransfer.files[0];
     if (file) {
       setUploadedFile(file);
-      try {
-        console.log('Extraction du texte du fichier:', file.name);
-        const text = await OpenAIService.extractTextFromFile(file);
-        // Mettre à jour le store avec le texte extrait
-        useCVGenerationStore.setState({ cvText: text });
-        console.log('Texte extrait:', text.substring(0, 200) + '...');
-      } catch (error) {
-        console.error('Erreur lors de l\'extraction du fichier:', error);
-      }
+      // L'extraction se fera automatiquement via extractCVText() dans le store
     }
   };
 
