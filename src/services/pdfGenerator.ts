@@ -128,6 +128,9 @@ export class PDFGenerator {
         } else if (currentExperience && line.startsWith('-')) {
           // Description de l'expérience
           currentExperience.description += (currentExperience.description ? '\n' : '') + line.substring(1).trim();
+        } else if (currentExperience && line.length > 10 && !line.includes('(') && !line.includes(' - ')) {
+          // Description continue (ligne sans tiret)
+          currentExperience.description += (currentExperience.description ? '\n' : '') + line.trim();
         }
       } else if (currentSection === 'education') {
         // Nouvelle formation
@@ -153,6 +156,9 @@ export class PDFGenerator {
         } else if (currentEducation && line.startsWith('-')) {
           // Description de la formation
           currentEducation.description += (currentEducation.description ? '\n' : '') + line.substring(1).trim();
+        } else if (currentEducation && line.length > 10 && !line.includes('(') && !line.includes(' - ')) {
+          // Description continue (ligne sans tiret)
+          currentEducation.description += (currentEducation.description ? '\n' : '') + line.trim();
         }
       } else if (currentSection === 'skills') {
         // Compétences (lignes avec deux points ou listes séparées par virgules)
@@ -502,7 +508,7 @@ export class PDFGenerator {
       const maxWidth = pageWidth - (2 * margin);
       let currentY = margin;
 
-      // Fonction pour ajouter du texte
+      // Fonction pour ajouter du texte (lignes rapprochées)
       const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
         if (currentY > pageHeight - 20) return;
         
@@ -514,13 +520,15 @@ export class PDFGenerator {
         }
         doc.setTextColor(color);
         
-        const lines = doc.splitTextToSize(text, maxWidth);
+        // Nettoyer le HTML (retirer <b>, <B>, etc.)
+        const cleanText = text.replace(/<[^>]*>/g, '');
+        const lines = doc.splitTextToSize(cleanText, maxWidth);
         
         lines.forEach((line: string) => {
           if (currentY > pageHeight - 20) return;
           const xPos = isCenter ? (pageWidth - doc.getTextWidth(line)) / 2 : margin;
           doc.text(line, xPos, currentY);
-          currentY += fontSize * 0.4;
+          currentY += fontSize * 0.3; // Lignes plus rapprochées (0.3 au lieu de 0.4)
         });
       };
 
@@ -554,21 +562,21 @@ export class PDFGenerator {
       }
 
       // PROFIL/RÉSUMÉ (SANS TITRE "PROFESSIONAL SUMMARY")
-      if (cvStructure.summary) {
+      if (cvStructure.summary && cvStructure.summary.trim()) {
         // Pas de titre, directement le contenu
         addText(cvStructure.summary, 11, false, false, '#000000');
-        currentY += 6;
+        currentY += 4; // Moins d'espace
       }
 
       // EXPÉRIENCE PROFESSIONNELLE
       if (cvStructure.experience && cvStructure.experience.length > 0) {
-        // Titre de section avec ligne
-        addText('PROFESSIONAL EXPERIENCE', 12, true, false, '#1e40af');
-        const lineY = currentY + 3;
-        doc.setDrawColor(30, 64, 175); // Bleu sérieux
-        doc.setLineWidth(0.8);
+        // Titre de section avec ligne (NOIR)
+        addText('PROFESSIONAL EXPERIENCE', 12, true, false, '#000000');
+        const lineY = currentY + 2; // Plus proche
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(0.3); // Plus fin
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6;
+        currentY = lineY + 4; // Moins d'espace
 
         // Chaque expérience
         cvStructure.experience.forEach((exp: any, index: number) => {
@@ -581,33 +589,39 @@ export class PDFGenerator {
             const dateText = exp.startDate && exp.endDate ? ` (${exp.startDate} - ${exp.endDate})` : '';
             
             addText(`${titleText}${companyText}${dateText}`, 11, true, false, '#000000');
-            currentY += 2;
+            currentY += 1;
           }
 
-          // Description avec tirets
-          if (exp.description) {
+          // Description OBLIGATOIRE et plus longue
+          if (exp.description && exp.description.trim()) {
             const descriptionLines = exp.description.split('\n').filter((line: string) => line.trim());
             descriptionLines.forEach((line: string) => {
               if (currentY > pageHeight - 20) return;
               const cleanLine = line.replace(/^[-•]\s*/, '').trim();
-              addText(`- ${cleanLine}`, 10, false, false, '#000000');
-              currentY += 1;
+              if (cleanLine) {
+                addText(`- ${cleanLine}`, 10, false, false, '#000000');
+                currentY += 0.5; // Très rapproché
+              }
             });
+          } else {
+            // Si pas de description, en ajouter une par défaut
+            addText('- Responsabilités détaillées et réalisations significatives dans ce poste', 10, false, false, '#000000');
+            currentY += 0.5;
           }
           
-          currentY += 2;
+          currentY += 1;
         });
       }
 
       // FORMATION
       if (cvStructure.education && cvStructure.education.length > 0) {
-        // Titre de section avec ligne
-        addText('EDUCATION', 12, true, false, '#1e40af');
-        const lineY = currentY + 3;
-        doc.setDrawColor(30, 64, 175);
-        doc.setLineWidth(0.8);
+        // Titre de section avec ligne (NOIR)
+        addText('EDUCATION', 12, true, false, '#000000');
+        const lineY = currentY + 2; // Plus proche
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(0.3); // Plus fin
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6;
+        currentY = lineY + 4; // Moins d'espace
 
         // Chaque formation
         cvStructure.education.forEach((edu: any, index: number) => {
@@ -620,33 +634,39 @@ export class PDFGenerator {
             const dateText = edu.startDate && edu.endDate ? ` (${edu.startDate} - ${edu.endDate})` : '';
             
             addText(`${degreeText}${schoolText}${dateText}`, 11, true, false, '#000000');
-            currentY += 2;
+            currentY += 1;
           }
 
-          // Description avec tirets
-          if (edu.description) {
+          // Description OBLIGATOIRE et plus longue
+          if (edu.description && edu.description.trim()) {
             const descriptionLines = edu.description.split('\n').filter((line: string) => line.trim());
             descriptionLines.forEach((line: string) => {
               if (currentY > pageHeight - 20) return;
               const cleanLine = line.replace(/^[-•]\s*/, '').trim();
-              addText(`- ${cleanLine}`, 10, false, false, '#000000');
-              currentY += 1;
+              if (cleanLine) {
+                addText(`- ${cleanLine}`, 10, false, false, '#000000');
+                currentY += 0.5; // Très rapproché
+              }
             });
+          } else {
+            // Si pas de description, en ajouter une par défaut
+            addText('- Formation approfondie avec acquisition de compétences techniques et théoriques', 10, false, false, '#000000');
+            currentY += 0.5;
           }
           
-          currentY += 2;
+          currentY += 1;
         });
       }
 
       // COMPÉTENCES TECHNIQUES (avec sous-catégories)
       if (cvStructure.skills && cvStructure.skills.length > 0) {
-        // Titre de section avec ligne
-        addText('TECHNICAL SKILLS', 12, true, false, '#1e40af');
-        const lineY = currentY + 3;
-        doc.setDrawColor(30, 64, 175);
-        doc.setLineWidth(0.8);
+        // Titre de section avec ligne (NOIR)
+        addText('TECHNICAL SKILLS', 12, true, false, '#000000');
+        const lineY = currentY + 2; // Plus proche
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(0.3); // Plus fin
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6;
+        currentY = lineY + 4; // Moins d'espace
 
         // Grouper les compétences par catégorie (comme dans l'image)
         const technicalSkills = [];
@@ -692,20 +712,21 @@ export class PDFGenerator {
 
       // CERTIFICATIONS & ACHIEVEMENTS (SECTION CONDITIONNELLE)
       if (cvStructure.certifications && cvStructure.certifications.length > 0) {
-        // Titre de section avec ligne
-        addText('CERTIFICATIONS & ACHIEVEMENTS', 12, true, false, '#1e40af');
-        const lineY = currentY + 3;
-        doc.setDrawColor(30, 64, 175);
-        doc.setLineWidth(0.8);
+        // Titre de section avec ligne (NOIR)
+        addText('CERTIFICATIONS & ACHIEVEMENTS', 12, true, false, '#000000');
+        const lineY = currentY + 2; // Plus proche
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(0.3); // Plus fin
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6;
+        currentY = lineY + 4; // Moins d'espace
 
-        // Certifications avec tirets
+        // Certifications avec tirets (retirer les ronds)
         cvStructure.certifications.forEach((cert: any, index: number) => {
           if (currentY > pageHeight - 20) return;
           const certText = typeof cert === 'string' ? cert : cert.name || cert.title;
-          addText(`- ${certText}`, 10, false, false, '#000000');
-          currentY += 1;
+          const cleanCertText = certText.replace(/^[•·]\s*/, ''); // Retirer les ronds
+          addText(`- ${cleanCertText}`, 10, false, false, '#000000');
+          currentY += 0.5; // Très rapproché
         });
       }
       // Si pas de certifications, la section n'apparaît PAS du tout
