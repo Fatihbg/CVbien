@@ -219,21 +219,14 @@ export class PDFGenerator {
               }
             }
             
-            // Afficher tout le texte en une seule fois (gras + normal)
+            // Afficher le texte complet en une seule ligne pour éviter la superposition
             const fullText = boldPart + normalPart;
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(0, 0, 0);
             
-            // Calculer la largeur de la partie en gras
-            const boldWidth = doc.getTextWidth(boldPart);
-            doc.text(boldPart, margin, currentY);
-            
-            // Afficher la partie normale après la partie en gras
-            if (normalPart.trim()) {
-              doc.setFont('helvetica', 'normal');
-              doc.text(normalPart, margin + boldWidth, currentY);
-            }
+            // Utiliser addText pour un formatage propre
+            addText(fullText, 11, true, false, '#000000');
             
             currentY += 2; // Espace après le titre
             console.log('✅ Nouvelle expérience/éducation:', boldPart + normalPart);
