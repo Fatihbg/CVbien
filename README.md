@@ -176,3 +176,11 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 ---
 
 **🚀 Déployé avec ❤️ par [Fatih](https://github.com/Fatihbg)**# CVbien
+# Force Vercel redeploy - Fri Oct  3 18:33:02 CEST 2025
+# Force Vercel redeploy - Fix all localhost URLs - Fri Oct  3 18:39:30 CEST 2025
+# Force Vercel redeploy - Fix admin.ts API URL - Fri Oct  3 18:55:16 CEST 2025
+# Force Vercel redeploy - Fix environment variables - Fri Oct  3 19:14:38 CEST 2025
+# Force Vercel redeploy - Fix API URL protocol - Fri Oct  3 19:20:21 CEST 2025
+# Force Vercel redeploy - Debug URLs - Fri Oct  3 19:23:22 CEST 2025
+# Force Vercel redeploy - Fix production URL detection - Fri Oct  3 19:27:45 CEST 2025
+# Force Vercel redeploy - Fix auth service URLs - Fri Oct  3 19:31:19 CEST 2025
