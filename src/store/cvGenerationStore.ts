@@ -178,6 +178,16 @@ COMPETENCES
       const atsScore = result?.atsScore || 0;
       const improvements = result?.improvements || [];
       
+      // Consommer 1 crédit après génération réussie
+      try {
+        const { authService } = await import('../services/authService');
+        await authService.consumeCredits(1);
+        console.log('✅ Crédit consommé avec succès');
+      } catch (error) {
+        console.error('❌ Erreur consommation crédit:', error);
+        // Ne pas bloquer la génération si la consommation échoue
+      }
+      
       console.log('Données sécurisées:', { optimizedCV, atsScore, improvements });
       console.log('Type optimizedCV:', typeof optimizedCV);
       console.log('Contenu optimizedCV:', optimizedCV);
