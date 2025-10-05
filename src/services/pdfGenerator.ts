@@ -152,7 +152,7 @@ export class PDFGenerator {
           doc.setLineWidth(0.5);
           doc.line(margin, currentY + 1, pageWidth - margin, currentY + 1);
           
-          currentY += 3; // Espace après la ligne
+          currentY += 5; // Espace d'une ligne après le titre
           currentSection = line;
         }
         // Entreprises (en gras) avec dates/lieux alignés à droite
@@ -178,7 +178,7 @@ export class PDFGenerator {
             currentY += 1; // Plus d'espace
           }
         }
-        // Postes (en italique) avec dates alignées à droite
+        // Postes (en gras) avec dates alignées à droite
         else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
                  line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
           
@@ -191,10 +191,10 @@ export class PDFGenerator {
             // Vérifier s'il y a une date sur la même ligne
             const parts = cleanLine.split(' • ');
             if (parts.length === 2) {
-              addText(parts[0], 10, false, false, false, '#000000'); // Poste en normal à gauche
+              addText(parts[0], 10, true, false, false, '#000000'); // Poste en gras à gauche
               addText(parts[1], 9, false, false, true, '#000000'); // Date à droite
             } else {
-              addText(cleanLine, 10, false, false, false, '#000000'); // Poste en normal
+              addText(cleanLine, 10, true, false, false, '#000000'); // Poste en gras
             }
             currentY += 0.8; // Plus d'espace
           }
@@ -238,7 +238,7 @@ export class PDFGenerator {
           const cleanLine = line.replace(/<[^>]*>/g, '');
           const indentedLine = '    ' + cleanLine;
           addText(indentedLine, 9, false, false, false, '#000000'); // Puces indentées
-          currentY += 0.3; // Plus d'espace
+          currentY += 2.5; // Demi-ligne d'espace entre les bullet points
         }
         // Texte normal
         else if (line.length > 0) {
