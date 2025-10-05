@@ -70,15 +70,17 @@ export const useCVGenerationStore = create<CVGenerationState>((set, get) => ({
     improvements: []
   }),
   
-  extractCVText: async () => {
-    const { uploadedFile } = get();
-    if (!uploadedFile) {
-      console.log('❌ Aucun fichier uploadé');
-      return;
-    }
-    
-    console.log('📄 Début extraction CV:', uploadedFile.name, uploadedFile.type, uploadedFile.size);
-    set({ isExtracting: true, progress: 0, progressMessage: 'Extraction du texte du CV...' });
+    extractCVText: async () => {
+      console.log('🚀 extractCVText appelé');
+      const { uploadedFile } = get();
+      console.log('📁 Fichier uploadé dans le store:', uploadedFile);
+      if (!uploadedFile) {
+        console.log('❌ Aucun fichier uploadé');
+        return;
+      }
+      
+      console.log('📄 Début extraction CV:', uploadedFile.name, uploadedFile.type, uploadedFile.size);
+      set({ isExtracting: true, progress: 0, progressMessage: 'Extraction du texte du CV...' });
     
     try {
       const text = await OpenAIService.extractTextFromPDF(uploadedFile);

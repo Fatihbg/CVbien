@@ -153,17 +153,28 @@ export const HomePage: React.FC = () => {
   }, [generatedCV, isAuthenticated, user]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('🚀 handleFileUpload appelé');
     if (!isAuthenticated) {
+      console.log('❌ Utilisateur non authentifié');
       setShowAuthModal(true);
       return;
     }
     const file = event.target.files?.[0];
+    console.log('📁 Fichier reçu:', file);
     if (file) {
       console.log('📁 Fichier sélectionné:', file.name, file.type, file.size);
       setUploadedFile(file);
+      console.log('✅ Fichier défini dans le state');
       // Déclencher l'extraction automatiquement
       console.log('🔄 Déclenchement de l\'extraction...');
-      await extractCVText();
+      try {
+        await extractCVText();
+        console.log('✅ Extraction terminée');
+      } catch (error) {
+        console.error('❌ Erreur lors de l\'extraction:', error);
+      }
+    } else {
+      console.log('❌ Aucun fichier sélectionné');
     }
   };
 
