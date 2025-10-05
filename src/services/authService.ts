@@ -36,7 +36,7 @@ class AuthService {
       
       // FORCER L'URL EN PRODUCTION
       const apiUrl = window.location.hostname === 'cvbien4.vercel.app' 
-        ? 'https://cvbien-production.up.railway.app'  // Railway backend
+        ? 'https://cvbien-backend-api-production.up.railway.app'  // Railway backend
         : AuthService.API_BASE_URL;
       
       console.log('🔧 URL utilisée:', apiUrl);
@@ -75,7 +75,7 @@ class AuthService {
       
       // FORCER L'URL EN PRODUCTION
       const apiUrl = window.location.hostname === 'cvbien4.vercel.app' 
-        ? 'https://cvbien-production.up.railway.app'  // Railway backend
+        ? 'https://cvbien-backend-api-production.up.railway.app'  // Railway backend
         : AuthService.API_BASE_URL;
       
       console.log('🔧 URL utilisée:', apiUrl);

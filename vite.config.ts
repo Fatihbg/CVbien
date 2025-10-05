@@ -10,8 +10,8 @@ export default defineConfig({
   },
   define: {
     'process.env': {},
-        'import.meta.env.VITE_API_BASE_URL': JSON.stringify('https://cvbien-production.up.railway.app'),
-        'import.meta.env.VITE_AUTH_API_URL': JSON.stringify('https://cvbien-production.up.railway.app'),
+        'import.meta.env.VITE_API_BASE_URL': JSON.stringify('https://cvbien-backend-api-production.up.railway.app'),
+        'import.meta.env.VITE_AUTH_API_URL': JSON.stringify('https://cvbien-backend-api-production.up.railway.app'),
     'import.meta.env.VITE_NODE_ENV': JSON.stringify('production')
   }
 })

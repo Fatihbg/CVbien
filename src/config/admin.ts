@@ -12,9 +12,9 @@ export const ADMIN_CONFIG = {
   ADMIN_ENABLED: true,
   
   // URL de l'API backend
-API_BASE_URL: import.meta.env.MODE === 'production'
-  ? 'https://cvbien-production.up.railway.app'
-  : 'https://cvbien-production.up.railway.app',
+  API_BASE_URL: import.meta.env.MODE === 'production'
+    ? 'https://cvbien-backend-api-production.up.railway.app'
+    : 'https://cvbien-backend-api-production.up.railway.app',
 };
 
 // Instructions pour l'accès en production
