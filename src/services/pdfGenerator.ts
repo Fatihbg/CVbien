@@ -118,6 +118,30 @@ export class PDFGenerator {
           console.log('✅ Fin du header détectée avec:', line);
         }
         
+        // Traiter le résumé professionnel (sans afficher le titre)
+        if (line.includes('PROFESSIONAL SUMMARY') || line.includes('RÉSUMÉ PROFESSIONNEL')) {
+          console.log('✅ Résumé professionnel détecté (titre ignoré)');
+          // Lire le contenu du résumé sans afficher le titre
+          let summaryContent = '';
+          let j = index + 1;
+          while (j < lines.length && lines[j].trim() && 
+                 !lines[j].includes('PROFESSIONAL EXPERIENCE') && !lines[j].includes('EXPÉRIENCE PROFESSIONNELLE') &&
+                 !lines[j].includes('EDUCATION') && !lines[j].includes('FORMATION') &&
+                 !lines[j].includes('TECHNICAL SKILLS') && !lines[j].includes('COMPÉTENCES') &&
+                 !lines[j].includes('COMPETENCES')) {
+            summaryContent += lines[j].trim() + ' ';
+            j++;
+          }
+          if (summaryContent.trim()) {
+            const cleanSummary = summaryContent.replace(/<[^>]*>/g, '').trim();
+            addText(cleanSummary, 9, false, false, '#000000'); // Résumé sans titre
+            currentY += 4;
+            console.log('✅ Résumé ajouté:', cleanSummary.substring(0, 100) + '...');
+          }
+          // Ignorer les lignes du résumé dans la boucle principale
+          continue;
+        }
+        
         // Sections principales - avec lignes horizontales BLEUES - Plus flexible
         const sectionKeywords = ['EXPERIENCE', 'EDUCATION', 'SKILLS', 'CERTIFICATIONS', 'ACHIEVEMENTS', 
                                 'FORMATION', 'COMPETENCES', 'PROJECTS', 'OTHER', 'SUMMARY', 'RÉSUMÉ'];
@@ -136,21 +160,27 @@ export class PDFGenerator {
           const textY = currentY;
           addText(cleanLine, 12, true, false, '#000000'); // Sections en noir
           
-          // Ligne horizontale NOIRE DIRECTEMENT SOUS le titre (soulignement)
+          // Ligne horizontale NOIRE DIRECTEMENT SOUS le titre (plus fine et plus proche)
           doc.setDrawColor(0, 0, 0); // Noir
-          doc.setLineWidth(1.0);
-          const lineY = textY + 4; // Juste sous le texte
+          doc.setLineWidth(0.5); // Plus fine
+          const lineY = textY + 3; // Plus proche du texte
           doc.line(margin, lineY, pageWidth - margin, lineY);
           
           currentY = lineY + 4; // Espace après la ligne
           currentSection = cleanLine;
           console.log('✅ Section détectée:', cleanLine);
         }
-        // Postes/titres dans les sections - EN GRAS avec espacement
+        // Formatage hiérarchique pour les sections principales
         else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS') || currentSection.includes('EDUCATION') || currentSection.includes('FORMATION')) &&
-                 line.length > 5 && line.length < 100 && !line.startsWith('•') && !line.startsWith('-')) {
+                 line.length > 5 && line.length < 100) {
           
           const cleanLine = line.replace(/<[^>]*>/g, '');
+          
+          // Supprimer les caractères de puce s'ils existent
+          let processedLine = cleanLine;
+          if (cleanLine.startsWith('•') || cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
+            processedLine = cleanLine.substring(1).trim();
+          }
           
           // Détecter si c'est le début d'une nouvelle expérience/éducation (contient des mots-clés ou des dates)
           const experienceKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
@@ -158,35 +188,44 @@ export class PDFGenerator {
                                      'master', 'bachelor', 'degree', 'diploma', 'certificate', 'phd', 'doctorate',
                                      'licence', 'maîtrise', 'bachelier', 'diplôme', 'certification'];
           
-          const hasDate = /\d{4}/.test(cleanLine) || cleanLine.includes(' - ') || cleanLine.includes(' | ') || cleanLine.includes(' • ');
-          const isNewEntry = experienceKeywords.some(keyword => cleanLine.toLowerCase().includes(keyword)) || hasDate;
+          const hasDate = /\d{4}/.test(processedLine) || processedLine.includes(' - ') || processedLine.includes(' | ') || processedLine.includes(' • ');
+          const isNewEntry = experienceKeywords.some(keyword => processedLine.toLowerCase().includes(keyword)) || hasDate;
           
           if (isNewEntry) {
             currentY += 3; // Espace avant chaque nouvelle expérience/éducation
-            addText(cleanLine, 11, true, false, '#000000'); // Titre en gras
+            // Titre principal en gras, aligné à gauche
+            addText(processedLine, 11, true, false, '#000000'); 
             currentY += 2; // Espace après le titre
-            console.log('✅ Nouvelle expérience/éducation:', cleanLine);
+            console.log('✅ Nouvelle expérience/éducation:', processedLine);
           } else {
-            // Texte normal dans les sections
-            addText(cleanLine, 9, false, false, '#000000');
-            currentY += 1; // Petit espace entre les lignes
-            console.log('✅ Contenu section:', cleanLine);
+            // Description indentée à droite (sans puces)
+            if (processedLine.length > 0) {
+              addText('    ' + processedLine, 9, false, false, '#000000'); // Indentation pour les descriptions
+              currentY += 1.5; // Espace entre les descriptions
+              console.log('✅ Description indentée:', processedLine);
+            }
           }
         }
-        // TOUT LE RESTE - capturer absolument tout avec espacement
+        // TOUT LE RESTE - capturer avec suppression des puces
         else if (!isHeader && line.length > 0) {
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+          // Nettoyer les balises HTML et supprimer les puces
+          let cleanLine = line.replace(/<[^>]*>/g, '');
           
-          // Formatage spécial pour les puces
+          // Supprimer complètement les caractères de puce
           if (cleanLine.startsWith('•') || cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
-            addText('    ' + cleanLine, 9, false, false, '#000000'); // Puces indentées
-            currentY += 1.5; // Espace entre les puces
-            console.log('✅ Puce détectée:', cleanLine);
-          } else {
-            addText(cleanLine, 9, false, false, '#000000'); // Texte normal
-            currentY += 0.5; // Petit espace entre les lignes
-            console.log('✅ Texte normal:', cleanLine);
+            cleanLine = cleanLine.substring(1).trim();
+          }
+          
+          if (cleanLine.length > 0) {
+            // Si c'est dans une section, indenter, sinon texte normal
+            if (currentSection) {
+              addText('    ' + cleanLine, 9, false, false, '#000000'); // Indenté dans les sections
+              currentY += 1.5;
+            } else {
+              addText(cleanLine, 9, false, false, '#000000'); // Texte normal
+              currentY += 0.5;
+            }
+            console.log('✅ Texte nettoyé:', cleanLine);
           }
         }
       });
