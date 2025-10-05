@@ -144,9 +144,15 @@ export class PDFGenerator {
             line === 'COMPETENCES' || line === 'COMPÉTENCES' || line === 'PROJECTS' ||
             line === 'OTHER' || line === 'SKILLS') {
           
-          currentY += 3;
+          currentY += 4; // Plus d'espace avant
           addText(line, 12, true, false, false, '#000000'); // Sections en gras
-          currentY += 1;
+          
+          // Ajouter une ligne en dessous du titre
+          doc.setDrawColor(0, 0, 0); // Couleur noire
+          doc.setLineWidth(0.5);
+          doc.line(margin, currentY + 1, pageWidth - margin, currentY + 1);
+          
+          currentY += 3; // Espace après la ligne
           currentSection = line;
         }
         // Entreprises (en gras) avec dates/lieux alignés à droite
@@ -154,76 +160,92 @@ export class PDFGenerator {
                  line.length > 3 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-') &&
                  !line.includes('@') && !line.includes('|') && !line.includes('+')) {
           
+          // Nettoyer les balises HTML
+          const cleanLine = line.replace(/<[^>]*>/g, '');
+          
           // Vérifier si c'est une entreprise (pas un poste)
           const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
                               'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner'];
-          if (!jobKeywords.some(keyword => line.toLowerCase().includes(keyword))) {
+          if (!jobKeywords.some(keyword => cleanLine.toLowerCase().includes(keyword))) {
             // Vérifier s'il y a une date/lieu sur la même ligne
-            const parts = line.split(' • ');
+            const parts = cleanLine.split(' • ');
             if (parts.length === 2) {
               addText(parts[0], 10, true, false, false, '#000000'); // Entreprise en gras à gauche
               addText(parts[1], 9, false, false, true, '#000000'); // Lieu à droite
             } else {
-              addText(line, 10, true, false, false, '#000000'); // Entreprise en gras
+              addText(cleanLine, 10, true, false, false, '#000000'); // Entreprise en gras
             }
-            currentY += 0.5;
+            currentY += 1; // Plus d'espace
           }
         }
         // Postes (en italique) avec dates alignées à droite
         else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
                  line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
           
+          // Nettoyer les balises HTML
+          const cleanLine = line.replace(/<[^>]*>/g, '');
+          
           const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
                               'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner'];
-          if (jobKeywords.some(keyword => line.toLowerCase().includes(keyword))) {
+          if (jobKeywords.some(keyword => cleanLine.toLowerCase().includes(keyword))) {
             // Vérifier s'il y a une date sur la même ligne
-            const parts = line.split(' • ');
+            const parts = cleanLine.split(' • ');
             if (parts.length === 2) {
               addText(parts[0], 10, false, false, false, '#000000'); // Poste en normal à gauche
               addText(parts[1], 9, false, false, true, '#000000'); // Date à droite
             } else {
-              addText(line, 10, false, false, false, '#000000'); // Poste en normal
+              addText(cleanLine, 10, false, false, false, '#000000'); // Poste en normal
             }
-            currentY += 0.5;
+            currentY += 0.8; // Plus d'espace
           }
         }
         // Éducation et autres sections - formatage spécial
         else if (currentSection && (currentSection.includes('EDUCATION') || currentSection.includes('FORMATION')) &&
                  line.length > 3 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
           
+          // Nettoyer les balises HTML
+          const cleanLine = line.replace(/<[^>]*>/g, '');
+          
           // Vérifier s'il y a une date sur la même ligne
-          const parts = line.split(' • ');
+          const parts = cleanLine.split(' • ');
           if (parts.length === 2) {
             addText(parts[0], 10, true, false, false, '#000000'); // Institution en gras à gauche
             addText(parts[1], 9, false, false, true, '#000000'); // Date à droite
           } else {
-            addText(line, 10, true, false, false, '#000000'); // Institution en gras
+            addText(cleanLine, 10, true, false, false, '#000000'); // Institution en gras
           }
-          currentY += 0.5;
+          currentY += 1; // Plus d'espace
         }
         // Compétences et certifications - formatage simple
         else if (currentSection && (currentSection.includes('SKILLS') || currentSection.includes('COMPETENCES') || 
                  currentSection.includes('CERTIFICATIONS') || currentSection.includes('ACHIEVEMENTS')) &&
                  line.length > 0) {
           
+          // Nettoyer les balises HTML
+          const cleanLine = line.replace(/<[^>]*>/g, '');
+          
           // Formatage spécial pour les sous-catégories
-          if (line.includes(':') && !line.startsWith('•')) {
-            addText(line, 10, true, false, false, '#000000'); // Sous-catégorie en gras
+          if (cleanLine.includes(':') && !cleanLine.startsWith('•')) {
+            addText(cleanLine, 10, true, false, false, '#000000'); // Sous-catégorie en gras
           } else {
-            addText(line, 9, false, false, false, '#000000'); // Contenu normal
+            addText(cleanLine, 9, false, false, false, '#000000'); // Contenu normal
           }
-          currentY += 0.3;
+          currentY += 0.5; // Plus d'espace
         }
         // Puces et contenu - formatage indenté
         else if (line.startsWith('•') || line.startsWith('-')) {
-          // Indenter les puces
-          const indentedLine = '    ' + line;
+          // Nettoyer les balises HTML et indenter les puces
+          const cleanLine = line.replace(/<[^>]*>/g, '');
+          const indentedLine = '    ' + cleanLine;
           addText(indentedLine, 9, false, false, false, '#000000'); // Puces indentées
-          currentY += 0.2;
+          currentY += 0.3; // Plus d'espace
         }
         // Texte normal
         else if (line.length > 0) {
-          addText(line, 9, false, false, false, '#000000');
+          // Nettoyer les balises HTML
+          const cleanLine = line.replace(/<[^>]*>/g, '');
+          addText(cleanLine, 9, false, false, false, '#000000');
+          currentY += 0.3; // Plus d'espace
         }
       });
 
