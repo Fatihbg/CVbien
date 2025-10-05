@@ -42,7 +42,8 @@ export class PDFGenerator {
         email: '',
         phone: '',
         location: '',
-        title: ''
+        title: '',
+        website: ''
       },
       summary: '',
       experience: [],
