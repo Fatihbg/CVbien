@@ -25,7 +25,7 @@ export class PDFGenerator {
         format: 'a4'
       });
 
-      // Configuration optimisée pour le design Ronaldo Prime
+      // Configuration optimisée pour le design Mimi Prime (version finale)
       const pageWidth = 210;
       const pageHeight = 297;
       const margin = 15;
@@ -103,7 +103,7 @@ export class PDFGenerator {
                    !line.includes('EDUCATION') && !line.includes('CERTIFICATIONS')) {
             const cleanLine = line.replace(/<[^>]*>/g, '');
             addText(cleanLine, 14, true, true, '#000000'); // Titre centré en gras
-            currentY += 3;
+            currentY += 4; // Plus d'espace pour équilibrer avec le résumé
             headerProcessed++;
             console.log('✅ Titre détecté:', cleanLine);
           }
@@ -135,7 +135,7 @@ export class PDFGenerator {
           }
           if (summaryContent.trim()) {
             const cleanSummary = summaryContent.replace(/<[^>]*>/g, '').trim();
-            addText(cleanSummary, 9, false, false, '#000000'); // Résumé sans titre
+            addText(cleanSummary, 10, false, false, '#000000'); // Résumé sans titre (+1pt)
             currentY += 4;
             console.log('✅ Résumé ajouté:', cleanSummary.substring(0, 100) + '...');
           }
@@ -178,13 +178,13 @@ export class PDFGenerator {
           
           const cleanLine = line.replace(/<[^>]*>/g, '');
           
-          // Supprimer les caractères de puce s'ils existent
+          // Garder les tirets, supprimer seulement les ronds et étoiles
           let processedLine = cleanLine;
-          if (cleanLine.startsWith('•') || cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
+          if (cleanLine.startsWith('•') || cleanLine.startsWith('*')) {
             processedLine = cleanLine.substring(1).trim();
           }
           
-          // Détecter si c'est le début d'une nouvelle expérience/éducation (contient des mots-clés ou des dates)
+          // Détecter si c'est le début d'une nouvelle expérience/éducation
           const experienceKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
                                      'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner',
                                      'master', 'bachelor', 'degree', 'diploma', 'certificate', 'phd', 'doctorate',
@@ -195,39 +195,93 @@ export class PDFGenerator {
           
           if (isNewEntry) {
             currentY += 3; // Espace avant chaque nouvelle expérience/éducation
-            // Titre principal en gras, aligné à gauche
-            addText(processedLine, 11, true, false, '#000000'); 
+            
+            // Séparer le début (en gras) du reste (normal)
+            let boldPart = '';
+            let normalPart = '';
+            
+            if (processedLine.includes(' - ')) {
+              const parts = processedLine.split(' - ');
+              boldPart = parts[0].trim();
+              normalPart = ' - ' + parts.slice(1).join(' - ');
+            } else if (processedLine.includes(' | ')) {
+              const parts = processedLine.split(' | ');
+              boldPart = parts[0].trim();
+              normalPart = ' | ' + parts.slice(1).join(' | ');
+            } else {
+              // Si pas de séparateur, prendre les premiers mots comme gras
+              const words = processedLine.split(' ');
+              if (words.length >= 3) {
+                boldPart = words.slice(0, 3).join(' ');
+                normalPart = ' ' + words.slice(3).join(' ');
+              } else {
+                boldPart = processedLine;
+              }
+            }
+            
+            // Afficher le début en gras
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(boldPart, margin, currentY);
+            
+            // Afficher le reste en normal
+            if (normalPart) {
+              const boldWidth = doc.getTextWidth(boldPart);
+              doc.setFont('helvetica', 'normal');
+              doc.text(normalPart, margin + boldWidth, currentY);
+            }
+            
             currentY += 2; // Espace après le titre
-            console.log('✅ Nouvelle expérience/éducation:', processedLine);
+            console.log('✅ Nouvelle expérience/éducation:', boldPart + normalPart);
           } else {
-            // Description indentée à droite (sans puces)
+            // Description avec tiret si nécessaire
             if (processedLine.length > 0) {
-              addText('    ' + processedLine, 9, false, false, '#000000'); // Indentation pour les descriptions
+              let displayLine = processedLine;
+              // Ajouter un tiret si ce n'est pas déjà un tiret
+              if (!processedLine.startsWith('-')) {
+                displayLine = '- ' + processedLine;
+              }
+              addText('    ' + displayLine, 10, false, false, '#000000'); // +1pt et tiret
               currentY += 1.5; // Espace entre les descriptions
-              console.log('✅ Description indentée:', processedLine);
+              console.log('✅ Description avec tiret:', displayLine);
             }
           }
         }
-        // TOUT LE RESTE - capturer avec suppression des puces
+        // TOUT LE RESTE - capturer avec suppression des ronds/étoiles seulement
         else if (!isHeader && line.length > 0) {
-          // Nettoyer les balises HTML et supprimer les puces
+          // Nettoyer les balises HTML et supprimer seulement les ronds/étoiles
           let cleanLine = line.replace(/<[^>]*>/g, '');
           
-          // Supprimer complètement les caractères de puce
-          if (cleanLine.startsWith('•') || cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
+          // Supprimer seulement les ronds et étoiles, garder les tirets
+          if (cleanLine.startsWith('•') || cleanLine.startsWith('*')) {
             cleanLine = cleanLine.substring(1).trim();
           }
           
           if (cleanLine.length > 0) {
+            // Traduire "intérêt pour..." selon la langue du CV
+            let translatedLine = cleanLine;
+            if (cleanLine.toLowerCase().includes('intérêt pour') || cleanLine.toLowerCase().includes('intérêt')) {
+              // Détecter si le CV est en anglais
+              const isEnglish = cvText.toLowerCase().includes('professional experience') || 
+                               cvText.toLowerCase().includes('education') || 
+                               cvText.toLowerCase().includes('technical skills');
+              
+              if (isEnglish) {
+                translatedLine = cleanLine.replace(/intérêt pour/gi, 'interest in');
+                translatedLine = translatedLine.replace(/intérêt/gi, 'interest');
+              }
+            }
+            
             // Si c'est dans une section, indenter, sinon texte normal
             if (currentSection) {
-              addText('    ' + cleanLine, 9, false, false, '#000000'); // Indenté dans les sections
+              addText('    ' + translatedLine, 10, false, false, '#000000'); // +1pt et indenté dans les sections
               currentY += 1.5;
             } else {
-              addText(cleanLine, 9, false, false, '#000000'); // Texte normal
+              addText(translatedLine, 10, false, false, '#000000'); // +1pt et texte normal
               currentY += 0.5;
             }
-            console.log('✅ Texte nettoyé:', cleanLine);
+            console.log('✅ Texte nettoyé et traduit:', translatedLine);
           }
         }
       }
