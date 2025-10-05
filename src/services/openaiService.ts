@@ -31,12 +31,16 @@ export class OpenAIService {
         console.log('=== CALCUL DU SCORE ATS ===');
         
         // Extraire les mots-clés de la description du poste
-        const jobKeywords = this.extractKeywords(jobDescription);
+        const jobKeywords = this.extractKeywords(jobDescription) || [];
         console.log('Mots-clés du job:', jobKeywords);
         
         // Extraire les mots-clés du CV
-        const cvKeywords = this.extractKeywords(cvText);
+        const cvKeywords = this.extractKeywords(cvText) || [];
         console.log('Mots-clés du CV:', cvKeywords);
+        
+        // Vérifier que les mots-clés sont valides
+        if (!jobKeywords || jobKeywords.length === 0) return 0;
+        if (!cvKeywords || cvKeywords.length === 0) return 0;
         
         // Calculer le pourcentage de correspondance avec pondération
         let matchScore = 0;
@@ -97,8 +101,8 @@ export class OpenAIService {
         });
         
         // Malus pour les éléments négatifs (moins sévère)
-        if (cvText.length < 500) structureScore -= 10; // CV trop court
-        if (cvText.length > 3000) structureScore -= 5; // CV trop long
+        if (cvText && cvText.length < 500) structureScore -= 10; // CV trop court
+        if (cvText && cvText.length > 3000) structureScore -= 5; // CV trop long
         
         // Calculer le score final avec une formule plus généreuse
         const keywordScore = Math.min(100, matchPercentage * 1.2); // Boost pour les mots-clés

@@ -281,8 +281,12 @@ export const HomePage: React.FC = () => {
     if (!cvText || !jobDescription) return 0;
     
     // Extraire les mots-clés de la description du poste
-    const jobKeywords = extractKeywords(jobDescription);
-    const cvKeywords = extractKeywords(cvText);
+    const jobKeywords = extractKeywords(jobDescription) || [];
+    const cvKeywords = extractKeywords(cvText) || [];
+    
+    // Vérifier que les mots-clés sont valides
+    if (!jobKeywords || jobKeywords.length === 0) return 0;
+    if (!cvKeywords || cvKeywords.length === 0) return 0;
     
     // Calculer le pourcentage de correspondance avec pondération
     let matchScore = 0;
@@ -325,8 +329,8 @@ export const HomePage: React.FC = () => {
     }
     
     // Malus pour les éléments négatifs (moins sévère)
-    if (cvText.length < 500) structureScore -= 10; // CV trop court
-    if (cvText.length > 3000) structureScore -= 5; // CV trop long
+    if (cvText && cvText.length < 500) structureScore -= 10; // CV trop court
+    if (cvText && cvText.length > 3000) structureScore -= 5; // CV trop long
     
     // Calculer le score final avec une formule plus généreuse
     const keywordScore = Math.min(100, matchPercentage * 1.1); // Boost pour les mots-clés
@@ -338,6 +342,8 @@ export const HomePage: React.FC = () => {
 
   // Fonction pour extraire les mots-clés (simplifiée)
   const extractKeywords = (text: string): string[] => {
+    if (!text || typeof text !== 'string') return [];
+    
     const cleanText = text.toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .replace(/\s+/g, ' ')
