@@ -1,16 +1,28 @@
 import { config } from '../config/environment';
 
 export class PDFGenerator {
-  static async generateCVPDF(cvText: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
+  static async generateCVPDF(cvData: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
     try {
       console.log('=== GÉNÉRATION PDF RONALDO PRIME ===');
-      console.log('Utilisation du design Ronaldo Prime qui fonctionne...');
       
-      // Utiliser directement le design Ronaldo Prime
-      await this.generateRonaldoPrimePDF(cvText, filename);
+      // Détecter si c'est du JSON (structure de l'aperçu) ou du texte brut
+      let cvStructure;
+      try {
+        cvStructure = JSON.parse(cvData);
+        console.log('📊 Structure JSON détectée - utilisation de l\'aperçu:', cvStructure);
+        
+        // Utiliser la structure de l'aperçu pour générer le PDF
+        await this.generatePDFFromStructure(cvStructure, filename);
+        
+      } catch (parseError) {
+        console.log('📄 Texte brut détecté - parsing traditionnel');
+        
+        // Fallback: utiliser le parsing traditionnel
+        await this.generateRonaldoPrimePDF(cvData, filename);
+      }
       
     } catch (error) {
-      console.error('Erreur génération Ronaldo Prime:', error);
+      console.error('Erreur génération PDF:', error);
       throw error;
     }
   }
@@ -301,6 +313,206 @@ export class PDFGenerator {
       console.log('✅ PDF Ronaldo Prime généré avec succès');
     } catch (error) {
       console.error('Erreur génération Ronaldo Prime:', error);
+      throw error;
+    }
+  }
+
+  // GÉNÉRATION PDF À PARTIR DE LA STRUCTURE DE L'APERÇU
+  private static async generatePDFFromStructure(cvStructure: any, filename: string): Promise<void> {
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Configuration optimisée
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 15;
+      const maxWidth = pageWidth - (2 * margin);
+      let currentY = margin;
+
+      // Fonction pour ajouter du texte
+      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
+        if (currentY > pageHeight - 20) return;
+        
+        doc.setFontSize(fontSize);
+        if (isBold) {
+          doc.setFont('helvetica', 'bold');
+        } else {
+          doc.setFont('helvetica', 'normal');
+        }
+        doc.setTextColor(color);
+        
+        const lines = doc.splitTextToSize(text, maxWidth);
+        
+        lines.forEach((line: string) => {
+          if (currentY > pageHeight - 20) return;
+          const xPos = isCenter ? (pageWidth - doc.getTextWidth(line)) / 2 : margin;
+          doc.text(line, xPos, currentY);
+          currentY += fontSize * 0.4;
+        });
+      };
+
+      console.log('🎯 Génération PDF à partir de la structure de l\'aperçu...');
+
+      // HEADER - Nom, contact, titre (basé sur la structure de l'aperçu)
+      if (cvStructure.personalInfo) {
+        // Nom - CENTRÉ et GRAS
+        if (cvStructure.personalInfo.name) {
+          addText(cvStructure.personalInfo.name.toUpperCase(), 16, true, true, '#000000');
+          currentY += 4;
+        }
+
+        // Contact - CENTRÉ
+        const contactParts = [];
+        if (cvStructure.personalInfo.email) contactParts.push(cvStructure.personalInfo.email);
+        if (cvStructure.personalInfo.phone) contactParts.push(cvStructure.personalInfo.phone);
+        if (cvStructure.personalInfo.location) contactParts.push(cvStructure.personalInfo.location);
+        
+        if (contactParts.length > 0) {
+          addText(contactParts.join(' | '), 10, false, true, '#000000');
+          currentY += 4;
+        }
+
+        // Titre de poste - CENTRÉ et GRAS (plus proche du résumé)
+        if (cvStructure.personalInfo.title || cvStructure.title) {
+          const title = cvStructure.personalInfo.title || cvStructure.title;
+          addText(title.toUpperCase(), 12, true, true, '#000000');
+          currentY += 2; // Moins d'espace pour rapprocher du résumé
+        }
+      }
+
+      // PROFIL/RÉSUMÉ
+      if (cvStructure.summary) {
+        addText(cvStructure.summary, 11, false, false, '#000000');
+        currentY += 6;
+      }
+
+      // EXPÉRIENCE PROFESSIONNELLE
+      if (cvStructure.experience && cvStructure.experience.length > 0) {
+        // Titre de section avec ligne
+        addText('PROFESSIONAL EXPERIENCE', 12, true, false, '#1e40af');
+        const lineY = currentY + 3;
+        doc.setDrawColor(30, 64, 175); // Bleu sérieux
+        doc.setLineWidth(0.8);
+        doc.line(margin, lineY, pageWidth - margin, lineY);
+        currentY = lineY + 6;
+
+        // Chaque expérience
+        cvStructure.experience.forEach((exp: any, index: number) => {
+          if (currentY > pageHeight - 30) return;
+
+          // Titre + Entreprise (en gras partiellement)
+          if (exp.title || exp.company) {
+            const titleText = exp.title ? exp.title : '';
+            const companyText = exp.company ? ` - ${exp.company}` : '';
+            const dateText = exp.startDate && exp.endDate ? ` (${exp.startDate} - ${exp.endDate})` : '';
+            
+            addText(`${titleText}${companyText}${dateText}`, 11, true, false, '#000000');
+            currentY += 2;
+          }
+
+          // Description avec tirets
+          if (exp.description) {
+            const descriptionLines = exp.description.split('\n').filter((line: string) => line.trim());
+            descriptionLines.forEach((line: string) => {
+              if (currentY > pageHeight - 20) return;
+              const cleanLine = line.replace(/^[-•]\s*/, '').trim();
+              addText(`- ${cleanLine}`, 10, false, false, '#000000');
+              currentY += 1;
+            });
+          }
+          
+          currentY += 2;
+        });
+      }
+
+      // FORMATION
+      if (cvStructure.education && cvStructure.education.length > 0) {
+        // Titre de section avec ligne
+        addText('EDUCATION', 12, true, false, '#1e40af');
+        const lineY = currentY + 3;
+        doc.setDrawColor(30, 64, 175);
+        doc.setLineWidth(0.8);
+        doc.line(margin, lineY, pageWidth - margin, lineY);
+        currentY = lineY + 6;
+
+        // Chaque formation
+        cvStructure.education.forEach((edu: any, index: number) => {
+          if (currentY > pageHeight - 30) return;
+
+          // Titre + École (en gras partiellement)
+          if (edu.degree || edu.school) {
+            const degreeText = edu.degree ? edu.degree : '';
+            const schoolText = edu.school ? ` - ${edu.school}` : '';
+            const dateText = edu.startDate && edu.endDate ? ` (${edu.startDate} - ${edu.endDate})` : '';
+            
+            addText(`${degreeText}${schoolText}${dateText}`, 11, true, false, '#000000');
+            currentY += 2;
+          }
+
+          // Description avec tirets
+          if (edu.description) {
+            const descriptionLines = edu.description.split('\n').filter((line: string) => line.trim());
+            descriptionLines.forEach((line: string) => {
+              if (currentY > pageHeight - 20) return;
+              const cleanLine = line.replace(/^[-•]\s*/, '').trim();
+              addText(`- ${cleanLine}`, 10, false, false, '#000000');
+              currentY += 1;
+            });
+          }
+          
+          currentY += 2;
+        });
+      }
+
+      // COMPÉTENCES
+      if (cvStructure.skills && cvStructure.skills.length > 0) {
+        // Titre de section avec ligne
+        addText('TECHNICAL SKILLS', 12, true, false, '#1e40af');
+        const lineY = currentY + 3;
+        doc.setDrawColor(30, 64, 175);
+        doc.setLineWidth(0.8);
+        doc.line(margin, lineY, pageWidth - margin, lineY);
+        currentY = lineY + 6;
+
+        // Compétences
+        const skillsText = cvStructure.skills.map((skill: any) => 
+          typeof skill === 'string' ? skill : skill.name || skill.skill
+        ).join(', ');
+        
+        addText(skillsText, 10, false, false, '#000000');
+        currentY += 4;
+      }
+
+      // CERTIFICATIONS
+      if (cvStructure.certifications && cvStructure.certifications.length > 0) {
+        // Titre de section avec ligne
+        addText('CERTIFICATIONS', 12, true, false, '#1e40af');
+        const lineY = currentY + 3;
+        doc.setDrawColor(30, 64, 175);
+        doc.setLineWidth(0.8);
+        doc.line(margin, lineY, pageWidth - margin, lineY);
+        currentY = lineY + 6;
+
+        // Certifications
+        cvStructure.certifications.forEach((cert: any, index: number) => {
+          if (currentY > pageHeight - 20) return;
+          const certText = typeof cert === 'string' ? cert : cert.name || cert.title;
+          addText(`- ${certText}`, 10, false, false, '#000000');
+          currentY += 1;
+        });
+      }
+
+      doc.save(filename);
+      console.log('✅ PDF généré avec succès à partir de la structure de l\'aperçu');
+
+    } catch (error) {
+      console.error('Erreur génération PDF depuis structure:', error);
       throw error;
     }
   }
