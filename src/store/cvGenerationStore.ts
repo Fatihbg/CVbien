@@ -183,12 +183,14 @@ COMPETENCES
       console.log('Contenu optimizedCV:', optimizedCV);
       if (optimizedCV && typeof optimizedCV === 'object') {
         console.log('Clés optimizedCV:', Object.keys(optimizedCV));
-        console.log('optimizedCV.content:', optimizedCV.content);
-        console.log('optimizedCV.title:', optimizedCV.title);
+        console.log('optimizedCV.content:', (optimizedCV as any).content);
+        console.log('optimizedCV.title:', (optimizedCV as any).title);
       }
       
       // Extraire le contenu du CV de l'objet
-      const cvContent = optimizedCV?.content || optimizedCV?.title || (typeof optimizedCV === 'string' ? optimizedCV : '');
+      const cvContent = (optimizedCV && typeof optimizedCV === 'object') 
+        ? (optimizedCV as any).content || (optimizedCV as any).title || ''
+        : (typeof optimizedCV === 'string' ? optimizedCV : '');
       
       set({
         generatedCV: cvContent, // Passer le contenu textuel du CV
