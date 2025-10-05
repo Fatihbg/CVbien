@@ -103,7 +103,7 @@ export class PDFGenerator {
                    !line.includes('EDUCATION') && !line.includes('CERTIFICATIONS')) {
             const cleanLine = line.replace(/<[^>]*>/g, '');
             addText(cleanLine, 14, true, true, '#000000'); // Titre centré en gras
-            currentY += 4; // Plus d'espace pour équilibrer avec le résumé
+            currentY += 2; // Moins d'espace pour rapprocher du résumé
             headerProcessed++;
             console.log('✅ Titre détecté:', cleanLine);
           }
@@ -219,15 +219,18 @@ export class PDFGenerator {
               }
             }
             
-            // Afficher le début en gras
+            // Afficher tout le texte en une seule fois (gras + normal)
+            const fullText = boldPart + normalPart;
             doc.setFontSize(11);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(0, 0, 0);
+            
+            // Calculer la largeur de la partie en gras
+            const boldWidth = doc.getTextWidth(boldPart);
             doc.text(boldPart, margin, currentY);
             
-            // Afficher le reste en normal
-            if (normalPart) {
-              const boldWidth = doc.getTextWidth(boldPart);
+            // Afficher la partie normale après la partie en gras
+            if (normalPart.trim()) {
               doc.setFont('helvetica', 'normal');
               doc.text(normalPart, margin + boldWidth, currentY);
             }
