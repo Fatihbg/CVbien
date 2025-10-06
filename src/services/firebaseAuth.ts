@@ -71,10 +71,10 @@ class FirebaseAuthService {
   }
 
   // Obtenir le token ID Firebase
-  async getIdToken(): Promise<string | null> {
+  async getIdToken(forceRefresh: boolean = false): Promise<string | null> {
     const user = this.getCurrentUser();
     if (user) {
-      return await user.getIdToken();
+      return await user.getIdToken(forceRefresh);
     }
     return null;
   }
