@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
-import { StripeService } from '../../services/stripeService';
-import { config } from '../../config/environment';
 
 interface PaymentModalProps {
   onClose: () => void;
@@ -22,28 +20,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ onClose }) => {
     try {
       console.log(`🚀 Création session Stripe Checkout pour ${amount} crédits (${price}€)`);
       
-      // Créer la session Stripe Checkout (utiliser l'endpoint de test temporairement)
-      const response = await fetch(`${config.API_BASE_URL}/api/test-payment-simple?credits=${amount}&amount=${price}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la création de la session de paiement');
-      }
-
-      const session = await response.json();
-      console.log('✅ Session Checkout créée:', session);
+      // Utiliser le nouveau système d'achat de crédits
+      await buyCredits(price, 'stripe');
       
-      if (session.checkout_url) {
-        // Rediriger vers Stripe Checkout
-        console.log('🔗 Redirection vers Stripe Checkout...');
-        window.location.href = session.checkout_url;
-      } else {
-        throw new Error('URL de checkout non reçue');
-      }
     } catch (error) {
       console.error('❌ Erreur achat crédits:', error);
       alert('❌ Erreur lors de l\'achat de crédits:\n' + (error as Error).message);
