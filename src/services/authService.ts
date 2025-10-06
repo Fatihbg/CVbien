@@ -81,7 +81,7 @@ class AuthService {
       console.log('📝 Tentative d\'inscription Firebase avec:', credentials.email);
       
       // Inscription Firebase
-      const firebaseUser = await firebaseAuthService.register(credentials.email, credentials.password);
+      const firebaseUser = await firebaseAuthService.register(credentials.email, credentials.password, credentials.name);
       if (!firebaseUser) {
         throw new Error('Erreur d\'inscription Firebase');
       }
