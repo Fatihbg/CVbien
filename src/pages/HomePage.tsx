@@ -8,6 +8,7 @@ import { UserProfile } from '../components/User/UserProfile';
 import { PaymentModal } from '../components/Payment/PaymentModal';
 import { useTranslation } from '../hooks/useTranslation';
 import { LanguageSelector } from '../components/LanguageSelector';
+import { config } from '../config/environment';
 
 export const HomePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,17 +41,46 @@ export const HomePage: React.FC = () => {
     const credits = urlParams.get('credits');
 
     if (paymentStatus === 'success' && credits) {
-      // Paiement réussi
-      const successMessage = isEnglish 
-        ? `🎉 Payment successful!\n✅ ${credits} credits added to your account!`
-        : `🎉 Paiement réussi !\n✅ ${credits} crédits ajoutés à votre compte !`;
-      alert(successMessage);
+      // Paiement réussi - confirmer et ajouter les crédits
+      const confirmPayment = async () => {
+        try {
+          const sessionId = urlParams.get('session_id');
+          const userId = urlParams.get('user_id') || 'test_user';
+          
+          console.log(`🔧 DEBUG: Confirmation paiement - Session: ${sessionId}, User: ${userId}, Credits: ${credits}`);
+          
+          // Appeler l'endpoint de confirmation
+          const response = await fetch(`${config.API_BASE_URL}/api/confirm-test-payment?session_id=${sessionId}&user_id=${userId}&credits=${credits}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Paiement confirmé:', result);
+            
+            const successMessage = isEnglish 
+              ? `🎉 Payment successful!\n✅ ${credits} credits added to your account!\nTotal: ${result.total_credits} credits`
+              : `🎉 Paiement réussi !\n✅ ${credits} crédits ajoutés à votre compte !\nTotal: ${result.total_credits} crédits`;
+            alert(successMessage);
+            
+            // Recharger la page pour mettre à jour les crédits
+            window.location.reload();
+          } else {
+            throw new Error('Erreur confirmation paiement');
+          }
+        } catch (error) {
+          console.error('❌ Erreur confirmation paiement:', error);
+          alert('Paiement réussi mais erreur lors de l\'ajout des crédits. Contactez le support.');
+        }
+      };
+      
+      confirmPayment();
       
       // Nettoyer l'URL
       window.history.replaceState({}, document.title, window.location.pathname);
-      
-      // Recharger les crédits utilisateur (si connecté)
-      // updateCredits(parseInt(credits));
     } else if (paymentStatus === 'cancelled') {
       // Paiement annulé
       const cancelMessage = isEnglish ? '❌ Payment cancelled' : '❌ Paiement annulé';
