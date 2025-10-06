@@ -26,6 +26,7 @@ interface AuthState {
   // Actions de crédits
   buyCredits: (amount: number, paymentMethod: string) => Promise<void>;
   consumeCredits: (amount: number) => Promise<void>;
+  updateCredits: (newCredits: number) => void;
   
   // Actions de CV
   loadGeneratedCVs: () => Promise<void>;
@@ -209,6 +210,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       throw error;
     }
+  },
+
+  updateCredits: (newCredits: number) => {
+    set({ 
+      user: { ...get().user, credits: newCredits },
+      profile: { ...get().profile, credits: newCredits }
+    });
   },
 
   // Actions de CV

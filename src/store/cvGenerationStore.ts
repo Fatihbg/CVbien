@@ -181,8 +181,14 @@ COMPETENCES
       // Consommer 1 crédit après génération réussie
       try {
         const { authService } = await import('../services/authService');
-        await authService.consumeCredits(1);
+        const result = await authService.consumeCredits(1);
         console.log('✅ Crédit consommé avec succès');
+        
+        // Mettre à jour le store d'authentification avec les nouveaux crédits
+        const { useAuthStore } = await import('./authStore');
+        const authStore = useAuthStore.getState();
+        authStore.updateCredits(result.credits);
+        console.log('✅ Crédits mis à jour dans le store:', result.credits);
       } catch (error) {
         console.error('❌ Erreur consommation crédit:', error);
         // Ne pas bloquer la génération si la consommation échoue
