@@ -34,6 +34,30 @@ export const HomePage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Hook pour synchroniser automatiquement avec Firestore
+  useEffect(() => {
+    const syncWithFirestore = async () => {
+      try {
+        const { useAuthStore } = await import('../store/authStore');
+        const authStore = useAuthStore.getState();
+        if (authStore.isAuthenticated) {
+          await authStore.loadProfile();
+          console.log('🔄 Synchronisation automatique avec Firestore');
+        }
+      } catch (error) {
+        console.error('❌ Erreur synchronisation:', error);
+      }
+    };
+
+    // Synchroniser toutes les 30 secondes
+    const interval = setInterval(syncWithFirestore, 30000);
+    
+    // Synchroniser immédiatement
+    syncWithFirestore();
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Hook pour gérer le retour de paiement Stripe
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
