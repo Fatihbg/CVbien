@@ -47,11 +47,12 @@ export const HomePage: React.FC = () => {
           const sessionId = urlParams.get('session_id');
           const userIdFromUrl = urlParams.get('user_id');
           
-          // Utiliser l'utilisateur connecté au lieu de celui de l'URL
-          const { user } = useAuthStore.getState();
-          const userId = user?.id || userIdFromUrl || 'test_user';
+          // Obtenir l'UID Firebase de l'utilisateur connecté
+          const { firebaseAuthService } = await import('../services/firebaseAuth');
+          const firebaseUser = await firebaseAuthService.getCurrentUser();
+          const userId = firebaseUser?.uid || userIdFromUrl || 'test_user';
           
-          console.log(`🔧 DEBUG: Confirmation paiement - Session: ${sessionId}, User: ${userId}, Credits: ${credits}`);
+          console.log(`🔧 DEBUG: Confirmation paiement - Session: ${sessionId}, User: ${userId} (Firebase UID: ${firebaseUser?.uid}), Credits: ${credits}`);
           
           // Appeler l'endpoint de confirmation
           const response = await fetch(`${config.API_BASE_URL}/api/payments/confirm-payment`, {
