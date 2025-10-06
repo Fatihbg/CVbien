@@ -532,150 +532,133 @@ export class PDFGenerator {
         });
       };
 
-      console.log('🎯 Génération PDF - VERSION APRÈS MIMI PRIME...');
+      console.log('🎯 Génération PDF - VERSION SCREEN (Design classique professionnel)...');
 
-      // HEADER APRÈS MIMI PRIME - Design moderne et élégant
+      // HEADER SCREEN - Design classique professionnel
       if (cvStructure.personalInfo) {
-        // Nom - CENTRÉ et GRAS avec taille plus grande
+        // Nom - CENTRÉ et GRAS
         if (cvStructure.personalInfo.name) {
-          addText(cvStructure.personalInfo.name.toUpperCase(), 18, true, true, '#000000');
-          currentY += 3;
+          addText(cvStructure.personalInfo.name.toUpperCase(), 16, true, true, '#000000');
+          currentY += 4;
         }
 
-        // Ligne décorative sous le nom
-        doc.setDrawColor(30, 64, 175);
-        doc.setLineWidth(1.0);
-        const lineY = currentY - 1;
-        doc.line(margin + 20, lineY, pageWidth - margin - 20, lineY);
-        currentY += 4;
-
-        // Contact - CENTRÉ avec style amélioré
+        // Contact - CENTRÉ
         const contactParts = [];
-        if (cvStructure.personalInfo.email) contactParts.push(cvStructure.personalInfo.email);
-        if (cvStructure.personalInfo.phone) contactParts.push(cvStructure.personalInfo.phone);
         if (cvStructure.personalInfo.location) contactParts.push(cvStructure.personalInfo.location);
+        if (cvStructure.personalInfo.phone) contactParts.push(cvStructure.personalInfo.phone);
+        if (cvStructure.personalInfo.email) contactParts.push(cvStructure.personalInfo.email);
         if (cvStructure.personalInfo.website) contactParts.push(cvStructure.personalInfo.website);
         
         if (contactParts.length > 0) {
-          addText(contactParts.join(' | '), 10, false, true, '#666666');
-          currentY += 3;
+          addText(contactParts.join(' | '), 10, false, true, '#000000');
+          currentY += 4;
         }
 
-        // Titre de poste - CENTRÉ et GRAS avec style premium
+        // Titre de poste - CENTRÉ et GRAS
         if (cvStructure.personalInfo.title || cvStructure.title) {
           const title = cvStructure.personalInfo.title || cvStructure.title;
-          addText(title.toUpperCase(), 13, true, true, '#1e40af'); // Bleu pour le titre
-          currentY += 4; // Espacement optimal
+          addText(title.toUpperCase(), 12, true, true, '#000000');
+          currentY += 6; // Espacement avant le résumé
         }
       }
 
-      // PROFIL/RÉSUMÉ APRÈS MIMI PRIME - Style premium
+      // PROFIL/RÉSUMÉ SCREEN - Style classique
       if (cvStructure.summary && cvStructure.summary.trim()) {
-        // Ligne décorative avant le résumé
-        doc.setDrawColor(30, 64, 175);
-        doc.setLineWidth(0.3);
-        const lineY = currentY - 2;
-        doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY += 4;
-        
-        // Résumé avec style italique pour le distinguer
-        addText(cvStructure.summary, 11, false, false, '#333333');
-        currentY += 6; // Espacement optimal
+        addText(cvStructure.summary, 10, false, false, '#000000');
+        currentY += 8; // Espacement avant les sections
       }
 
-      // EXPÉRIENCE PROFESSIONNELLE - APRÈS MIMI PRIME
+      // EXPÉRIENCE PROFESSIONNELLE - SCREEN STYLE
       if (cvStructure.experience && cvStructure.experience.length > 0) {
-        // Titre de section avec style moderne
-        addText('PROFESSIONAL EXPERIENCE', 13, true, false, '#1e40af');
-        const lineY = currentY + 2; // Plus proche
-        doc.setDrawColor(30, 64, 175); // Bleu sérieux
-        doc.setLineWidth(0.8); // Ligne plus visible
+        // Titre de section avec ligne noire sous le titre (comme dans l'image)
+        addText('PROFESSIONAL EXPERIENCE', 12, true, false, '#000000');
+        const lineY = currentY + 3; // Ligne sous le titre
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(1.0); // Ligne visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 5; // Espacement optimal
+        currentY = lineY + 6; // Espacement après la ligne
 
-        // Chaque expérience - APRÈS MIMI PRIME avec style moderne
+        // Chaque expérience - SCREEN STYLE (tirets simples)
         cvStructure.experience.forEach((exp: any, index: number) => {
           if (currentY > pageHeight - 30) return;
 
-          // Titre + Entreprise avec style amélioré
+          // Titre + Entreprise
           if (exp.title || exp.company) {
             const titleText = exp.title ? exp.title : '';
             const companyText = exp.company ? ` - ${exp.company}` : '';
             const dateText = exp.startDate && exp.endDate ? ` (${exp.startDate} - ${exp.endDate})` : '';
             
             addText(`${titleText}${companyText}${dateText}`, 11, true, false, '#000000');
-            currentY += 1.5; // Espacement optimisé
+            currentY += 2;
           }
 
-          // Description avec style moderne
+          // Description avec tirets simples (comme dans l'image)
           if (exp.description && exp.description.trim()) {
             const descriptionLines = exp.description.split('\n').filter((line: string) => line.trim());
             descriptionLines.forEach((line: string) => {
               if (currentY > pageHeight - 20) return;
               const cleanLine = line.replace(/^[-•]\s*/, '').trim();
               if (cleanLine) {
-                // Style moderne avec puce personnalisée
-                addText(`• ${cleanLine}`, 10, false, false, '#333333');
-                currentY += 0.8; // Espacement serré mais lisible
+                addText(`- ${cleanLine}`, 10, false, false, '#000000');
+                currentY += 1; // Espacement classique
               }
             });
           }
           
-          currentY += 3; // Espacement entre expériences
+          currentY += 2; // Espacement entre expériences
         });
       }
 
-      // FORMATION - APRÈS MIMI PRIME
+      // FORMATION - SCREEN STYLE
       if (cvStructure.education && cvStructure.education.length > 0) {
-        // Titre de section avec style moderne
-        addText('EDUCATION', 13, true, false, '#1e40af');
-        const lineY = currentY + 2; // Plus proche
-        doc.setDrawColor(30, 64, 175); // Bleu sérieux
-        doc.setLineWidth(0.8); // Ligne plus visible
+        // Titre de section avec ligne noire sous le titre (comme dans l'image)
+        addText('EDUCATION', 12, true, false, '#000000');
+        const lineY = currentY + 3; // Ligne sous le titre
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(1.0); // Ligne visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 5; // Espacement optimal
+        currentY = lineY + 6; // Espacement après la ligne
 
-        // Chaque formation avec style moderne
+        // Chaque formation - SCREEN STYLE (tirets simples)
         cvStructure.education.forEach((edu: any, index: number) => {
           if (currentY > pageHeight - 30) return;
 
-          // Titre + École avec style amélioré
+          // Titre + École
           if (edu.degree || edu.school) {
             const degreeText = edu.degree ? edu.degree : '';
             const schoolText = edu.school ? ` - ${edu.school}` : '';
             const dateText = edu.startDate && edu.endDate ? ` (${edu.startDate} - ${edu.endDate})` : '';
             
             addText(`${degreeText}${schoolText}${dateText}`, 11, true, false, '#000000');
-            currentY += 1.5; // Espacement optimisé
+            currentY += 2;
           }
 
-          // Description avec style moderne
+          // Description avec tirets simples (comme dans l'image)
           if (edu.description && edu.description.trim()) {
             const descriptionLines = edu.description.split('\n').filter((line: string) => line.trim());
             descriptionLines.forEach((line: string) => {
               if (currentY > pageHeight - 20) return;
               const cleanLine = line.replace(/^[-•]\s*/, '').trim();
               if (cleanLine) {
-                // Style moderne avec puce personnalisée
-                addText(`• ${cleanLine}`, 10, false, false, '#333333');
-                currentY += 0.8; // Espacement serré mais lisible
+                addText(`- ${cleanLine}`, 10, false, false, '#000000');
+                currentY += 1; // Espacement classique
               }
             });
           }
           
-          currentY += 3; // Espacement entre formations
+          currentY += 2; // Espacement entre formations
         });
       }
 
-      // COMPÉTENCES TECHNIQUES - APRÈS MIMI PRIME
+      // COMPÉTENCES TECHNIQUES - SCREEN STYLE
       if (cvStructure.skills && cvStructure.skills.length > 0) {
-        // Titre de section avec style moderne
-        addText('TECHNICAL SKILLS', 13, true, false, '#1e40af');
-        const lineY = currentY + 2; // Plus proche
-        doc.setDrawColor(30, 64, 175); // Bleu sérieux
-        doc.setLineWidth(0.8); // Ligne plus visible
+        // Titre de section avec ligne noire sous le titre (comme dans l'image)
+        addText('TECHNICAL SKILLS', 12, true, false, '#000000');
+        const lineY = currentY + 3; // Ligne sous le titre
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(1.0); // Ligne visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 5; // Espacement optimal
+        currentY = lineY + 6; // Espacement après la ligne
 
         // Grouper les compétences par catégorie (comme dans l'image)
         const technicalSkills = [];
@@ -698,51 +681,51 @@ export class PDFGenerator {
           }
         });
 
-        // Afficher les sous-catégories avec style moderne
+        // Afficher les compétences avec tirets simples (comme dans l'image)
         if (technicalSkills.length > 0) {
-          addText(`• Compétences techniques: ${technicalSkills.join(', ')}`, 10, false, false, '#333333');
-          currentY += 1.2;
+          addText(`- Compétences techniques: ${technicalSkills.join(', ')}`, 10, false, false, '#000000');
+          currentY += 1;
         }
         if (softSkills.length > 0) {
-          addText(`• Soft skills: ${softSkills.join(', ')}`, 10, false, false, '#333333');
-          currentY += 1.2;
+          addText(`- Soft skills: ${softSkills.join(', ')}`, 10, false, false, '#000000');
+          currentY += 1;
         }
         if (tools.length > 0) {
-          addText(`• Outils: ${tools.join(', ')}`, 10, false, false, '#333333');
-          currentY += 1.2;
+          addText(`- Outils: ${tools.join(', ')}`, 10, false, false, '#000000');
+          currentY += 1;
         }
         if (languages.length > 0) {
-          addText(`• Langues: ${languages.join(', ')}`, 10, false, false, '#333333');
-          currentY += 1.2;
+          addText(`- Langues: ${languages.join(', ')}`, 10, false, false, '#000000');
+          currentY += 1;
         }
         
         currentY += 3;
       }
 
-      // CERTIFICATIONS & ACHIEVEMENTS - APRÈS MIMI PRIME
+      // CERTIFICATIONS & ACHIEVEMENTS - SCREEN STYLE
       if (cvStructure.certifications && cvStructure.certifications.length > 0) {
-        // Titre de section avec style moderne
-        addText('CERTIFICATIONS & ACHIEVEMENTS', 13, true, false, '#1e40af');
-        const lineY = currentY + 2; // Plus proche
-        doc.setDrawColor(30, 64, 175); // Bleu sérieux
-        doc.setLineWidth(0.8); // Ligne plus visible
+        // Titre de section avec ligne noire sous le titre (comme dans l'image)
+        addText('CERTIFICATIONS & ACHIEVEMENTS', 12, true, false, '#000000');
+        const lineY = currentY + 3; // Ligne sous le titre
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(1.0); // Ligne visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 5; // Espacement optimal
+        currentY = lineY + 6; // Espacement après la ligne
 
-        // Certifications avec style moderne
+        // Certifications avec tirets simples (comme dans l'image)
         cvStructure.certifications.forEach((cert: any, index: number) => {
           if (currentY > pageHeight - 20) return;
           const certText = typeof cert === 'string' ? cert : cert.name || cert.title;
           const cleanCertText = certText.replace(/^[•·]\s*/, ''); // Retirer les ronds
-          addText(`• ${cleanCertText}`, 10, false, false, '#333333');
-          currentY += 1.2; // Espacement moderne
+          addText(`- ${cleanCertText}`, 10, false, false, '#000000');
+          currentY += 1; // Espacement classique
         });
       }
       // Si pas de certifications, la section n'apparaît PAS du tout
 
       doc.save(filename);
       console.log('✅ PDF généré avec succès à partir de la structure de l\'aperçu');
-
+      
     } catch (error) {
       console.error('Erreur génération PDF depuis structure:', error);
       throw error;
@@ -1132,7 +1115,7 @@ export class PDFGenerator {
       let skipToExperience = false;
       lines.forEach((line, index) => {
         if (currentY > pageHeight - 30) return;
-        
+
         // Ignorer les lignes déjà traitées dans le header
         if (line === name || line === contact || line === jobTitle || 
             line.includes('PROFESSIONAL SUMMARY') || line.includes('RÉSUMÉ PROFESSIONNEL')) {
