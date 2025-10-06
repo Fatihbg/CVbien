@@ -47,10 +47,18 @@ export const HomePage: React.FC = () => {
         : `🎉 Paiement réussi !\n✅ Vos crédits ont été ajoutés à votre compte !\nLes crédits apparaîtront dans quelques secondes.`;
       alert(successMessage);
       
-      // Recharger la page après 2 secondes pour mettre à jour l'interface
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      // Forcer la synchronisation des données utilisateur
+      setTimeout(async () => {
+        try {
+          const { useAuthStore } = await import('../store/authStore');
+          const authStore = useAuthStore.getState();
+          await authStore.loadProfile(); // Recharger le profil depuis Firestore
+          console.log('✅ Profil rechargé depuis Firestore');
+        } catch (error) {
+          console.error('❌ Erreur rechargement profil:', error);
+          window.location.reload(); // Fallback: recharger la page
+        }
+      }, 3000);
       
       // Nettoyer l'URL
       window.history.replaceState({}, document.title, window.location.pathname);
