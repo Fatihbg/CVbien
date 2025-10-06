@@ -22,17 +22,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ onClose }) => {
     try {
       console.log(`🚀 Création session Stripe Checkout pour ${amount} crédits (${price}€)`);
       
-      // Créer la session Stripe Checkout
-      const response = await fetch(`${config.API_BASE_URL}/api/payments/create-payment-intent`, {
+      // Créer la session Stripe Checkout (utiliser l'endpoint de test temporairement)
+      const response = await fetch(`${config.API_BASE_URL}/api/test-payment-simple?credits=${amount}&amount=${price}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        },
-        body: JSON.stringify({
-          credits: amount,
-          amount: price // prix en euros
-        })
+          'Content-Type': 'application/json'
+        }
       });
 
       if (!response.ok) {
