@@ -40,52 +40,17 @@ export const HomePage: React.FC = () => {
     const paymentStatus = urlParams.get('payment');
     const credits = urlParams.get('credits');
 
-    if (paymentStatus === 'success' && credits) {
-      // Paiement réussi - confirmer et ajouter les crédits
-      const confirmPayment = async () => {
-        try {
-          const sessionId = urlParams.get('session_id');
-          const userIdFromUrl = urlParams.get('user_id');
-          
-          // Obtenir l'UID Firebase de l'utilisateur connecté
-          const { firebaseAuthService } = await import('../services/firebaseAuth');
-          const firebaseUser = await firebaseAuthService.getCurrentUser();
-          const userId = firebaseUser?.uid || userIdFromUrl || 'test_user';
-          
-          console.log(`🔧 DEBUG: Confirmation paiement - Session: ${sessionId}, User: ${userId} (Firebase UID: ${firebaseUser?.uid}), Credits: ${credits}`);
-          
-          // Appeler l'endpoint de confirmation avec les métadonnées Stripe
-          const response = await fetch(`${config.API_BASE_URL}/api/payments/confirm-payment-stripe`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              session_id: sessionId
-            })
-          });
-          
-          if (response.ok) {
-            const result = await response.json();
-            console.log('✅ Paiement confirmé:', result);
-            
-            const successMessage = isEnglish 
-              ? `🎉 Payment successful!\n✅ ${credits} credits added to your account!\nTotal: ${result.credits} credits`
-              : `🎉 Paiement réussi !\n✅ ${credits} crédits ajoutés à votre compte !\nTotal: ${result.credits} crédits`;
-            alert(successMessage);
-            
-            // Recharger la page pour mettre à jour les crédits
-            window.location.reload();
-          } else {
-            throw new Error('Erreur confirmation paiement');
-          }
-        } catch (error) {
-          console.error('❌ Erreur confirmation paiement:', error);
-          alert('Paiement réussi mais erreur lors de l\'ajout des crédits. Contactez le support.');
-        }
-      };
+    if (paymentStatus === 'success') {
+      // Paiement réussi - les crédits sont ajoutés automatiquement via webhook Stripe
+      const successMessage = isEnglish 
+        ? `🎉 Payment successful!\n✅ Your credits have been added to your account!\nThe credits will appear in a few seconds.`
+        : `🎉 Paiement réussi !\n✅ Vos crédits ont été ajoutés à votre compte !\nLes crédits apparaîtront dans quelques secondes.`;
+      alert(successMessage);
       
-      confirmPayment();
+      // Recharger la page après 2 secondes pour mettre à jour l'interface
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
       
       // Nettoyer l'URL
       window.history.replaceState({}, document.title, window.location.pathname);
