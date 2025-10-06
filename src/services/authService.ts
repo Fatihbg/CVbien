@@ -37,34 +37,33 @@ class AuthService {
       
       // Connexion Firebase
       const firebaseUser = await firebaseAuthService.login(credentials.email, credentials.password);
-      
+      if (!firebaseUser) {
+        throw new Error('Erreur de connexion Firebase');
+      }
+
       // Obtenir le token Firebase
       const firebaseToken = await firebaseAuthService.getIdToken();
       if (!firebaseToken) {
         throw new Error('Impossible d\'obtenir le token Firebase');
       }
-      
-      // Valider le token avec notre backend
-      const apiUrl = window.location.hostname === 'cvbien4.vercel.app' 
-        ? 'https://cvbien-backend-api-production.up.railway.app'
-        : AuthService.API_BASE_URL;
-      
-      const response = await fetch(`${apiUrl}/api/auth/validate-firebase`, {
+
+      // Valider avec notre backend
+      const response = await fetch(`${AuthService.API_BASE_URL}/api/auth/validate-firebase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ firebase_token: firebaseToken }),
+        body: JSON.stringify({ idToken: firebaseToken }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || 'Erreur de validation Firebase');
+        throw new Error(error.detail || 'Erreur de validation du token');
       }
 
       const data = await response.json();
       this.user = data.user;
-      this.token = firebaseToken; // Utiliser le token Firebase
+      this.token = firebaseToken;
       localStorage.setItem('auth_token', this.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       
@@ -82,36 +81,34 @@ class AuthService {
       console.log('📝 Tentative d\'inscription Firebase avec:', credentials.email);
       
       // Inscription Firebase
-      const firebaseUser = await firebaseAuthService.register(credentials.email, credentials.password, credentials.name);
-      
+      const firebaseUser = await firebaseAuthService.register(credentials.email, credentials.password);
+      if (!firebaseUser) {
+        throw new Error('Erreur d\'inscription Firebase');
+      }
+
       // Obtenir le token Firebase
       const firebaseToken = await firebaseAuthService.getIdToken();
       if (!firebaseToken) {
         throw new Error('Impossible d\'obtenir le token Firebase');
       }
-      
-      // Le backend Firebase crée automatiquement le profil utilisateur
-      // On récupère les données depuis le backend
-      const apiUrl = window.location.hostname === 'cvbien4.vercel.app' 
-        ? 'https://cvbien-backend-api-production.up.railway.app'
-        : AuthService.API_BASE_URL;
-      
-      const response = await fetch(`${apiUrl}/api/auth/validate-firebase`, {
+
+      // Valider avec notre backend
+      const response = await fetch(`${AuthService.API_BASE_URL}/api/auth/validate-firebase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ firebase_token: firebaseToken }),
+        body: JSON.stringify({ idToken: firebaseToken }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || 'Erreur de validation Firebase');
+        throw new Error(error.detail || 'Erreur de validation du token');
       }
 
       const data = await response.json();
       this.user = data.user;
-      this.token = firebaseToken; // Utiliser le token Firebase
+      this.token = firebaseToken;
       localStorage.setItem('auth_token', this.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       
@@ -123,18 +120,19 @@ class AuthService {
     }
   }
 
-  // Déconnexion avec Firebase
+  // Déconnexion
   static async logout(): Promise<void> {
     try {
       // Déconnexion Firebase
       await firebaseAuthService.logout();
-    } catch (error) {
-      console.error('Erreur de déconnexion Firebase:', error);
-    } finally {
+      
+      // Nettoyer l'état local
       this.token = null;
       this.user = null;
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user');
+    } catch (error) {
+      console.error('Erreur de déconnexion:', error);
     }
   }
 
@@ -345,16 +343,12 @@ class AuthService {
       }
 
       // Valider avec notre backend
-      const apiUrl = window.location.hostname === 'cvbien4.vercel.app' 
-        ? 'https://cvbien-backend-api-production.up.railway.app'
-        : AuthService.API_BASE_URL;
-
-      const response = await fetch(`${apiUrl}/api/auth/validate-firebase`, {
+      const response = await fetch(`${AuthService.API_BASE_URL}/api/auth/validate-firebase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ firebase_token: firebaseToken }),
+        body: JSON.stringify({ idToken: firebaseToken }),
       });
 
       if (response.ok) {
