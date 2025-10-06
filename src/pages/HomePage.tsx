@@ -276,14 +276,7 @@ export const HomePage: React.FC = () => {
         console.log('Génération du CV optimisé...');
         await generateOptimizedCV();
         
-        // Consommer un crédit après génération réussie
-        if (user && isAuthenticated) {
-          try {
-            await consumeCredits(1);
-          } catch (error) {
-            console.warn('Impossible de consommer des crédits, génération gratuite:', error);
-          }
-        }
+        // La consommation de crédits est gérée dans cvGenerationStore
       } else {
         alert('Veuillez saisir une description de poste');
       }
