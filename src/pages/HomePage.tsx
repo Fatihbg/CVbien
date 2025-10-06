@@ -9,6 +9,7 @@ import { PaymentModal } from '../components/Payment/PaymentModal';
 import { useTranslation } from '../hooks/useTranslation';
 import { LanguageSelector } from '../components/LanguageSelector';
 import { config } from '../config/environment';
+import { useRealtimeCredits } from '../hooks/useRealtimeCredits';
 
 export const HomePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,6 +25,10 @@ export const HomePage: React.FC = () => {
   // Hook de traduction
   const { t, language, isEnglish } = useTranslation();
   
+  // Hook pour les crédits en temps réel
+  const { user } = useAuthStore();
+  const { credits: realtimeCredits, isLoading: creditsLoading } = useRealtimeCredits(user?.id || null);
+  
   // Hook pour gérer le redimensionnement
   useEffect(() => {
     const handleResize = () => {
@@ -34,29 +39,17 @@ export const HomePage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Hook pour synchroniser automatiquement avec Firestore
+  // Mettre à jour les crédits dans le store avec les données temps réel
   useEffect(() => {
-    const syncWithFirestore = async () => {
-      try {
-        const { useAuthStore } = await import('../store/authStore');
-        const authStore = useAuthStore.getState();
-        if (authStore.isAuthenticated) {
-          await authStore.loadProfile();
-          console.log('🔄 Synchronisation automatique avec Firestore');
-        }
-      } catch (error) {
-        console.error('❌ Erreur synchronisation:', error);
+    if (realtimeCredits !== undefined && user) {
+      const { useAuthStore } = require('../store/authStore');
+      const authStore = useAuthStore.getState();
+      if (authStore.user && authStore.user.credits !== realtimeCredits) {
+        console.log('🔄 Mise à jour crédits dans le store:', realtimeCredits);
+        authStore.updateCredits(realtimeCredits);
       }
-    };
-
-    // Synchroniser toutes les 30 secondes
-    const interval = setInterval(syncWithFirestore, 30000);
-    
-    // Synchroniser immédiatement
-    syncWithFirestore();
-
-    return () => clearInterval(interval);
-  }, []);
+    }
+  }, [realtimeCredits, user]);
 
   // Hook pour gérer le retour de paiement Stripe
   useEffect(() => {
