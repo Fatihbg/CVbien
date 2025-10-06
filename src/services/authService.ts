@@ -36,6 +36,30 @@ class AuthService {
     return this.token;
   }
 
+  // Obtenir un token frais depuis Firebase
+  static async getFreshToken(): Promise<string | null> {
+    try {
+      const firebaseUser = await firebaseAuthService.getCurrentUser();
+      if (!firebaseUser) {
+        console.log('❌ Aucun utilisateur Firebase connecté');
+        return null;
+      }
+
+      // Forcer le refresh du token
+      const freshToken = await firebaseAuthService.getIdToken(true);
+      if (freshToken) {
+        this.token = freshToken;
+        localStorage.setItem('auth_token', freshToken);
+        console.log('✅ Token rafraîchi');
+      }
+      
+      return freshToken;
+    } catch (error) {
+      console.error('❌ Erreur refresh token:', error);
+      return null;
+    }
+  }
+
   // Connexion avec Firebase
   static async login(credentials: LoginCredentials): Promise<User> {
     try {
@@ -144,8 +168,10 @@ class AuthService {
 
   // Obtenir le profil utilisateur
   static async getUserProfile(): Promise<UserProfile> {
-    if (!this.token) {
-      throw new Error('Non authentifié');
+    // Obtenir un token frais
+    const freshToken = await this.getFreshToken();
+    if (!freshToken) {
+      throw new Error('Non authentifié - impossible d\'obtenir un token frais');
     }
 
     try {
@@ -165,7 +191,7 @@ class AuthService {
 
       const response = await fetch(`${AuthService.API_BASE_URL}/api/user/profile`, {
         headers: {
-          'Authorization': `Bearer ${this.token}`,
+          'Authorization': `Bearer ${freshToken}`,
         },
       });
 
@@ -211,8 +237,10 @@ class AuthService {
 
   // Acheter des crédits
   static async buyCredits(amount: number, paymentMethod: string): Promise<{ credits: number; transactionId: string }> {
-    if (!this.token) {
-      throw new Error('Non authentifié');
+    // Obtenir un token frais
+    const freshToken = await this.getFreshToken();
+    if (!freshToken) {
+      throw new Error('Non authentifié - impossible d\'obtenir un token frais');
     }
 
     try {
@@ -222,7 +250,7 @@ class AuthService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.token}`,
+          'Authorization': `Bearer ${freshToken}`,
         },
         body: JSON.stringify({ amount }),
       });
@@ -255,9 +283,10 @@ class AuthService {
 
   // Consommer des crédits
   static async consumeCredits(amount: number): Promise<{ credits: number }> {
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      throw new Error('Non authentifié');
+    // Obtenir un token frais
+    const freshToken = await this.getFreshToken();
+    if (!freshToken) {
+      throw new Error('Non authentifié - impossible d\'obtenir un token frais');
     }
 
     try {
@@ -265,7 +294,7 @@ class AuthService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${freshToken}`,
         },
         body: JSON.stringify({ amount }),
       });
