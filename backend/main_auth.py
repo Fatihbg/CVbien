@@ -351,7 +351,7 @@ async def buy_credits(purchase: CreditPurchase, user_id: str = Depends(verify_to
         
         # Calculer le nombre de crédits selon le montant
         if purchase.amount == 1:
-            credits_to_add = 10  # 1€ = 10 crédits
+            credits_to_add = 5  # 1€ = 5 crédits
         elif purchase.amount == 5:
             credits_to_add = 100  # 5€ = 100 crédits
         else:

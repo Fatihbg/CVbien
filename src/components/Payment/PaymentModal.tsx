@@ -13,7 +13,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ onClose }) => {
   const [selectedPack, setSelectedPack] = useState<number | null>(null);
 
   const creditPacks = [
-    { amount: 10, price: 1, popular: false },
+    { amount: 5, price: 1, popular: false },
     { amount: 100, price: 5, popular: true }
   ];
 
@@ -23,7 +23,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ onClose }) => {
       console.log(`🚀 Création session Stripe Checkout pour ${amount} crédits (${price}€)`);
       
       // Créer la session Stripe Checkout
-      const response = await fetch(`${config.API_BASE_URL}/api/payments/create-checkout-session`, {
+      const response = await fetch(`${config.API_BASE_URL}/api/payments/create-payment-intent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
