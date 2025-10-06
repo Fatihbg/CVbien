@@ -45,7 +45,11 @@ export const HomePage: React.FC = () => {
       const confirmPayment = async () => {
         try {
           const sessionId = urlParams.get('session_id');
-          const userId = urlParams.get('user_id') || 'test_user';
+          const userIdFromUrl = urlParams.get('user_id');
+          
+          // Utiliser l'utilisateur connecté au lieu de celui de l'URL
+          const { user } = useAuthStore.getState();
+          const userId = user?.id || userIdFromUrl || 'test_user';
           
           console.log(`🔧 DEBUG: Confirmation paiement - Session: ${sessionId}, User: ${userId}, Credits: ${credits}`);
           
