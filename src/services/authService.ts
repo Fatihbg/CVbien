@@ -218,7 +218,7 @@ class AuthService {
     try {
       console.log('🛒 Achat de crédits:', { amount, paymentMethod });
       
-      const response = await fetch(`${AuthService.API_BASE_URL}/api/payments/create-payment-intent`, {
+      const response = await fetch(`${AuthService.API_BASE_URL}/api/payments/test-payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -238,10 +238,15 @@ class AuthService {
       const data = await response.json();
       console.log('✅ Données reçues:', data);
       
-      // Rediriger vers Stripe
-      if (data.checkout_url) {
-        window.location.href = data.checkout_url;
+      // Mettre à jour l'utilisateur local
+      if (this.user) {
+        this.user = { ...this.user, credits: data.credits };
+        localStorage.setItem('user', JSON.stringify(this.user));
+        console.log('✅ Utilisateur mis à jour dans localStorage');
       }
+      
+      // Afficher un message de succès
+      alert(`✅ ${data.added} crédits ajoutés ! Total: ${data.credits} crédits`);
       
       return data;
     } catch (error) {
