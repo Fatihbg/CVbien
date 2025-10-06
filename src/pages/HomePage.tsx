@@ -42,7 +42,6 @@ export const HomePage: React.FC = () => {
   // Mettre à jour les crédits dans le store avec les données temps réel
   useEffect(() => {
     if (realtimeCredits !== undefined && currentUser) {
-      const { useAuthStore } = require('../store/authStore');
       const authStore = useAuthStore.getState();
       if (authStore.user && authStore.user.credits !== realtimeCredits) {
         console.log('🔄 Mise à jour crédits dans le store:', realtimeCredits);
@@ -50,6 +49,9 @@ export const HomePage: React.FC = () => {
       }
     }
   }, [realtimeCredits, currentUser]);
+
+  // Utiliser les crédits temps réel au lieu de ceux du store
+  const displayCredits = realtimeCredits !== undefined ? realtimeCredits : (currentUser?.credits || 0);
 
   // Hook pour gérer le retour de paiement Stripe
   useEffect(() => {
@@ -258,7 +260,7 @@ export const HomePage: React.FC = () => {
     // TODO: Réactiver l'authentification plus tard
     
     // Vérifier les crédits seulement si l'utilisateur est authentifié
-    if (isAuthenticated && user && user.credits < 1) {
+    if (isAuthenticated && displayCredits < 1) {
       alert('Vous n\'avez plus de crédits. Veuillez en acheter pour continuer.');
       setShowUserProfile(true);
       return;
@@ -571,7 +573,7 @@ export const HomePage: React.FC = () => {
                     background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent'
-                  }}>{user.credits}</span>
+                  }}>{displayCredits}</span>
                 </div>
 
                 {/* Bouton ajouter crédits */}
@@ -740,7 +742,7 @@ export const HomePage: React.FC = () => {
                   background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent'
-                }}>{user.credits}</span>
+                }}>{displayCredits}</span>
               </div>
             )}
 
