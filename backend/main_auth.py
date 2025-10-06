@@ -489,19 +489,48 @@ async def create_payment_intent(
 ):
     """Créer une intention de paiement (simulation)"""
     try:
-        print(f"🔧 DEBUG: Création intention de paiement pour {payment_data.credits} crédits ({payment_data.amount}€) - User: {user_id}")
+        print(f"🔧 DEBUG: Création intention de paiement")
+        print(f"🔧 DEBUG: - User ID: {user_id}")
+        print(f"🔧 DEBUG: - Credits: {payment_data.credits}")
+        print(f"🔧 DEBUG: - Amount: {payment_data.amount}")
+        print(f"🔧 DEBUG: - Type credits: {type(payment_data.credits)}")
+        print(f"🔧 DEBUG: - Type amount: {type(payment_data.amount)}")
+        
+        # Validation des données
+        if not isinstance(payment_data.credits, int) or payment_data.credits <= 0:
+            raise ValueError(f"Credits invalides: {payment_data.credits}")
+        
+        if not isinstance(payment_data.amount, (int, float)) or payment_data.amount <= 0:
+            raise ValueError(f"Amount invalide: {payment_data.amount}")
         
         # Simuler la création d'une intention de paiement
         client_secret = f"pi_test_{uuid.uuid4().hex[:24]}"
         
-        return PaymentIntentResponse(
+        response = PaymentIntentResponse(
             client_secret=client_secret,
             amount=payment_data.amount,
             credits=payment_data.credits
         )
+        
+        print(f"✅ DEBUG: Réponse générée: {response}")
+        return response
+        
     except Exception as e:
         print(f"❌ Erreur création intention de paiement: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+        print(f"❌ Type d'erreur: {type(e)}")
+        import traceback
+        print(f"❌ Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=400, detail=f"Erreur: {str(e)}")
+
+@app.get("/version")
+async def get_version():
+    return {
+        "version": "2.6.0",
+        "status": "Payment Fix Deployed",
+        "timestamp": "2025-01-05 23:25",
+        "fix": "Fixed payment 400 error - verify_token and amount format",
+        "action": "PAYMENT_FIX_DEPLOY"
+    }
 
 @app.get("/api/admin/users")
 async def get_all_users():
