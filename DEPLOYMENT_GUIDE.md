@@ -206,3 +206,5 @@ En cas de problème :
 4. Vérifier les APIs externes (OpenAI, Stripe)
 
 🎉 **Votre application CVbien est maintenant prête pour la production !**
+
+

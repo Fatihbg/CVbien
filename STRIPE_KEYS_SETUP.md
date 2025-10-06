@@ -104,3 +104,5 @@ python main_simple.py
 - 🔧 **Clés** : À ajouter dans les fichiers .env
 
 **Une fois les clés ajoutées → Stripe réel opérationnel ! 💳**
+
+

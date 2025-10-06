@@ -142,3 +142,5 @@ Pour toute question ou optimisation supplémentaire, consultez :
 - Google Search Console Help
 - Documentation Schema.org
 - Guidelines Google pour les webmasters
+
+

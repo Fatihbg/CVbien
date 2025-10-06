@@ -49,3 +49,5 @@ echo "📋 Prochaines étapes:"
 echo "1. Configurer les variables d'environnement sur Vercel"
 echo "2. Déployer le backend sur Railway"
 echo "3. Tester l'application en production"
+
+

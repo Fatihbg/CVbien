@@ -14,7 +14,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   if (!isOpen) return null;
 
   return (
-    <div style={{
+    <div className="modal" style={{
       position: 'fixed',
       top: 0,
       left: 0,
@@ -25,7 +25,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 10000,
-      overflow: 'hidden'
+      overflow: 'hidden',
+      width: '100vw',
+      height: '100vh',
+      maxWidth: '100vw',
+      maxHeight: '100vh'
     }} onClick={onClose}>
       
       {/* Arrière-plan animé comme la page principale */}
@@ -71,7 +75,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         zIndex: 1
       }} />
       
-      <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', zIndex: 2 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ 
+        position: 'relative', 
+        zIndex: 2,
+        width: '100%',
+        maxWidth: '400px',
+        padding: '16px',
+        maxHeight: '100vh',
+        overflowY: 'auto'
+      }}>
         {mode === 'login' ? (
           <LoginForm
             onSuccess={() => {

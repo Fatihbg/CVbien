@@ -59,3 +59,5 @@ echo "4. 🚀 Déployer le frontend"
 echo "5. 🔧 Déployer le backend sur Railway"
 echo ""
 echo "📖 Suivez le guide DEPLOYMENT.md pour plus de détails"
+
+

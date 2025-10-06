@@ -155,7 +155,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegis
       borderRadius: '20px',
       border: '1px solid rgba(255, 255, 255, 0.3)',
       boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-      position: 'relative'
+      position: 'relative',
+      maxHeight: '90vh',
+      overflowY: 'auto'
     }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '24px' }}>

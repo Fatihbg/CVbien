@@ -53,7 +53,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div style={{
+    <div className="modal" style={{
       position: 'fixed',
       top: 0,
       left: 0,
@@ -64,7 +64,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ onClose }) => {
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 10000,
-      overflow: 'hidden'
+      overflow: 'hidden',
+      width: '100vw',
+      height: '100vh',
+      maxWidth: '100vw',
+      maxHeight: '100vh'
     }} onClick={onClose}>
       
       {/* Arrière-plan animé comme la page principale */}

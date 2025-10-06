@@ -406,7 +406,13 @@ export const HomePage: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', position: 'relative', overflow: 'visible' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      position: 'relative', 
+      overflow: 'visible',
+      maxWidth: '100vw',
+      width: '100%'
+    }}>
       {/* Particules flottantes */}
       <div className="floating-particles">
         {[...Array(15)].map((_, i) => (
@@ -434,7 +440,10 @@ export const HomePage: React.FC = () => {
         position: 'sticky',
         top: '12px',
         zIndex: 100,
-        overflow: 'visible'
+        overflow: 'visible',
+        maxWidth: 'calc(100vw - 24px)',
+        width: '100%',
+        boxSizing: 'border-box'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* Logo CVbien */}
@@ -963,13 +972,23 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="main-content" style={{ padding: '12px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div className="main-content" style={{ 
+        padding: '12px', 
+        maxWidth: 'min(1400px, 100vw)', 
+        margin: '0 auto',
+        width: '100%',
+        boxSizing: 'border-box',
+        overflow: 'hidden'
+      }}>
         {/* Top Row - Responsive layout */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: windowWidth <= 768 ? '1fr' : '1fr 1fr',
           gap: '16px',
-          marginBottom: '20px'
+          marginBottom: '20px',
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box'
         }}>
           {/* Left Frame - CV Upload */}
           <div className="card glass-card slide-in-left zoom-hover" style={{
@@ -979,7 +998,10 @@ export const HomePage: React.FC = () => {
             borderRadius: '20px',
             padding: '20px',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box'
           }}>
                 <div style={{ marginBottom: '16px' }}>
                   <h3 style={{
@@ -1106,7 +1128,10 @@ export const HomePage: React.FC = () => {
                 borderRadius: '20px',
                 padding: '20px',
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box'
               }}>
                 <div style={{ marginBottom: '16px' }}>
                   <h3 style={{
@@ -1206,9 +1231,11 @@ export const HomePage: React.FC = () => {
             borderRadius: '20px',
             padding: '20px',
             margin: '0 auto',
-            maxWidth: '500px',
+            maxWidth: 'min(500px, calc(100vw - 24px))',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            width: '100%',
+            boxSizing: 'border-box'
           }}>
             <button
               className="btn-primary zoom-hover"
