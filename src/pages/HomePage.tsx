@@ -54,15 +54,14 @@ export const HomePage: React.FC = () => {
           
           console.log(`🔧 DEBUG: Confirmation paiement - Session: ${sessionId}, User: ${userId} (Firebase UID: ${firebaseUser?.uid}), Credits: ${credits}`);
           
-          // Appeler l'endpoint de confirmation
-          const response = await fetch(`${config.API_BASE_URL}/api/payments/confirm-payment`, {
+          // Appeler l'endpoint de confirmation avec les métadonnées Stripe
+          const response = await fetch(`${config.API_BASE_URL}/api/payments/confirm-payment-stripe`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              user_id: userId,
-              credits: parseInt(credits)
+              session_id: sessionId
             })
           });
           
