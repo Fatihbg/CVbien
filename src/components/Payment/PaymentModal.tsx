@@ -11,7 +11,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ onClose }) => {
   const [selectedPack, setSelectedPack] = useState<number | null>(null);
 
   const creditPacks = [
-    { amount: 20, price: 1, popular: false },
+    { amount: 5, price: 1, popular: false },
     { amount: 100, price: 5, popular: true }
   ];
 
