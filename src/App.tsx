@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './store/authStore';
+import { FirebaseProvider } from './components/FirebaseProvider';
 import { HomePage } from './pages/HomePage';
 import AdminPage from './pages/AdminPage';
 import { PaymentSuccess } from './pages/PaymentSuccess';
@@ -24,17 +25,19 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen">
-        {isAdminPage ? (
-          <AdminPage />
-        ) : isPaymentSuccess ? (
-          <PaymentSuccess />
-        ) : isPaymentCancel ? (
-          <PaymentCancel />
-        ) : (
-          <HomePage />
-        )}
-      </div>
+      <FirebaseProvider>
+        <div className="min-h-screen">
+          {isAdminPage ? (
+            <AdminPage />
+          ) : isPaymentSuccess ? (
+            <PaymentSuccess />
+          ) : isPaymentCancel ? (
+            <PaymentCancel />
+          ) : (
+            <HomePage />
+          )}
+        </div>
+      </FirebaseProvider>
     </QueryClientProvider>
   );
 }
