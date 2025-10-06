@@ -532,133 +532,150 @@ export class PDFGenerator {
         });
       };
 
-      console.log('🎯 Génération PDF à partir de la structure de l\'aperçu...');
+      console.log('🎯 Génération PDF - VERSION APRÈS MIMI PRIME...');
 
-      // HEADER - Nom, contact, titre (basé sur la structure de l'aperçu)
+      // HEADER APRÈS MIMI PRIME - Design moderne et élégant
       if (cvStructure.personalInfo) {
-        // Nom - CENTRÉ et GRAS
+        // Nom - CENTRÉ et GRAS avec taille plus grande
         if (cvStructure.personalInfo.name) {
-          addText(cvStructure.personalInfo.name.toUpperCase(), 16, true, true, '#000000');
-          currentY += 4;
+          addText(cvStructure.personalInfo.name.toUpperCase(), 18, true, true, '#000000');
+          currentY += 3;
         }
 
-        // Contact - CENTRÉ
+        // Ligne décorative sous le nom
+        doc.setDrawColor(30, 64, 175);
+        doc.setLineWidth(1.0);
+        const lineY = currentY - 1;
+        doc.line(margin + 20, lineY, pageWidth - margin - 20, lineY);
+        currentY += 4;
+
+        // Contact - CENTRÉ avec style amélioré
         const contactParts = [];
         if (cvStructure.personalInfo.email) contactParts.push(cvStructure.personalInfo.email);
         if (cvStructure.personalInfo.phone) contactParts.push(cvStructure.personalInfo.phone);
         if (cvStructure.personalInfo.location) contactParts.push(cvStructure.personalInfo.location);
+        if (cvStructure.personalInfo.website) contactParts.push(cvStructure.personalInfo.website);
         
         if (contactParts.length > 0) {
-          addText(contactParts.join(' | '), 10, false, true, '#000000');
-          currentY += 4;
+          addText(contactParts.join(' | '), 10, false, true, '#666666');
+          currentY += 3;
         }
 
-        // Titre de poste - CENTRÉ et GRAS (plus proche du résumé)
+        // Titre de poste - CENTRÉ et GRAS avec style premium
         if (cvStructure.personalInfo.title || cvStructure.title) {
           const title = cvStructure.personalInfo.title || cvStructure.title;
-          addText(title.toUpperCase(), 12, true, true, '#000000');
-          currentY += 2; // Moins d'espace pour rapprocher du résumé
+          addText(title.toUpperCase(), 13, true, true, '#1e40af'); // Bleu pour le titre
+          currentY += 4; // Espacement optimal
         }
       }
 
-      // PROFIL/RÉSUMÉ (SANS TITRE "PROFESSIONAL SUMMARY")
+      // PROFIL/RÉSUMÉ APRÈS MIMI PRIME - Style premium
       if (cvStructure.summary && cvStructure.summary.trim()) {
-        // Pas de titre, directement le contenu
-        addText(cvStructure.summary, 11, false, false, '#000000');
-        currentY += 6; // Espacement Mimi Prime
+        // Ligne décorative avant le résumé
+        doc.setDrawColor(30, 64, 175);
+        doc.setLineWidth(0.3);
+        const lineY = currentY - 2;
+        doc.line(margin, lineY, pageWidth - margin, lineY);
+        currentY += 4;
+        
+        // Résumé avec style italique pour le distinguer
+        addText(cvStructure.summary, 11, false, false, '#333333');
+        currentY += 6; // Espacement optimal
       }
 
-      // EXPÉRIENCE PROFESSIONNELLE - VERSION MIMI PRIME
+      // EXPÉRIENCE PROFESSIONNELLE - APRÈS MIMI PRIME
       if (cvStructure.experience && cvStructure.experience.length > 0) {
-        // Titre de section avec ligne (BLEU SÉRIEUX)
-        addText('PROFESSIONAL EXPERIENCE', 12, true, false, '#1e40af');
-        const lineY = currentY + 3; // Espacement Mimi Prime
+        // Titre de section avec style moderne
+        addText('PROFESSIONAL EXPERIENCE', 13, true, false, '#1e40af');
+        const lineY = currentY + 2; // Plus proche
         doc.setDrawColor(30, 64, 175); // Bleu sérieux
-        doc.setLineWidth(0.5); // Épaisseur Mimi Prime
+        doc.setLineWidth(0.8); // Ligne plus visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6; // Espacement Mimi Prime
+        currentY = lineY + 5; // Espacement optimal
 
-        // Chaque expérience - VERSION MIMI PRIME
+        // Chaque expérience - APRÈS MIMI PRIME avec style moderne
         cvStructure.experience.forEach((exp: any, index: number) => {
           if (currentY > pageHeight - 30) return;
 
-          // Titre + Entreprise (en gras partiellement)
+          // Titre + Entreprise avec style amélioré
           if (exp.title || exp.company) {
             const titleText = exp.title ? exp.title : '';
             const companyText = exp.company ? ` - ${exp.company}` : '';
             const dateText = exp.startDate && exp.endDate ? ` (${exp.startDate} - ${exp.endDate})` : '';
             
             addText(`${titleText}${companyText}${dateText}`, 11, true, false, '#000000');
-            currentY += 2; // Espacement Mimi Prime
+            currentY += 1.5; // Espacement optimisé
           }
 
-          // Description avec tirets
+          // Description avec style moderne
           if (exp.description && exp.description.trim()) {
             const descriptionLines = exp.description.split('\n').filter((line: string) => line.trim());
             descriptionLines.forEach((line: string) => {
               if (currentY > pageHeight - 20) return;
               const cleanLine = line.replace(/^[-•]\s*/, '').trim();
               if (cleanLine) {
-                addText(`- ${cleanLine}`, 10, false, false, '#000000');
-                currentY += 1; // Espacement Mimi Prime
+                // Style moderne avec puce personnalisée
+                addText(`• ${cleanLine}`, 10, false, false, '#333333');
+                currentY += 0.8; // Espacement serré mais lisible
               }
             });
           }
           
-          currentY += 2; // Espacement Mimi Prime
+          currentY += 3; // Espacement entre expériences
         });
       }
 
-      // FORMATION - VERSION MIMI PRIME
+      // FORMATION - APRÈS MIMI PRIME
       if (cvStructure.education && cvStructure.education.length > 0) {
-        // Titre de section avec ligne (BLEU SÉRIEUX)
-        addText('EDUCATION', 12, true, false, '#1e40af');
-        const lineY = currentY + 3; // Espacement Mimi Prime
+        // Titre de section avec style moderne
+        addText('EDUCATION', 13, true, false, '#1e40af');
+        const lineY = currentY + 2; // Plus proche
         doc.setDrawColor(30, 64, 175); // Bleu sérieux
-        doc.setLineWidth(0.5); // Épaisseur Mimi Prime
+        doc.setLineWidth(0.8); // Ligne plus visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6; // Espacement Mimi Prime
+        currentY = lineY + 5; // Espacement optimal
 
-        // Chaque formation
+        // Chaque formation avec style moderne
         cvStructure.education.forEach((edu: any, index: number) => {
           if (currentY > pageHeight - 30) return;
 
-          // Titre + École (en gras partiellement)
+          // Titre + École avec style amélioré
           if (edu.degree || edu.school) {
             const degreeText = edu.degree ? edu.degree : '';
             const schoolText = edu.school ? ` - ${edu.school}` : '';
             const dateText = edu.startDate && edu.endDate ? ` (${edu.startDate} - ${edu.endDate})` : '';
             
             addText(`${degreeText}${schoolText}${dateText}`, 11, true, false, '#000000');
-            currentY += 2; // Espacement Mimi Prime
+            currentY += 1.5; // Espacement optimisé
           }
 
-          // Description avec tirets
+          // Description avec style moderne
           if (edu.description && edu.description.trim()) {
             const descriptionLines = edu.description.split('\n').filter((line: string) => line.trim());
             descriptionLines.forEach((line: string) => {
               if (currentY > pageHeight - 20) return;
               const cleanLine = line.replace(/^[-•]\s*/, '').trim();
               if (cleanLine) {
-                addText(`- ${cleanLine}`, 10, false, false, '#000000');
-                currentY += 1; // Espacement Mimi Prime
+                // Style moderne avec puce personnalisée
+                addText(`• ${cleanLine}`, 10, false, false, '#333333');
+                currentY += 0.8; // Espacement serré mais lisible
               }
             });
           }
           
-          currentY += 2; // Espacement Mimi Prime
+          currentY += 3; // Espacement entre formations
         });
       }
 
-      // COMPÉTENCES TECHNIQUES - VERSION MIMI PRIME
+      // COMPÉTENCES TECHNIQUES - APRÈS MIMI PRIME
       if (cvStructure.skills && cvStructure.skills.length > 0) {
-        // Titre de section avec ligne (BLEU SÉRIEUX)
-        addText('TECHNICAL SKILLS', 12, true, false, '#1e40af');
-        const lineY = currentY + 3; // Espacement Mimi Prime
+        // Titre de section avec style moderne
+        addText('TECHNICAL SKILLS', 13, true, false, '#1e40af');
+        const lineY = currentY + 2; // Plus proche
         doc.setDrawColor(30, 64, 175); // Bleu sérieux
-        doc.setLineWidth(0.5); // Épaisseur Mimi Prime
+        doc.setLineWidth(0.8); // Ligne plus visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6; // Espacement Mimi Prime
+        currentY = lineY + 5; // Espacement optimal
 
         // Grouper les compétences par catégorie (comme dans l'image)
         const technicalSkills = [];
@@ -681,44 +698,44 @@ export class PDFGenerator {
           }
         });
 
-        // Afficher les sous-catégories avec deux points (pas de tirets)
+        // Afficher les sous-catégories avec style moderne
         if (technicalSkills.length > 0) {
-          addText(`Compétences techniques: ${technicalSkills.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
+          addText(`• Compétences techniques: ${technicalSkills.join(', ')}`, 10, false, false, '#333333');
+          currentY += 1.2;
         }
         if (softSkills.length > 0) {
-          addText(`Soft skills: ${softSkills.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
+          addText(`• Soft skills: ${softSkills.join(', ')}`, 10, false, false, '#333333');
+          currentY += 1.2;
         }
         if (tools.length > 0) {
-          addText(`Outils: ${tools.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
+          addText(`• Outils: ${tools.join(', ')}`, 10, false, false, '#333333');
+          currentY += 1.2;
         }
         if (languages.length > 0) {
-          addText(`Langues: ${languages.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
+          addText(`• Langues: ${languages.join(', ')}`, 10, false, false, '#333333');
+          currentY += 1.2;
         }
         
-        currentY += 2;
+        currentY += 3;
       }
 
-      // CERTIFICATIONS & ACHIEVEMENTS - VERSION MIMI PRIME
+      // CERTIFICATIONS & ACHIEVEMENTS - APRÈS MIMI PRIME
       if (cvStructure.certifications && cvStructure.certifications.length > 0) {
-        // Titre de section avec ligne (BLEU SÉRIEUX)
-        addText('CERTIFICATIONS & ACHIEVEMENTS', 12, true, false, '#1e40af');
-        const lineY = currentY + 3; // Espacement Mimi Prime
+        // Titre de section avec style moderne
+        addText('CERTIFICATIONS & ACHIEVEMENTS', 13, true, false, '#1e40af');
+        const lineY = currentY + 2; // Plus proche
         doc.setDrawColor(30, 64, 175); // Bleu sérieux
-        doc.setLineWidth(0.5); // Épaisseur Mimi Prime
+        doc.setLineWidth(0.8); // Ligne plus visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6; // Espacement Mimi Prime
+        currentY = lineY + 5; // Espacement optimal
 
-        // Certifications avec tirets
+        // Certifications avec style moderne
         cvStructure.certifications.forEach((cert: any, index: number) => {
           if (currentY > pageHeight - 20) return;
           const certText = typeof cert === 'string' ? cert : cert.name || cert.title;
           const cleanCertText = certText.replace(/^[•·]\s*/, ''); // Retirer les ronds
-          addText(`- ${cleanCertText}`, 10, false, false, '#000000');
-          currentY += 1; // Espacement Mimi Prime
+          addText(`• ${cleanCertText}`, 10, false, false, '#333333');
+          currentY += 1.2; // Espacement moderne
         });
       }
       // Si pas de certifications, la section n'apparaît PAS du tout
