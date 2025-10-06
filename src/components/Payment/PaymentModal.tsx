@@ -31,7 +31,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ onClose }) => {
         },
         body: JSON.stringify({
           credits: amount,
-          amount: price * 100 // prix en centimes
+          amount: price // prix en euros
         })
       });
 

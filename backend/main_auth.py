@@ -485,12 +485,11 @@ async def save_cv(cv_data: dict, user_id: str = Depends(verify_token)):
 @app.post("/api/payments/create-payment-intent", response_model=PaymentIntentResponse)
 async def create_payment_intent(
     payment_data: PaymentIntentRequest,
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    user_id: str = Depends(verify_token)
 ):
     """Créer une intention de paiement (simulation)"""
     try:
-        # Vérifier le token
-        user = get_current_user(credentials.credentials)
+        print(f"🔧 DEBUG: Création intention de paiement pour {payment_data.credits} crédits ({payment_data.amount}€) - User: {user_id}")
         
         # Simuler la création d'une intention de paiement
         client_secret = f"pi_test_{uuid.uuid4().hex[:24]}"
@@ -501,6 +500,7 @@ async def create_payment_intent(
             credits=payment_data.credits
         )
     except Exception as e:
+        print(f"❌ Erreur création intention de paiement: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/admin/users")
