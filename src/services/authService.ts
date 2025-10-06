@@ -10,8 +10,14 @@ class AuthService {
   // Initialiser le token depuis le localStorage
   static initialize() {
     this.token = localStorage.getItem('auth_token');
-    if (this.token) {
-      this.getCurrentUser();
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        this.user = JSON.parse(userStr);
+      } catch (e) {
+        console.error('Erreur parsing user from localStorage:', e);
+        this.user = null;
+      }
     }
   }
 
@@ -262,11 +268,21 @@ class AuthService {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erreur consommation crédits:', errorText);
         throw new Error('Erreur lors de la consommation de crédits');
       }
 
       const data = await response.json();
-      this.user = { ...this.user, credits: data.credits };
+      console.log('✅ Crédits consommés:', data);
+      
+      // Mettre à jour l'utilisateur local et le localStorage
+      if (this.user) {
+        this.user = { ...this.user, credits: data.credits };
+        localStorage.setItem('user', JSON.stringify(this.user));
+        console.log('✅ Utilisateur mis à jour dans localStorage');
+      }
+      
       return data;
     } catch (error) {
       console.error('Erreur consommation crédits:', error);
@@ -328,9 +344,16 @@ class AuthService {
   // Vérifier la validité du token Firebase
   static async validateToken(): Promise<boolean> {
     try {
+      // D'abord, essayer de récupérer l'utilisateur depuis localStorage
+      if (this.token && this.user) {
+        console.log('✅ Utilisateur trouvé dans localStorage, validation...');
+        return true;
+      }
+
       // Vérifier si l'utilisateur Firebase est connecté
       const currentUser = firebaseAuthService.getCurrentUser();
       if (!currentUser) {
+        console.log('❌ Aucun utilisateur Firebase connecté');
         this.logout();
         return false;
       }
@@ -338,6 +361,7 @@ class AuthService {
       // Obtenir un nouveau token Firebase
       const firebaseToken = await firebaseAuthService.getIdToken();
       if (!firebaseToken) {
+        console.log('❌ Impossible d\'obtenir le token Firebase');
         this.logout();
         return false;
       }
@@ -357,8 +381,10 @@ class AuthService {
         this.token = firebaseToken;
         localStorage.setItem('auth_token', this.token);
         localStorage.setItem('user', JSON.stringify(this.user));
+        console.log('✅ Token validé et utilisateur chargé');
         return true;
       } else {
+        console.log('❌ Échec validation token avec le backend');
         this.logout();
         return false;
       }

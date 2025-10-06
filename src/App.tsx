@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './store/authStore';
 import { FirebaseProvider } from './components/FirebaseProvider';
+import { authService } from './services/authService';
 import { HomePage } from './pages/HomePage';
 import AdminPage from './pages/AdminPage';
 import { PaymentSuccess } from './pages/PaymentSuccess';
@@ -12,8 +13,12 @@ const queryClient = new QueryClient();
 function App() {
   const { isAuthenticated, validateToken } = useAuthStore();
 
-  // Valider le token au chargement de l'app
+  // Initialiser l'authService et valider le token au chargement de l'app
   useEffect(() => {
+    // Initialiser l'authService avec les données du localStorage
+    authService.initialize();
+    
+    // Valider le token
     validateToken();
   }, [validateToken]);
 
