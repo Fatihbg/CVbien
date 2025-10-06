@@ -218,13 +218,13 @@ class AuthService {
     try {
       console.log('🛒 Achat de crédits:', { amount, paymentMethod });
       
-      const response = await fetch(`${AuthService.API_BASE_URL}/api/user/buy-credits`, {
+      const response = await fetch(`${AuthService.API_BASE_URL}/api/payments/create-payment-intent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.token}`,
         },
-        body: JSON.stringify({ amount, payment_method: paymentMethod }),
+        body: JSON.stringify({ amount }),
       });
 
       console.log('📡 Réponse backend:', response.status, response.statusText);
@@ -238,9 +238,9 @@ class AuthService {
       const data = await response.json();
       console.log('✅ Données reçues:', data);
       
-      // Mettre à jour l'utilisateur local
-      if (this.user) {
-        this.user = { ...this.user, credits: data.credits };
+      // Rediriger vers Stripe
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
       }
       
       return data;

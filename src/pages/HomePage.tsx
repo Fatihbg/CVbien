@@ -50,11 +50,15 @@ export const HomePage: React.FC = () => {
           console.log(`🔧 DEBUG: Confirmation paiement - Session: ${sessionId}, User: ${userId}, Credits: ${credits}`);
           
           // Appeler l'endpoint de confirmation
-          const response = await fetch(`${config.API_BASE_URL}/api/confirm-test-payment?session_id=${sessionId}&user_id=${userId}&credits=${credits}`, {
+          const response = await fetch(`${config.API_BASE_URL}/api/payments/confirm-payment`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({
+              user_id: userId,
+              credits: parseInt(credits)
+            })
           });
           
           if (response.ok) {
@@ -62,8 +66,8 @@ export const HomePage: React.FC = () => {
             console.log('✅ Paiement confirmé:', result);
             
             const successMessage = isEnglish 
-              ? `🎉 Payment successful!\n✅ ${credits} credits added to your account!\nTotal: ${result.total_credits} credits`
-              : `🎉 Paiement réussi !\n✅ ${credits} crédits ajoutés à votre compte !\nTotal: ${result.total_credits} crédits`;
+              ? `🎉 Payment successful!\n✅ ${credits} credits added to your account!\nTotal: ${result.credits} credits`
+              : `🎉 Paiement réussi !\n✅ ${credits} crédits ajoutés à votre compte !\nTotal: ${result.credits} crédits`;
             alert(successMessage);
             
             // Recharger la page pour mettre à jour les crédits
