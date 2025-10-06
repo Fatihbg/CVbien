@@ -26,8 +26,8 @@ export const HomePage: React.FC = () => {
   const { t, language, isEnglish } = useTranslation();
   
   // Hook pour les crédits en temps réel
-  const { user } = useAuthStore();
-  const { credits: realtimeCredits, isLoading: creditsLoading } = useRealtimeCredits(user?.id || null);
+  const { user: currentUser } = useAuthStore();
+  const { credits: realtimeCredits, isLoading: creditsLoading } = useRealtimeCredits(currentUser?.id || null);
   
   // Hook pour gérer le redimensionnement
   useEffect(() => {
@@ -41,7 +41,7 @@ export const HomePage: React.FC = () => {
 
   // Mettre à jour les crédits dans le store avec les données temps réel
   useEffect(() => {
-    if (realtimeCredits !== undefined && user) {
+    if (realtimeCredits !== undefined && currentUser) {
       const { useAuthStore } = require('../store/authStore');
       const authStore = useAuthStore.getState();
       if (authStore.user && authStore.user.credits !== realtimeCredits) {
@@ -49,7 +49,7 @@ export const HomePage: React.FC = () => {
         authStore.updateCredits(realtimeCredits);
       }
     }
-  }, [realtimeCredits, user]);
+  }, [realtimeCredits, currentUser]);
 
   // Hook pour gérer le retour de paiement Stripe
   useEffect(() => {
