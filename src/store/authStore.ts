@@ -129,6 +129,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isAuthenticated: true, 
           isLoading: false 
         });
+        // Charger le profil après validation
         await get().loadProfile();
       } else {
         set({ 
