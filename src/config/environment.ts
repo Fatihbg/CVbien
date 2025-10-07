@@ -71,3 +71,5 @@ if (config.IS_PRODUCTION) {
 }
 
 export default config;
+
+// Force frontend redeploy 2025-01-06-07:00 - CV improvements deployed
