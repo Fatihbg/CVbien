@@ -1,4 +1,5 @@
 import { config } from '../config/environment';
+import jsPDF from 'jspdf';
 
 export class PDFGenerator {
   static async generateCVPDF(cvData: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
@@ -202,7 +203,7 @@ export class PDFGenerator {
 
   private static async generateRonaldoPrimePDF(cvText: string, filename: string): Promise<void> {
     try {
-      const { default: jsPDF } = await import('jspdf');
+      // jsPDF déjà importé en haut du fichier
       
       const doc = new jsPDF({
         orientation: 'portrait',
@@ -493,7 +494,7 @@ export class PDFGenerator {
   // GÉNÉRATION PDF À PARTIR DE LA STRUCTURE DE L'APERÇU
   private static async generatePDFFromStructure(cvStructure: any, filename: string): Promise<void> {
     try {
-      const { default: jsPDF } = await import('jspdf');
+      // jsPDF déjà importé en haut du fichier
       
       const doc = new jsPDF({
         orientation: 'portrait',
@@ -861,7 +862,7 @@ export class PDFGenerator {
 
   private static async generateHybridPDF(cvText: string, filename: string): Promise<void> {
     try {
-      const { default: jsPDF } = await import('jspdf');
+      // jsPDF déjà importé en haut du fichier
       
       const doc = new jsPDF({
         orientation: 'portrait',
@@ -999,7 +1000,7 @@ export class PDFGenerator {
 
   private static async generateFallbackPDF(cvText: string, filename: string): Promise<void> {
     try {
-      const { default: jsPDF } = await import('jspdf');
+      // jsPDF déjà importé en haut du fichier
       
       const doc = new jsPDF({
         orientation: 'portrait',
