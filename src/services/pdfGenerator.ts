@@ -230,7 +230,9 @@ export class PDFGenerator {
         }
         doc.setTextColor(color);
         
-        const lines = doc.splitTextToSize(text, maxWidth);
+        // Supprime tous les symboles * et les balises HTML
+        const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
+        const lines = doc.splitTextToSize(cleanText, maxWidth);
         
         lines.forEach((line: string) => {
           if (currentY > pageHeight - 20) return;
@@ -274,7 +276,7 @@ export class PDFGenerator {
           if (line.length > 3 && line.length < 50 && line === line.toUpperCase() && 
               !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') &&
               !line.includes('SUMMARY') && !line.includes('RÉSUMÉ')) {
-            const cleanLine = line.replace(/<[^>]*>/g, '');
+            const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
             addText(cleanLine, 18, true, true, '#000000'); // Nom centré en noir
             currentY += 3;
             headerProcessed++;
@@ -282,7 +284,7 @@ export class PDFGenerator {
           } 
           // Contact - CENTRÉ
           else if (line.includes('@') || line.includes('|') || line.includes('+') || line.includes('phone') || line.includes('tel')) {
-            const cleanLine = line.replace(/<[^>]*>/g, '');
+            const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
             addText(cleanLine, 10, false, true, '#000000'); // Contact centré
             currentY += 1;
             headerProcessed++;
@@ -294,7 +296,7 @@ export class PDFGenerator {
                    !line.includes('FORMATION') && !line.includes('SKILLS') &&
                    !line.includes('SUMMARY') && !line.includes('RÉSUMÉ') &&
                    !line.includes('EDUCATION') && !line.includes('CERTIFICATIONS')) {
-            const cleanLine = line.replace(/<[^>]*>/g, '');
+            const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
             addText(cleanLine, 14, true, true, '#000000'); // Titre centré en gras
             currentY += 2; // Moins d'espace pour rapprocher du résumé
             headerProcessed++;
@@ -348,8 +350,8 @@ export class PDFGenerator {
         if (isSection && !isHeader) {
           currentY += 6; // Plus d'espace avant les sections
           
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+        // Nettoyer les balises HTML et tous les *
+        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
           
           // Calculer la position exacte du texte
           const textY = currentY;
@@ -377,7 +379,7 @@ export class PDFGenerator {
         else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS') || currentSection.includes('EDUCATION') || currentSection.includes('FORMATION')) &&
                  line.length > 5 && line.length < 100) {
           
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
           
           // Garder les tirets, supprimer seulement les ronds et étoiles
           let processedLine = cleanLine;
@@ -521,8 +523,8 @@ export class PDFGenerator {
         }
         doc.setTextColor(color);
         
-        // Nettoyer le HTML et les ** (retirer <b>, <B>, **, etc.)
-        const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
+             // Nettoyer le HTML et tous les * (retirer <b>, <B>, **, *, etc.)
+             const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
         const lines = doc.splitTextToSize(cleanText, maxWidth);
         
         lines.forEach((line: string) => {
@@ -892,7 +894,9 @@ export class PDFGenerator {
         }
         doc.setTextColor(color);
         
-        const lines = doc.splitTextToSize(text, maxWidth);
+        // Supprime tous les symboles * et les balises HTML
+        const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
+        const lines = doc.splitTextToSize(cleanText, maxWidth);
         
         lines.forEach((line: string) => {
           if (currentY > pageHeight - 15) return;
@@ -1032,7 +1036,9 @@ export class PDFGenerator {
           doc.setTextColor(0, 0, 0); // Noir normal
         }
         
-        const lines = doc.splitTextToSize(text, maxWidth);
+        // Supprime tous les symboles * et les balises HTML
+        const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
+        const lines = doc.splitTextToSize(cleanText, maxWidth);
         
         lines.forEach((line: string) => {
           if (currentY > pageHeight - 20) return;
@@ -1154,8 +1160,8 @@ export class PDFGenerator {
                  line.length > 3 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-') &&
                  !line.includes('@') && !line.includes('|') && !line.includes('+')) {
           
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+        // Nettoyer les balises HTML et tous les *
+        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
           
           // Vérifier si c'est une entreprise (pas un poste)
           const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
@@ -1176,8 +1182,8 @@ export class PDFGenerator {
         else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
                  line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
           
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+        // Nettoyer les balises HTML et tous les *
+        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
           
           const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
                               'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner'];
@@ -1197,8 +1203,8 @@ export class PDFGenerator {
         else if (currentSection && (currentSection.includes('EDUCATION') || currentSection.includes('FORMATION')) &&
                  line.length > 3 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
           
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+        // Nettoyer les balises HTML et tous les *
+        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
           
           // Détecter les diplômes et formations à mettre en gras
           const educationKeywords = ['master', 'bachelor', 'degree', 'diploma', 'certificate', 'phd', 'doctorate', 
@@ -1232,8 +1238,8 @@ export class PDFGenerator {
                  currentSection.includes('CERTIFICATIONS') || currentSection.includes('ACHIEVEMENTS')) &&
                  line.length > 0) {
           
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+        // Nettoyer les balises HTML et tous les *
+        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
           
           // Formatage spécial pour les sous-catégories
           if (cleanLine.includes(':') && !cleanLine.startsWith('•')) {
@@ -1246,15 +1252,15 @@ export class PDFGenerator {
         // Puces et contenu - formatage indenté
         else if (line.startsWith('•') || line.startsWith('-')) {
           // Nettoyer les balises HTML et indenter les puces
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
           const indentedLine = '    ' + cleanLine;
           addText(indentedLine, 9, false, false, false, '#000000'); // Puces indentées
           currentY += 2.5; // Demi-ligne d'espace entre les bullet points
         }
         // Texte normal
         else if (line.length > 0) {
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+        // Nettoyer les balises HTML et tous les *
+        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
           addText(cleanLine, 9, false, false, false, '#000000');
           currentY += 0.3; // Plus d'espace
         }
