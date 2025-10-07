@@ -528,18 +528,31 @@ COMPETENCES
       
       console.log('✅ CV optimisé reçu du backend:', result.optimized_cv?.substring(0, 100) + '...');
       
-      return {
-        optimizedCV: result.optimized_cv,
-        atsScore: result.ats_score || 0,
-        improvements: [
-          '✅ CV optimisé avec une structure professionnelle',
-          '✅ Mots-clés ATS intégrés',
-          '✅ Formatage et mise en page améliorés',
-          '✅ Contenu adapté au poste recherché',
-          '✅ Métriques et chiffres ajoutés',
-          '✅ Style professionnel appliqué'
-        ]
-      };
+               // S'assurer que le CV optimisé est en format JSON pour l'aperçu
+               let optimizedCVData;
+               try {
+                 optimizedCVData = JSON.parse(result.optimized_cv);
+                 console.log('✅ CV optimisé reçu en format JSON');
+               } catch (parseError) {
+                 console.log('⚠️ CV optimisé reçu en texte brut, conversion en JSON...');
+                 // Convertir le texte brut en structure JSON pour l'aperçu
+                 optimizedCVData = this.convertTextToJSONStructure(result.optimized_cv);
+               }
+               
+               return {
+                 optimizedCV: JSON.stringify(optimizedCVData), // Toujours en JSON pour l'aperçu
+                 atsScore: result.ats_score || 0,
+                 improvements: [
+                   '✅ CV optimisé avec une structure professionnelle',
+                   '✅ Mots-clés ATS intégrés',
+                   '✅ Formatage et mise en page améliorés',
+                   '✅ Contenu adapté au poste recherché',
+                   '✅ Métriques et chiffres ajoutés',
+                   '✅ Style professionnel appliqué',
+                   '✅ Toutes les informations originales conservées',
+                   '✅ Liens et URLs préservés'
+                 ]
+               };
     } catch (error) {
       console.error('=== ERREUR GÉNÉRATION CV ===');
       console.error('Erreur détaillée:', error);
@@ -550,6 +563,106 @@ COMPETENCES
         atsScore: 0,
         improvements: []
       };
+    }
+
+    // Convertir le texte brut en structure JSON pour l'aperçu
+    private static convertTextToJSONStructure(cvText: string): any {
+      console.log('🔄 Conversion du texte brut en structure JSON...');
+      
+      const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
+      const structure = {
+        personalInfo: {
+          name: '',
+          email: '',
+          phone: '',
+          location: '',
+          title: '',
+          website: ''
+        },
+        summary: '',
+        experience: [],
+        education: [],
+        skills: [],
+        certifications: []
+      };
+
+      let currentSection = '';
+      let tempExperience: any = {};
+      let tempEducation: any = {};
+
+      lines.forEach(line => {
+        const lowerLine = line.toLowerCase();
+
+        // Détecter le nom
+        if (!structure.personalInfo.name && line.length > 3 && line.length < 50 && 
+            line === line.toUpperCase() && !line.includes('@') && !line.includes('PROFESSIONAL')) {
+          structure.personalInfo.name = line;
+        }
+
+        // Détecter le contact
+        if (line.includes('@')) structure.personalInfo.email = line;
+        if (line.includes('+') || line.match(/\d{10,}/)) structure.personalInfo.phone = line;
+        if (line.includes('http') || line.includes('www.')) structure.personalInfo.website = line;
+
+        // Détecter les sections
+        if (lowerLine.includes('professional experience') || lowerLine.includes('expérience professionnelle')) {
+          currentSection = 'experience';
+        } else if (lowerLine.includes('education') || lowerLine.includes('formation')) {
+          currentSection = 'education';
+        } else if (lowerLine.includes('technical skills') || lowerLine.includes('compétences techniques')) {
+          currentSection = 'skills';
+        } else if (lowerLine.includes('certifications') || lowerLine.includes('certificats')) {
+          currentSection = 'certifications';
+        } else if (currentSection === 'experience') {
+          // Traiter les expériences
+          if (line.includes(' - ') || line.includes('(') && line.includes(')')) {
+            if (tempExperience.title) {
+              structure.experience.push(tempExperience);
+            }
+            const parts = line.split(' - ');
+            tempExperience = {
+              title: parts[0]?.trim() || '',
+              company: parts[1]?.trim() || '',
+              description: ''
+            };
+          } else if (tempExperience.title && line.startsWith('-')) {
+            tempExperience.description += line.substring(1).trim() + '\n';
+          }
+        } else if (currentSection === 'education') {
+          // Traiter les formations
+          if (line.includes(' - ') || line.includes('(') && line.includes(')')) {
+            if (tempEducation.degree) {
+              structure.education.push(tempEducation);
+            }
+            const parts = line.split(' - ');
+            tempEducation = {
+              degree: parts[0]?.trim() || '',
+              school: parts[1]?.trim() || '',
+              description: ''
+            };
+          } else if (tempEducation.degree && line.startsWith('-')) {
+            tempEducation.description += line.substring(1).trim() + '\n';
+          }
+        } else if (currentSection === 'skills') {
+          structure.skills.push(line);
+        } else if (currentSection === 'certifications') {
+          structure.certifications.push(line);
+        } else if (!currentSection && line.length > 20 && !line.includes('@') && !line.includes('|')) {
+          // Probablement le résumé
+          structure.summary += line + ' ';
+        }
+      });
+
+      // Ajouter les dernières entrées
+      if (tempExperience.title) {
+        structure.experience.push(tempExperience);
+      }
+      if (tempEducation.degree) {
+        structure.education.push(tempEducation);
+      }
+
+      console.log('✅ Structure JSON créée:', structure);
+      return structure;
     }
   }
 

@@ -16,11 +16,14 @@ export class PDFGenerator {
         await this.generatePDFFromStructure(cvStructure, filename);
         
       } catch (parseError) {
-        console.log('📄 Texte brut détecté - conversion en structure intelligente...');
+        console.log('⚠️ Texte brut détecté - FORCER l\'utilisation de la structure de l\'aperçu...');
         
-        // Convertir le texte brut en structure JSON intelligente
+        // Si c'est du texte brut, c'est un problème - on devrait toujours avoir la structure JSON
+        console.error('❌ Erreur: Le CV optimisé devrait toujours être en format JSON');
+        
+        // Fallback: essayer de convertir le texte brut
         cvStructure = this.convertTextToIntelligentStructure(cvData);
-        console.log('🧠 Structure intelligente créée:', cvStructure);
+        console.log('🧠 Structure intelligente créée (fallback):', cvStructure);
         
         // Utiliser la structure convertie pour générer le PDF
         await this.generatePDFFromStructure(cvStructure, filename);
