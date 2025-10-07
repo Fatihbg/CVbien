@@ -664,11 +664,10 @@ COMPETENCES
       console.log('✅ Structure JSON créée:', structure);
       return structure;
     }
-  }
-
-
-
-
-
-
 }
+
+
+
+
+
+
