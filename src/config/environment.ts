@@ -21,10 +21,10 @@ export const config = {
   // URLs de l'API - VERCEL BACKEND (UPDATED)
   API_BASE_URL: isProduction ? 'https://cvbien-backend-api.vercel.app' : 'http://localhost:8000',
   AUTH_API_URL: isProduction ? 'https://cvbien-backend-api.vercel.app' : 'http://localhost:8000',
-
+  
   // Application
   APP_NAME: import.meta.env.VITE_APP_NAME || 'CVbien',
-  APP_URL: import.meta.env.VITE_APP_URL || 'http://localhost:5173',
+  APP_URL: isProduction ? 'https://cvbien.dev' : 'http://localhost:5173',
   APP_VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
 
   // Mode démo
