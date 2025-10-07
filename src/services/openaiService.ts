@@ -215,15 +215,18 @@ export class OpenAIService {
           
           // Utiliser le backend pour l'extraction PDF
           try {
-            const formData = new FormData();
-            formData.append('cv_file', file);
+            // Convertir le fichier en base64
+            const arrayBuffer = await file.arrayBuffer();
+            const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
             
             const response = await fetch(`${config.API_BASE_URL}/extract-pdf`, {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json',
               },
-              body: formData
+              body: JSON.stringify({
+                pdf_base64: base64
+              })
             });
 
             if (!response.ok) {
@@ -484,19 +487,19 @@ COMPETENCES
         throw new Error('Données manquantes: cvText ou jobDescription est undefined');
       }
       
-      // Utiliser le backend Python avec LlamaIndex
-      const formData = new FormData();
-      
-      // Créer un fichier temporaire avec le texte du CV
-      const cvBlob = new Blob([request.cvText], { type: 'text/plain' });
-      formData.append('cv_file', cvBlob, 'cv.txt');
-      formData.append('job_offer', request.jobDescription);
-
+      // Utiliser le backend Python avec le bon format JSON
       console.log('Envoi vers le backend Python...');
       
       const response = await fetch(`${config.API_BASE_URL}/optimize-cv`, {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cv_content: request.cvText,
+          job_description: request.jobDescription,
+          user_id: 'test_user' // TODO: Récupérer le vrai user_id
+        })
       });
 
       if (!response.ok) {
@@ -505,255 +508,30 @@ COMPETENCES
 
       console.log('Réponse reçue du backend Python');
       
-      // Le backend retourne un PDF, mais on veut aussi le texte pour l'affichage
-      // On va utiliser l'API OpenAI directement pour avoir le texte formaté
-      this.initializeOpenAI();
+      // Le backend retourne maintenant directement le CV optimisé en JSON
+      const result = await response.json();
       
-      if (!this.openai) {
-        throw new Error('OpenAI non initialisé');
+      if (!result.success) {
+        throw new Error(result.message || 'Erreur lors de l\'optimisation du CV');
       }
-
-      console.log('Génération du texte avec OpenAI...');
-
-          const prompt = `Tu es un expert en recrutement et en intelligence artificielle pour l'optimisation de CV. Ta mission est d'analyser l'offre d'emploi et d'optimiser le CV pour qu'il corresponde PARFAITEMENT au poste recherché. Tu dois être STRATÉGIQUE et INTELLIGENT dans ton approche.
-
-🚨🚨🚨 RÈGLE DE LANGUE ABSOLUE - PRIORITÉ #1 - OBLIGATOIRE 🚨🚨🚨
-1. LIS la description d'emploi ci-dessous
-2. IDENTIFIE sa langue (français, anglais, espagnol, allemand, italien, etc.)
-3. GÉNÈRE le CV ENTIER dans cette langue détectée
-4. Si l'offre est en ANGLAIS → CV en ANGLAIS avec "PROFESSIONAL SUMMARY", "PROFESSIONAL EXPERIENCE", etc.
-5. Si l'offre est en FRANÇAIS → CV en FRANÇAIS avec "RÉSUMÉ PROFESSIONNEL", "EXPÉRIENCE PROFESSIONNELLE", etc.
-6. Si l'offre est en ESPAGNOL → CV en ESPAGNOL avec "RESUMEN PROFESIONAL", "EXPERIENCIA PROFESIONAL", etc.
-7. JAMAIS de mélange de langues dans le CV
-8. Cette règle est ABSOLUE et doit être respectée à 100%
-
-**STRATÉGIE D'INTELLIGENCE ARTIFICIELLE POUR LE MATCHING CV-JOB :**
-
-1. **ANALYSE INTELLIGENTE DE L'OFFRE (CRITIQUE) :**
-   - **ÉTAPE 1 - DÉTECTION LANGUE** : Analyse la description d'emploi pour identifier sa langue (français, anglais, espagnol, allemand, italien, etc.)
-   - **ÉTAPE 2 - ADAPTATION LANGUE** : Génère TOUT le CV dans cette langue détectée
-   - Identifie les mots-clés techniques, les compétences requises, et les qualifications spécifiques
-   - Détecte le secteur d'activité, le niveau de poste, et les responsabilités clés
-   - Analyse le vocabulaire utilisé et le style de communication attendu
-   - Identifie les soft skills et hard skills prioritaires
-
-2. **TRANSFORMATION STRATÉGIQUE DU CV :**
-   - **Repositionnement intelligent des expériences** : Reformule chaque poste pour montrer comment il est lié au poste recherché
-   - **Connexion des formations** : Montre comment les diplômes/formations sont pertinents pour le poste
-   - **Quantification des résultats** : Transforme les réalisations vagues en résultats mesurables qui correspondent au secteur
-   - **Vocabulaire sectoriel** : Utilise le jargon et les termes techniques du domaine ciblé
-
-3. **MATCHING INTELLIGENT ET RÉALISTE DES COMPÉTENCES :**
-   - **Soft Skills (TOUJOURS ajouter)** : Si l'offre demande "leadership", "communication", "travail d'équipe", etc., ajoute-les intelligemment
-   - **Compétences techniques (REALISTE ET NATUREL)** : 
-     * Si le CV mentionne "programmation" et l'offre demande "Python" → "Intérêt pour le développement Python"
-     * Si l'offre demande "Mercedes Classe G moteur 250 turbo" → "Intérêt pour Mercedes Classe G" (pas trop spécifique)
-     * Si le CV ne mentionne PAS une compétence technique demandée → "Intérêt pour [compétence générale]" ou "Sensibilité à [domaine]"
-     * JAMAIS prétendre être expert dans une technologie non mentionnée dans le CV original
-   - **Compétences transférables** : Montre comment les compétences existantes peuvent s'appliquer au nouveau poste
-
-4. **RESTRUCTURATION STRATÉGIQUE :**
-   - Réorganise les sections par ordre de pertinence pour le poste
-   - Mets en avant les expériences les plus pertinentes
-   - Adapte le résumé professionnel pour qu'il colle parfaitement au profil recherché
-
-5. **CONTENU INTACT MAIS INTELLIGENT :** Tu dois **ABSOLUMENT** inclure **TOUTES** les expériences et formations existantes, mais les reformuler de manière stratégique pour qu'elles correspondent au poste. 
-
-**🔥 CRITIQUE - PRÉSERVER TOUS LES LIENS :** Tu dois **OBLIGATOIREMENT** conserver **TOUS** les liens présents dans le CV original (LinkedIn, Portfolio, Site web, GitHub, etc.) dans le CV optimisé. Ne les supprime JAMAIS et ne les modifie PAS. Ils doivent apparaître exactement comme dans le CV original.
-
-**🚫 INTERDICTION ABSOLUE :** Ne JAMAIS ajouter de liens (LinkedIn, Portfolio, etc.) qui ne sont PAS présents dans le CV original. Si le CV original n'a pas de LinkedIn, n'en ajoute PAS.
-
-**🚫 INTERDICTION ABSOLUE - SECTIONS INUTILES :** Ne JAMAIS ajouter de sections comme "LIENS", "OBJECTIF DE PAGE UNIQUE", ou tout autre texte explicatif à la fin du CV. Le CV doit se terminer directement après la dernière section pertinente.
-
-**🚫 INTERDICTION ABSOLUE - SECTION LIENS :** Ne JAMAIS créer une section "LIENS" séparée. Si des liens existent dans le CV original, ils doivent être intégrés naturellement dans les informations de contact ou dans le contenu des sections, pas dans une section dédiée.
-
-6. **EXEMPLES CONCRETS DE TRANSFORMATION OBLIGATOIRES :**
-   - **Expérience** : "Vendeur dans un magasin" → Dans la description : "Développement de compétences en relation client et négociation commerciale"
-   - **Formation** : "Master en Management" → Dans la description : "Formation en management stratégique et leadership"
-   - **Compétences** : Si l'offre demande "Excel" et le CV ne le mentionne pas → "Intérêt pour les outils d'analyse de données"
-   - **Compétences spécifiques** : Si l'offre demande "Mercedes Classe G moteur 250 turbo" → "Intérêt pour Mercedes Classe G" (général, pas trop spécifique)
-   - **Soft Skills** : Toujours ajouter les soft skills demandés (leadership, communication, etc.) même s'ils ne sont pas explicitement dans le CV
-   - **LIENS (CRITIQUE)** : Si le CV original contient "LinkedIn: linkedin.com/in/johndoe" → Le CV optimisé DOIT contenir exactement "LinkedIn: linkedin.com/in/johndoe"
-
-7. **INSTRUCTIONS CRITIQUES POUR LES COMPÉTENCES :**
-   - **OBLIGATOIRE** : Créer une section TECHNICAL SKILLS avec BEAUCOUP de compétences
-   - **Format par lignes** :
-     * Ligne 1 : "Compétences techniques : [compétences du CV], [intérêt pour compétences demandées], [compétences du secteur]"
-     * Ligne 2 : "Soft skills : [soft skills du CV], [soft skills demandés], [autres soft skills pertinents]"
-     * Ligne 3 : "Outils : [outils du CV], [intérêt pour outils demandés], [outils du secteur]"
-     * Ligne 4 : "Langues : [langues du CV], [langues demandées]"
-     * Ligne 5 : "Certifications : [certifications du CV], [intérêt pour certifications du secteur]"
-   - **Exemple** : "Compétences techniques : Python, JavaScript, Intérêt pour React, Vue.js, Node.js, SQL, Git"
-   - **Exemple** : "Soft skills : Leadership, Communication, Travail d'équipe, Gestion de projet, Résolution de problèmes"
-   - **Exemple** : "Outils : Excel, PowerPoint, Intérêt pour Tableau, Power BI, Jira, Confluence"
-   - **NE PAS** utiliser de puces dans cette section
-   - **AJOUTER** beaucoup de compétences pertinentes pour le secteur
-
-8. **INSTRUCTIONS CRITIQUES POUR LES EXPÉRIENCES :**
-   - **OBLIGATOIRE** : Reformule chaque expérience pour qu'elle soit pertinente au poste recherché
-   - **Format** : "[Titre du poste] - [Entreprise] ([Dates])"
-   - **Description** : Reformule les tâches et compétences pour qu'elles correspondent au poste recherché
-   - **Exemple** : "Vendeur - Magasin ABC (2020-2022)" puis dans la description : "Développement de compétences en relation client et négociation commerciale"
-
-9. **INSTRUCTIONS CRITIQUES POUR LES FORMATIONS :**
-   - **OBLIGATOIRE** : Reformule chaque formation pour qu'elle soit pertinente au poste recherché
-   - **Format** : "[Diplôme] - [Institution] ([Dates])"
-   - **Description** : Reformule les compétences acquises pour qu'elles correspondent au poste recherché
-   - **Exemple** : "Master en Management - ICHEC (2023-2025)" puis dans la description : "Formation en leadership et stratégie d'entreprise"
-
-10. **MOTS-CLÉS ATS (CRITIQUE) :** Utilise la terminologie EXACTE de l'offre d'emploi. Si l'offre dit "Business Analyst", utilise "Business Analyst" et non "Analyste d'affaires".
-
-11. **Nom & Prénom :** Extrait le nom et prénom, en utilisant UNIQUEMENT les balises <NAME> et </NAME>.
-
-12. **Contacts & Liens (CRITIQUE) :** Extrait les coordonnées. Si un lien (LinkedIn, Portfolio, Site web, etc.) existe dans le CV original, tu **DOIS ABSOLUMENT** l'inclure dans le CV final. **NE JAMAIS INVENTER DE LIEN** et **NE JAMAIS SUPPRIMER UN LIEN EXISTANT**. Les liens doivent être intégrés dans les informations de contact, PAS dans une section séparée "LIENS". Utilise UNIQUEMENT les balises <CONTACT> et </CONTACT>.
-
-13. **Titre de Poste :** Génère un titre qui correspond EXACTEMENT au poste recherché, en utilisant UNIQUEMENT les balises <TITLE> et </TITLE>. Le titre doit être CENTRÉ.
-
-14. **Résumé :** Génère UN SEUL résumé de 3-4 lignes qui montre clairement pourquoi le candidat est parfait pour ce poste spécifique, SANS mentionner le nom de l'entreprise ou du poste spécifique. Le résumé doit être CENTRÉ. Utilise UNIQUEMENT les balises <SUMMARY> et </SUMMARY>.
-
-15. **Objectif de Page Unique (CRITIQUE) :** Le CV doit tenir sur **UNE PAGE COMPLÈTE** (pas la moitié de page). Utilise un phrasé concis mais informatif pour remplir la page entière.
-
-16. **Titres de Section :** Chaque titre de section doit être **écrit en MAJUSCULES**.
-
-17. **Gestion des Puces :**
-    * Utilise \`•\` ou \`–\` **UNIQUEMENT** devant les éléments majeurs (nouvelles entreprises, diplômes)
-    * Pour les détails, utilise des **tirets plats** (\`-\`) ou des **paragraphes simples**
-    * **NE JAMAIS** utiliser de puces dans les sections Compétences ou Langues
-
-18. **Formatage :** Mets en **gras** les éléments clés ATS avec les balises **<B>** et **</B>**.
-
-19. **Structure du CV OBLIGATOIRE (dans la langue de l'offre d'emploi) :**
-    - Nom et contact en haut (avec liens intégrés)
-    - Titre de poste CENTRÉ (sans titre "PROFESSIONAL SUMMARY" au-dessus)
-    - UN SEUL résumé professionnel CENTRÉ (sans titre "PROFESSIONAL SUMMARY" au-dessus)
-    - **ANGLAIS** : PROFESSIONAL EXPERIENCE, EDUCATION, TECHNICAL SKILLS, CERTIFICATIONS & ACHIEVEMENTS
-    - **FRANÇAIS** : EXPÉRIENCE PROFESSIONNELLE, FORMATION, COMPÉTENCES TECHNIQUES, CERTIFICATIONS
-    - **ESPAGNOL** : EXPERIENCIA PROFESIONAL, EDUCACIÓN, HABILIDADES TÉCNICAS, CERTIFICACIONES
-    - **ALLEMAND** : BERUFSERFAHRUNG, AUSBILDUNG, TECHNISCHE FÄHIGKEITEN, ZERTIFIKATE
-    - **ITALIEN** : ESPERIENZA PROFESSIONALE, ISTRUZIONE, COMPETENZE TECNICHE, CERTIFICAZIONI
-
-20. **Fin de la Réponse (CRITIQUE) :** La réponse doit se terminer directement après le dernier mot du CV généré, SANS ajouter "Fin de la réponse", "FIN DE LA RÉPONSE", "fin de cv", "FIN DE CV", ou tout autre texte indiquant la fin du CV.
-
-OFFRE D'EMPLOI:
----
-${request.jobDescription}
----
-
-CV ORIGINAL BRUT:
----
-${request.cvText}
----
-
-EXEMPLE DE RESPECT DE LA LANGUE :
-- Si l'offre est en anglais : "PROFESSIONAL SUMMARY", "PROFESSIONAL EXPERIENCE", "EDUCATION", "TECHNICAL SKILLS"
-- Si l'offre est en français : "RÉSUMÉ PROFESSIONNEL", "EXPÉRIENCE PROFESSIONNELLE", "FORMATION", "COMPÉTENCES TECHNIQUES"
-- Si l'offre est en espagnol : "RESUMEN PROFESIONAL", "EXPERIENCIA PROFESIONAL", "EDUCACIÓN", "HABILIDADES TÉCNICAS"
-
-Génère un CV optimisé qui correspond parfaitement à l'offre d'emploi DANS LA MÊME LANGUE.
-
-**VÉRIFICATION OBLIGATOIRE AVANT DE RÉPONDRE :**
-1. ✅ J'ai analysé l'offre d'emploi et identifié les compétences demandées
-2. ✅ J'ai ajouté les soft skills demandés dans TECHNICAL SKILLS (organisés par catégories)
-3. ✅ J'ai ajouté les compétences techniques demandées (avec "intérêt pour" si pas dans le CV, générales pas trop spécifiques)
-4. ✅ Chaque expérience est reformulée pour être pertinente au poste (sans mentionner "pertinent pour")
-5. ✅ Chaque formation est reformulée pour être pertinente au poste (sans mentionner "pertinent pour")
-6. ✅ J'ai utilisé le vocabulaire exact de l'offre d'emploi
-7. ✅ Le CV remplira une page complète (pas la moitié)
-8. ✅ J'ai préservé TOUS les liens du CV original (LinkedIn, Portfolio, Site web, GitHub, etc.) - VÉRIFICATION CRITIQUE
-9. ✅ J'ai UN SEUL résumé professionnel (pas de doublon)
-10. ✅ Le titre de poste et le résumé sont CENTRÉS
-11. ✅ Tous les titres de sections sont présents (PROFESSIONAL EXPERIENCE, EDUCATION, etc.)
-12. ✅ J'ai évité d'ajouter "Fin de la réponse", "FIN DE LA RÉPONSE", "fin de cv", "FIN DE CV" ou tout autre texte indiquant la fin
-13. ✅ J'ai évité de mettre "PROFESSIONAL SUMMARY" au-dessus du résumé - le résumé est directement centré
-
-RÉPONSE (Inclure les balises <NAME>, <CONTACT>, <TITLE>, <SUMMARY>, et utiliser <B>...</B>):`;
-
-      const completion = await this.openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "Tu es un expert en recrutement et en intelligence artificielle pour l'optimisation de CV. Tu analyses les offres d'emploi et optimises les CV pour qu'ils correspondent parfaitement au poste recherché. Tu es stratégique, intelligent, et tu utilises UNIQUEMENT les vraies informations fournies dans le CV original. TU DOIS ABSOLUMENT suivre toutes les instructions de matching et d'ajout de compétences."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        max_tokens: 4000,
-        temperature: 0.3
-      });
-
-      console.log('Réponse OpenAI reçue');
-      const responseText = completion.choices[0]?.message?.content;
-      console.log('Réponse OpenAI brute (premiers 200 chars):', responseText?.substring(0, 200));
       
-      if (!responseText) {
-        throw new Error('Réponse OpenAI vide');
-      }
-
-      console.log('CV généré avec succès');
+      console.log('✅ CV optimisé reçu du backend:', result.optimized_cv?.substring(0, 100) + '...');
       
-      // Parser les balises comme dans le code Python
-      const parsedResponse = this.parseResponseWithTags(responseText);
-
-      // Calculer le vrai score ATS
-      const atsScore = this.calculateATSScore(parsedResponse, request.jobDescription);
-
-          return {
-            optimizedCV: parsedResponse,
-            atsScore: atsScore,
-            improvements: [
-              'Analyse intelligente de l\'offre et matching stratégique réaliste',
-              'Repositionnement des expériences pour montrer leur pertinence au poste',
-              'Connexion des formations aux exigences du poste recherché',
-              'Ajout intelligent des soft skills demandés (leadership, communication, etc.)',
-              'Ajout réaliste des compétences techniques (intérêt/sensibilité si non mentionnées)',
-              'Utilisation du vocabulaire et jargon du secteur ciblé',
-              'Quantification des réalisations avec des métriques sectorielles',
-              'Optimisation ATS avec mots-clés exacts de l\'offre'
-            ]
-          };
+      return {
+        optimizedCV: result.optimized_cv,
+        atsScore: result.ats_score || 0,
+        improvements: [] // Le backend ne retourne pas d'améliorations pour l'instant
+      };
     } catch (error) {
       console.error('=== ERREUR GÉNÉRATION CV ===');
       console.error('Erreur détaillée:', error);
-      console.error('Type d\'erreur:', typeof error);
-      console.error('Message d\'erreur:', error instanceof Error ? error.message : 'Erreur inconnue');
-      console.error('Stack trace:', error instanceof Error ? error.stack : 'Pas de stack trace');
       
-      // Retourner un CV de fallback avec les vraies données
-      const cvText = request.cvText || '';
-      const jobDesc = request.jobDescription || '';
-      const lines = cvText.split('\n').filter(line => line.trim());
-      const name = lines.find(line => line.length > 3 && line.length < 50 && line === line.toUpperCase()) || 'Candidat';
-      const email = lines.find(line => line.includes('@')) || '';
-      const phone = lines.find(line => line.match(/[\+]?[0-9\s\-\(\)]{10,}/)) || '';
-      
-          return {
-            optimizedCV: `${name.toUpperCase()}
-${email} | ${phone}
-
-PROFESSIONAL SUMMARY
-Candidat motivé avec une expertise dans le domaine demandé.
-
-EXPERIENCE PROFESSIONNELLE
-${lines.slice(0, 10).join('\n')}
-
-FORMATION
-Formation pertinente pour le poste
-
-COMPETENCES
-Compétences adaptées au poste
-
-${jobDesc.substring(0, 200)}...`,
-            atsScore: 75,
-            improvements: [
-              'Structure de base du CV établie',
-              'Informations de contact formatées',
-              'Sections principales organisées',
-              'Adaptation au format professionnel'
-            ]
-          };
+      // Retourner un CV de fallback
+      return {
+        optimizedCV: request.cvText || 'CV non disponible',
+        atsScore: 0,
+        improvements: []
+      };
     }
   }
 
