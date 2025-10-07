@@ -521,13 +521,13 @@ COMPETENCES
         optimizedCV: result.optimized_cv,
         atsScore: result.ats_score || 0,
         improvements: [
-          '✅ CV optimisé avec l\'IA Ronaldo Prime',
-          '✅ Structure professionnelle appliquée',
+          '✅ CV optimisé avec une structure professionnelle',
           '✅ Mots-clés ATS intégrés',
           '✅ Formatage et mise en page améliorés',
           '✅ Contenu adapté au poste recherché',
           '✅ Métriques et chiffres ajoutés',
-          '✅ Style professionnel Ronaldo Prime appliqué'
+          '✅ Style professionnel appliqué',
+          '✅ Langue adaptée à l\'offre d\'emploi'
         ]
       };
     } catch (error) {
