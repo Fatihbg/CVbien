@@ -230,7 +230,13 @@ export class OpenAIService {
             });
 
             if (!response.ok) {
-              throw new Error(`Erreur backend: ${response.status}`);
+              // Essayer de récupérer le message d'erreur détaillé
+              try {
+                const errorResult = await response.json();
+                throw new Error(errorResult.message || `Erreur backend: ${response.status}`);
+              } catch {
+                throw new Error(`Erreur backend: ${response.status}`);
+              }
             }
 
             const result = await response.json();
@@ -238,7 +244,6 @@ export class OpenAIService {
             if (result.success && result.text) {
               console.log('✅ Texte extrait du PDF (backend):', result.text.substring(0, 200) + '...');
               console.log('📊 Longueur totale:', result.text.length, 'caractères');
-              console.log('📄 Nombre de pages:', result.pages);
               
               if (!result.text || result.text.length < 10) {
                 throw new Error('Aucun texte valide trouvé dans le PDF');
@@ -246,7 +251,7 @@ export class OpenAIService {
               
               return result.text;
             } else {
-              throw new Error(result.error || 'Erreur extraction PDF backend');
+              throw new Error(result.message || 'Erreur extraction PDF backend');
             }
             
           } catch (backendError) {
@@ -503,7 +508,13 @@ COMPETENCES
       });
 
       if (!response.ok) {
-        throw new Error(`Erreur backend: ${response.status} ${response.statusText}`);
+        // Essayer de récupérer le message d'erreur détaillé
+        try {
+          const errorResult = await response.json();
+          throw new Error(errorResult.detail || `Erreur backend: ${response.status}`);
+        } catch {
+          throw new Error(`Erreur backend: ${response.status} ${response.statusText}`);
+        }
       }
 
       console.log('Réponse reçue du backend Python');
