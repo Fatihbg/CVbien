@@ -521,8 +521,8 @@ export class PDFGenerator {
         }
         doc.setTextColor(color);
         
-        // Nettoyer le HTML (retirer <b>, <B>, etc.)
-        const cleanText = text.replace(/<[^>]*>/g, '');
+        // Nettoyer le HTML et les ** (retirer <b>, <B>, **, etc.)
+        const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
         const lines = doc.splitTextToSize(cleanText, maxWidth);
         
         lines.forEach((line: string) => {
@@ -537,9 +537,10 @@ export class PDFGenerator {
 
       // HEADER SCREEN - Design classique professionnel
       if (cvStructure.personalInfo) {
-        // Nom - CENTRÉ et GRAS
+        // Nom - CENTRÉ et GRAS (sans **)
         if (cvStructure.personalInfo.name) {
-          addText(cvStructure.personalInfo.name.toUpperCase(), 16, true, true, '#000000');
+          const cleanName = cvStructure.personalInfo.name.replace(/\*\*/g, '').toUpperCase();
+          addText(cleanName, 16, true, true, '#000000');
           currentY += 4;
         }
 
@@ -563,9 +564,11 @@ export class PDFGenerator {
         }
       }
 
-      // PROFIL/RÉSUMÉ SCREEN - Style classique
+      // PROFIL/RÉSUMÉ SCREEN - Style classique (sans titre)
       if (cvStructure.summary && cvStructure.summary.trim()) {
-        addText(cvStructure.summary, 10, false, false, '#000000');
+        // Retirer le titre "RÉSUMÉ PROFESSIONNEL" s'il existe
+        const cleanSummary = cvStructure.summary.replace(/RÉSUMÉ PROFESSIONNEL\s*/gi, '').replace(/PROFESSIONAL SUMMARY\s*/gi, '');
+        addText(cleanSummary, 10, false, false, '#000000');
         currentY += 8; // Espacement avant les sections
       }
 
