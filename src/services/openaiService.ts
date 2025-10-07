@@ -526,8 +526,7 @@ COMPETENCES
           '✅ Formatage et mise en page améliorés',
           '✅ Contenu adapté au poste recherché',
           '✅ Métriques et chiffres ajoutés',
-          '✅ Style professionnel appliqué',
-          '✅ Langue adaptée à l\'offre d\'emploi'
+          '✅ Style professionnel appliqué'
         ]
       };
     } catch (error) {
