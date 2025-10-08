@@ -176,14 +176,14 @@ export class PDFGenerator {
                               'company', 'corporation', 'ltd', 'inc', 'srl', 'gmbh', 'sa'];
           const isJobOrCompany = jobKeywords.some(keyword => line.toLowerCase().includes(keyword));
           
-          if (isJobOrCompany || line.includes(' - ') || line.includes(' | ') || line.includes(' • ')) {
-            const cleanLine = line.replace(/<[^>]*>/g, '');
-            addText(cleanLine, 11, true, false, '#000000'); // Postes/entreprises en gras
+          if (isJobOrCompany || line.includes(' - ') || line.includes(' | ') || line.includes(' • ')) {                                                         
+            const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
+            addText(cleanLine, 10, true, false, '#000000'); // Postes/entreprises en gras                                                                       
             currentY += 1;
             console.log('✅ Poste/Entreprise détecté:', cleanLine);
           } else {
             // Texte normal dans les sections
-            const cleanLine = line.replace(/<[^>]*>/g, '');
+            const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
             addText(cleanLine, 9, false, false, '#000000');
             console.log('✅ Contenu section:', cleanLine);
           }
@@ -193,9 +193,10 @@ export class PDFGenerator {
           // Nettoyer les balises HTML et les **
           const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
           
-          // Formatage spécial pour les puces
-          if (cleanLine.startsWith('•') || cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
-            addText('    ' + cleanLine, 9, false, false, '#000000'); // Puces indentées
+          // Formatage spécial pour les puces - Format première image (• sans indentation)
+          if (cleanLine.startsWith('•')) {                                                            
+            addText(cleanLine, 9, false, false, '#000000'); // Bullet points ronds                                                                         
+            currentY += 2.5;
             console.log('✅ Puce détectée:', cleanLine);
           } else {
             addText(cleanLine, 9, false, false, '#000000'); // Texte normal
@@ -592,12 +593,11 @@ export class PDFGenerator {
           }
           currentY += 0.5; // Plus d'espace
         }
-        // Puces et contenu - formatage indenté
-        else if (line.startsWith('•') || line.startsWith('-')) {
-          // Nettoyer les balises HTML et indenter les puces
-          const cleanLine = line.replace(/<[^>]*>/g, '');
-          const indentedLine = '    ' + cleanLine;
-          addText(indentedLine, 9, false, false, false, '#000000'); // Puces indentées
+        // Puces et contenu - format première image (• sans indentation)
+        else if (line.startsWith('•')) {
+          // Nettoyer les balises HTML et les **
+          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
+          addText(cleanLine, 9, false, false, false, '#000000'); // Bullet points ronds
           currentY += 2.5; // Demi-ligne d'espace entre les bullet points
         }
         // Texte normal
