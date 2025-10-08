@@ -30,10 +30,23 @@ export interface Translations {
       editCV: string;
       previewTitle: string;
       atsScore: string;
+      initialATSScore: string;
+      optimizedATSScore: string;
       improvements: string;
       advice: string;
       improvementsExplanation: string;
       downloadProgress: string;
+      waitingForGeneration: string;
+      uploadInstructions: string;
+      improvementItems: {
+        structure: string;
+        keywords: string;
+        content: string;
+        metrics: string;
+        style: string;
+        preserved: string;
+        training: string;
+      };
     };
   
   // Auth modal
@@ -151,10 +164,23 @@ export const translations: Record<string, Translations> = {
       editCV: "Modifier le CV",
       previewTitle: "Aperçu de votre CV optimisé",
       atsScore: "Score ATS",
+      initialATSScore: "Score ATS Initial",
+      optimizedATSScore: "Score ATS Optimisé",
       improvements: "Améliorations apportées",
       advice: "💡 Conseil : Plus il y a de chiffres (%, €, années), de liens (LinkedIn, portfolio) et de mots-clés de l'offre, plus le score ATS est élevé !",
       improvementsExplanation: "L'objectif de ce nouveau CV n'est pas d'être le plus beau/esthétique possible, mais d'être optimisé au maximum dans une structure professionnelle et claire.",
-      downloadProgress: "Téléchargement..."
+      downloadProgress: "Téléchargement...",
+      waitingForGeneration: "En attente de génération",
+      uploadInstructions: "Uploadez votre CV et saisissez la description du poste pour commencer",
+      improvementItems: {
+        structure: "CV optimisé avec une structure professionnelle",
+        keywords: "Mots-clés ATS intégrés",
+        content: "Contenu adapté au poste recherché",
+        metrics: "Métriques et chiffres ajoutés",
+        style: "Style professionnel appliqué",
+        preserved: "Toutes les informations originales conservées",
+        training: "Formations enrichies avec liens au poste"
+      }
     },
     auth: {
       login: "Connexion",
@@ -253,12 +279,25 @@ export const translations: Record<string, Translations> = {
       creditInfo: "1 credit",
       downloadPDF: "Download PDF",
       editCV: "Edit resume",
-      previewTitle: "Preview of your optimized resume",
+      previewTitle: "Resume Preview",
       atsScore: "ATS Score",
+      initialATSScore: "Initial ATS Score",
+      optimizedATSScore: "Optimized ATS Score",
       improvements: "Improvements made",
       advice: "💡 Tip: More numbers (%, $, years), links (LinkedIn, portfolio) and job offer keywords lead to a higher ATS score!",
       improvementsExplanation: "The goal of this new resume is not to be the most beautiful/aesthetic possible, but to be optimized to the maximum in a professional and clear structure.",
-      downloadProgress: "Downloading..."
+      downloadProgress: "Downloading...",
+      waitingForGeneration: "Waiting for generation",
+      uploadInstructions: "Upload your resume and enter the job description to start",
+      improvementItems: {
+        structure: "Professionally structured optimized resume",
+        keywords: "Integrated ATS keywords",
+        content: "Content adapted to the desired position",
+        metrics: "Added metrics and figures",
+        style: "Applied professional style",
+        preserved: "All original information preserved",
+        training: "Enriched training with links to the position"
+      }
     },
     auth: {
       login: "Login",

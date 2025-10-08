@@ -1479,20 +1479,8 @@ export const HomePage: React.FC = () => {
               borderRadius: '16px',
               border: '1px solid rgba(255, 255, 255, 0.2)'
             }}>
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: '500' }}>SCORE ATS INITIAL</div>
-                <div style={{
-                  fontSize: '20px',
-                  fontWeight: '800',
-                  background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent'
-                }}>
-                  {cvText && jobDescription ? calculateInitialATSScore(cvText, jobDescription) : 0}%
-                </div>
-              </div>
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: '500' }}>SCORE ATS OPTIMISÉ</div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: '500' }}>{t.main.atsScore.toUpperCase()}</div>
                 <div style={{
                   fontSize: '20px',
                   fontWeight: '800',
@@ -1691,7 +1679,15 @@ export const HomePage: React.FC = () => {
                   </h4>
                 </div>
                 <ul style={{ fontSize: '12px', color: 'var(--text-secondary)', paddingLeft: '16px', margin: '0 0 12px 0' }}>
-                  {(improvements || []).map((improvement, index) => (
+                  {[
+                    `✅ ${t.main.improvementItems.structure}`,
+                    `✅ ${t.main.improvementItems.keywords}`,
+                    `✅ ${t.main.improvementItems.content}`,
+                    `✅ ${t.main.improvementItems.metrics}`,
+                    `✅ ${t.main.improvementItems.style}`,
+                    `✅ ${t.main.improvementItems.preserved}`,
+                    `✅ ${t.main.improvementItems.training}`
+                  ].map((improvement, index) => (
                     <li key={index} style={{ marginBottom: '6px', lineHeight: '1.4' }}>{improvement}</li>
                   ))}
                 </ul>

@@ -16,9 +16,15 @@ export const CVPreview: React.FC = () => {
   if (!generatedCV) {
     return (
       <div className="card">
-        <h3 className="text-lg font-semibold mb-4">4. Aperçu du CV</h3>
+        <h3 className="text-lg font-semibold mb-4">4. {t.main.previewTitle}</h3>
         <div className="text-center py-8 text-gray-500">
-          Aucun CV généré à prévisualiser
+          <div className="mb-4">
+            <svg className="w-12 h-12 mx-auto text-yellow-500 mb-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="text-lg font-medium mb-2">{t.main.waitingForGeneration}</div>
+          <div className="text-sm">{t.main.uploadInstructions}</div>
         </div>
       </div>
     );
@@ -51,28 +57,36 @@ export const CVPreview: React.FC = () => {
     setDownloadProgress(0);
     
     try {
-      // Simulation de progression
+      // Simulation de progression qui monte à 90%
       const progressInterval = setInterval(() => {
         setDownloadProgress(prev => {
           if (prev >= 90) {
             clearInterval(progressInterval);
             return 90;
           }
-          return prev + 10;
+          return prev + 15; // Plus rapide pour arriver à 90%
         });
-      }, 100);
+      }, 150);
       
-      await PDFGenerator.generateCVPDF(JSON.stringify(generatedCV));
-      
-      // Finaliser la progression
-      clearInterval(progressInterval);
-      setDownloadProgress(100);
-      
-      // Réinitialiser après un délai
-      setTimeout(() => {
-        setIsDownloading(false);
-        setDownloadProgress(0);
-      }, 500);
+      // Attendre un peu à 90% pour simuler la génération PDF
+      setTimeout(async () => {
+        try {
+          await PDFGenerator.generateCVPDF(JSON.stringify(generatedCV));
+          
+          // Finaliser la progression
+          setDownloadProgress(100);
+          
+          // Réinitialiser après un délai
+          setTimeout(() => {
+            setIsDownloading(false);
+            setDownloadProgress(0);
+          }, 800);
+        } catch (error) {
+          console.error('Erreur lors de la génération du PDF:', error);
+          setIsDownloading(false);
+          setDownloadProgress(0);
+        }
+      }, 1000); // Attendre 1 seconde à 90%
       
     } catch (error) {
       console.error('Erreur lors de la génération du PDF:', error);
@@ -128,7 +142,7 @@ export const CVPreview: React.FC = () => {
   return (
     <div className="card">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold">4. Aperçu du CV</h3>
+        <h3 className="text-lg font-semibold">4. {t.main.previewTitle}</h3>
         <div className="flex flex-col space-y-2">
           <button
             onClick={handleDownload}
