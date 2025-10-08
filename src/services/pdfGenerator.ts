@@ -241,6 +241,9 @@ export class PDFGenerator {
           ? jobDescription 
           : ((jobDescription as any)?.description || (jobDescription as any)?.title || '');
         
+        console.log('🔍 PDF Language Debug - Raw jobDescription:', jobDescription);
+        console.log('🔍 PDF Language Debug - Extracted text:', jobDescText);
+        
         const detectedLanguage = detectJobDescriptionLanguage(jobDescText);
         console.log('🔍 PDF Language Detection:', {
           jobDescText: jobDescText.substring(0, 100) + '...',
@@ -255,18 +258,18 @@ export class PDFGenerator {
       // === GÉNÉRATION PDF AVEC DONNÉES STRUCTURÉES ===
       
       // 1. HEADER - Nom, Contact, Titre
-      addText(parsedCV.name, 17, true, true, '#000000'); // 19 -> 17 (-2pt)
+      addText(parsedCV.name, 17.5, true, true, '#000000'); // 17 -> 17.5 (+0.5pt)
       currentY += 3;
       
-      addText(parsedCV.contact, 9, false, true, '#000000'); // 11 -> 9 (-2pt)
+      addText(parsedCV.contact, 9.5, false, true, '#000000'); // 9 -> 9.5 (+0.5pt)
       currentY += 2; // Augmenté de 1 à 2 pour plus d'espace
       
-      addText(parsedCV.title, 13, true, true, '#000000'); // 15 -> 13 (-2pt)
+      addText(parsedCV.title, 13.5, true, true, '#000000'); // 13 -> 13.5 (+0.5pt)
       currentY += 4;
       
       // 2. RÉSUMÉ PROFESSIONNEL
       if (parsedCV.summary && parsedCV.summary.trim()) {
-        addText(parsedCV.summary, 9, false, false, '#000000'); // 10 -> 9 (-1pt)
+        addText(parsedCV.summary, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
         currentY += 3;
       }
       
@@ -274,18 +277,18 @@ export class PDFGenerator {
       if (parsedCV.experience && parsedCV.experience.length > 0) {
         currentY += 4;
         const titleY = currentY;
-        addText(translateSectionTitle('EXPÉRIENCE PROFESSIONNELLE'), 11, true, false, '#000000'); // 13 -> 11 (-2pt)
+        addText(translateSectionTitle('EXPÉRIENCE PROFESSIONNELLE'), 11.5, true, false, '#000000'); // 11 -> 11.5 (+0.5pt)
         addHorizontalLine(titleY);
         
         parsedCV.experience.forEach(exp => {
           // Entreprise et poste sur une ligne
           const companyPosition = `${exp.company} - ${exp.position} (${exp.period})`;
-          addText(companyPosition, 10, true, false, '#000000'); // 11 -> 10 (-1pt)
+          addText(companyPosition, 10.5, true, false, '#000000'); // 10 -> 10.5 (+0.5pt)
           currentY += 1;
           
           // Descriptions avec bullet points
           exp.description.forEach(desc => {
-            addText(`• ${desc}`, 9, false, false, '#000000'); // 11 -> 9 (-2pt)
+            addText(`• ${desc}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
             currentY += 2.5;
           });
           currentY += 1;
@@ -296,18 +299,18 @@ export class PDFGenerator {
       if (parsedCV.education && parsedCV.education.length > 0) {
         currentY += 4;
         const titleY = currentY;
-        addText(translateSectionTitle('FORMATION'), 11, true, false, '#000000'); // 13 -> 11 (-2pt)
+        addText(translateSectionTitle('FORMATION'), 11.5, true, false, '#000000'); // 11 -> 11.5 (+0.5pt)
         addHorizontalLine(titleY);
         
         parsedCV.education.forEach(edu => {
           // Institution et diplôme sur une ligne
           const institutionDegree = `${edu.institution} - ${edu.degree} (${edu.period})`;
-          addText(institutionDegree, 10, true, false, '#000000'); // 11 -> 10 (-1pt)
+          addText(institutionDegree, 10.5, true, false, '#000000'); // 10 -> 10.5 (+0.5pt)
           currentY += 1;
           
           // Description
           if (edu.description) {
-            addText(`• ${edu.description}`, 9, false, false, '#000000'); // 11 -> 9 (-2pt)
+            addText(`• ${edu.description}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
             currentY += 2.5;
           }
           currentY += 1;
@@ -320,21 +323,21 @@ export class PDFGenerator {
       if (parsedCV.technicalSkills || parsedCV.softSkills || parsedCV.additionalInfo || parsedCV.certifications.length > 0) {
         currentY += 4;
         const titleY = currentY;
-        addText('INFORMATIONS ADDITIONNELLES', 11, true, false, '#000000'); // 13 -> 11 (-2pt)
+        addText('INFORMATIONS ADDITIONNELLES', 11.5, true, false, '#000000'); // 11 -> 11.5 (+0.5pt)
         addHorizontalLine(titleY);
         
         if (parsedCV.technicalSkills) {
-          addText(`• Compétences techniques : ${parsedCV.technicalSkills}`, 9, false, false, '#000000'); // 11 -> 9 (-2pt)
+          addText(`• Compétences techniques : ${parsedCV.technicalSkills}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
           currentY += 2.5;
         }
         
         if (parsedCV.softSkills) {
-          addText(`• Soft skills : ${parsedCV.softSkills}`, 9, false, false, '#000000'); // 11 -> 9 (-2pt)
+          addText(`• Soft skills : ${parsedCV.softSkills}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
           currentY += 2.5;
         }
         
         if (parsedCV.certifications && parsedCV.certifications.length > 0) {
-          addText(`• Certifications : ${parsedCV.certifications.join(', ')}`, 9, false, false, '#000000'); // 11 -> 9 (-2pt)
+          addText(`• Certifications : ${parsedCV.certifications.join(', ')}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
           currentY += 2.5;
         }
         
@@ -359,7 +362,7 @@ export class PDFGenerator {
           
           // Afficher les autres informations d'abord
           if (otherInfo.length > 0) {
-            addText(`• ${otherInfo.join(', ')}`, 9, false, false, '#000000'); // 11 -> 9 (-2pt)
+            addText(`• ${otherInfo.join(', ')}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
             currentY += 2.5;
           }
           
@@ -368,7 +371,7 @@ export class PDFGenerator {
             const cleanLanguages = languages.map(lang => 
               lang.replace(/\*\*/g, '').replace(/langues?\s*:?\s*/gi, '').trim()
             ).join(', ');
-            addText(`• Langues : ${cleanLanguages}`, 9, true, false, '#000000'); // 11 -> 9 (-2pt)
+            addText(`• Langues : ${cleanLanguages}`, 9.5, true, false, '#000000'); // 9 -> 9.5 (+0.5pt)
             currentY += 2.5;
           }
         }
