@@ -1,44 +1,29 @@
 import { config } from '../config/environment';
-import jsPDF from 'jspdf';
+
+interface CVParsedData {
+  name: string;
+  contact: string;
+  title: string;
+  summary: string;
+  experience: Array<{
+    company: string;
+    position: string;
+    period: string;
+    description: string[];
+  }>;
+  education: Array<{
+    institution: string;
+    degree: string;
+    period: string;
+    description: string;
+  }>;
+  technicalSkills: string;
+  softSkills: string;
+  certifications: string[];
+  additionalInfo: string;
+}
 
 export class PDFGenerator {
-  static async generateCVPDF(cvData: string, jobDescription: string = '', filename: string = 'optimized-cv.pdf'): Promise<void> {
-    try {
-      console.log('=== GÉNÉRATION PDF - STRUCTURE INTELLIGENTE OBLIGATOIRE ===');
-      
-      // Détecter la langue de l'offre d'emploi
-      const jobLanguage = this.detectJobDescriptionLanguage(jobDescription);
-      console.log('🌍 Langue détectée pour le PDF:', jobLanguage);
-      
-      // TOUJOURS essayer de parser en JSON d'abord (structure de l'aperçu)
-      let cvStructure;
-      try {
-        cvStructure = JSON.parse(cvData);
-        console.log('📊 Structure JSON détectée - utilisation de l\'aperçu intelligent:', cvStructure);
-        
-        // Utiliser la structure de l'aperçu pour générer le PDF (TOUJOURS)
-        await this.generatePDFFromStructure(cvStructure, filename, jobLanguage);
-        
-      } catch (parseError) {
-        console.log('⚠️ Texte brut détecté - FORCER l\'utilisation de la structure de l\'aperçu...');
-        
-        // Si c'est du texte brut, c'est un problème - on devrait toujours avoir la structure JSON
-        console.error('❌ Erreur: Le CV optimisé devrait toujours être en format JSON');
-        
-        // Fallback: essayer de convertir le texte brut
-        cvStructure = this.convertTextToIntelligentStructure(cvData);
-        console.log('🧠 Structure intelligente créée (fallback):', cvStructure);
-        
-        // Utiliser la structure convertie pour générer le PDF
-        await this.generatePDFFromStructure(cvStructure, filename, jobLanguage);
-      }
-      
-    } catch (error) {
-      console.error('Erreur génération PDF:', error);
-      throw error;
-    }
-  }
-
   // Fonction pour détecter la langue de l'offre d'emploi
   private static detectJobDescriptionLanguage(jobDescription: string): string {
     // Détection simple basée sur des mots-clés
@@ -61,178 +46,97 @@ export class PDFGenerator {
     }
   }
 
-  // CONVERSION INTELLIGENTE - Convertir le texte brut en structure JSON propre
-  private static convertTextToIntelligentStructure(cvText: string): any {
-    console.log('🔄 Conversion intelligente du texte brut en structure...');
-    
-    const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
-    const structure = {
-      personalInfo: {
-        name: '',
-        email: '',
-        phone: '',
-        location: '',
-        title: '',
-        website: ''
-      },
-      summary: '',
-      experience: [],
-      education: [],
-      skills: [],
-      certifications: []
-    };
+  // Utiliser l'IA pour parser le CV
+  private static async parseCVWithAI(cvText: string, jobDescription: string = ''): Promise<CVParsedData> {
+    try {
+      console.log('🤖 Utilisation de l\'IA pour parser le CV...');
+      
+      // Détecter la langue de l'offre d'emploi
+      const jobLanguage = this.detectJobDescriptionLanguage(jobDescription);
+      console.log('🌍 Langue détectée pour le PDF:', jobLanguage);
+      
+      const response = await fetch(`${config.API_BASE_URL}/parse-cv`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cv_text: cvText,
+          job_description: jobDescription,
+          target_language: jobLanguage // Langue de l'offre d'emploi
+        })
+      });
 
-    let currentSection = '';
-    let currentExperience = null;
-    let currentEducation = null;
-    let inDescription = false;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const upperLine = line.toUpperCase();
-
-      // Détecter le nom (première ligne en majuscules, pas trop longue)
-      if (!structure.personalInfo.name && line.length > 3 && line.length < 50 && 
-          line === line.toUpperCase() && !line.includes('@') && !line.includes('PROFESSIONAL')) {
-        structure.personalInfo.name = line;
-        continue;
+      if (!response.ok) {
+        throw new Error(`Erreur backend: ${response.status}`);
       }
 
-      // Détecter le contact (email, téléphone, localisation)
-      if (line.includes('@') || line.includes('|') || line.includes('+') || line.includes('www.')) {
-        const contactParts = line.split('|').map(part => part.trim());
-        contactParts.forEach(part => {
-          if (part.includes('@')) structure.personalInfo.email = part;
-          else if (part.match(/\d{10,}/)) structure.personalInfo.phone = part;
-          else if (part.includes('www.') || part.includes('http')) structure.personalInfo.website = part;
-          else if (part.length > 3 && !part.includes('PROFESSIONAL')) structure.personalInfo.location = part;
-        });
-        continue;
-      }
-
-      // Détecter le titre de poste (ligne en majuscules, pas trop longue, après le contact)
-      if (!structure.personalInfo.title && line.length > 5 && line.length < 80 && 
-          line === line.toUpperCase() && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') &&
-          !line.includes('EDUCATION') && !line.includes('SKILLS') && !line.includes('CERTIFICATIONS')) {
-        structure.personalInfo.title = line;
-        continue;
-      }
-
-      // Détecter les sections
-      if (upperLine.includes('PROFESSIONAL EXPERIENCE') || upperLine.includes('EXPÉRIENCE PROFESSIONNELLE')) {
-        currentSection = 'experience';
-        continue;
-      } else if (upperLine.includes('EDUCATION') || upperLine.includes('FORMATION')) {
-        currentSection = 'education';
-        continue;
-      } else if (upperLine.includes('TECHNICAL SKILLS') || upperLine.includes('COMPÉTENCES TECHNIQUES')) {
-        currentSection = 'skills';
-        continue;
-      } else if (upperLine.includes('CERTIFICATIONS') || upperLine.includes('CERTIFICATS')) {
-        currentSection = 'certifications';
-        continue;
-      }
-
-      // Traiter selon la section
-      if (currentSection === 'experience') {
-        // Nouvelle expérience (titre en gras ou ligne avec entreprise)
-        if (line.includes(' - ') || line.includes('(') && line.includes(')')) {
-          if (currentExperience) {
-            structure.experience.push(currentExperience);
-          }
-          
-          const parts = line.split(' - ');
-          const title = parts[0]?.trim() || '';
-          const companyAndDate = parts[1]?.trim() || '';
-          const dateMatch = companyAndDate.match(/\(([^)]+)\)/);
-          const company = companyAndDate.replace(/\([^)]+\)/, '').trim();
-          const dates = dateMatch ? dateMatch[1] : '';
-          
-          currentExperience = {
-            title: title,
-            company: company,
-            startDate: dates.split(' - ')[0]?.trim() || '',
-            endDate: dates.split(' - ')[1]?.trim() || '',
-            description: ''
-          };
-        } else if (currentExperience && line.startsWith('-')) {
-          // Description de l'expérience
-          currentExperience.description += (currentExperience.description ? '\n' : '') + line.substring(1).trim();
-        } else if (currentExperience && line.length > 10 && !line.includes('(') && !line.includes(' - ')) {
-          // Description continue (ligne sans tiret)
-          currentExperience.description += (currentExperience.description ? '\n' : '') + line.trim();
-        }
-      } else if (currentSection === 'education') {
-        // Nouvelle formation
-        if (line.includes(' - ') || line.includes('(') && line.includes(')')) {
-          if (currentEducation) {
-            structure.education.push(currentEducation);
-          }
-          
-          const parts = line.split(' - ');
-          const degree = parts[0]?.trim() || '';
-          const schoolAndDate = parts[1]?.trim() || '';
-          const dateMatch = schoolAndDate.match(/\(([^)]+)\)/);
-          const school = schoolAndDate.replace(/\([^)]+\)/, '').trim();
-          const dates = dateMatch ? dateMatch[1] : '';
-          
-          currentEducation = {
-            degree: degree,
-            school: school,
-            startDate: dates.split(' - ')[0]?.trim() || '',
-            endDate: dates.split(' - ')[1]?.trim() || '',
-            description: ''
-          };
-        } else if (currentEducation && line.startsWith('-')) {
-          // Description de la formation
-          currentEducation.description += (currentEducation.description ? '\n' : '') + line.substring(1).trim();
-        } else if (currentEducation && line.length > 10 && !line.includes('(') && !line.includes(' - ')) {
-          // Description continue (ligne sans tiret)
-          currentEducation.description += (currentEducation.description ? '\n' : '') + line.trim();
-        }
-      } else if (currentSection === 'skills') {
-        // Compétences (lignes avec deux points ou listes séparées par virgules)
-        if (line.includes(':')) {
-          const parts = line.split(':');
-          const category = parts[0]?.trim();
-          const skills = parts[1]?.split(',').map(s => s.trim()).filter(s => s) || [];
-          structure.skills.push(...skills);
-        } else if (line.includes(',')) {
-          const skills = line.split(',').map(s => s.trim()).filter(s => s);
-          structure.skills.push(...skills);
-        }
-      } else if (currentSection === 'certifications') {
-        // Certifications
-        if (line.startsWith('-')) {
-          structure.certifications.push(line.substring(1).trim());
-        } else if (line.trim()) {
-          structure.certifications.push(line.trim());
-        }
-      } else if (!currentSection && line.length > 20 && !line.includes('@') && !line.includes('|')) {
-        // Probablement le résumé (avant les sections)
-        if (!structure.summary) {
-          structure.summary = line;
-        } else {
-          structure.summary += ' ' + line;
-        }
-      }
+      const result = await response.json();
+      console.log('✅ CV parsé par l\'IA:', result);
+      return result;
+      
+    } catch (error) {
+      console.error('❌ Erreur parsing IA, fallback manuel:', error);
+      return this.parseCVManually(cvText);
     }
-
-    // Ajouter les dernières entrées
-    if (currentExperience) {
-      structure.experience.push(currentExperience);
-    }
-    if (currentEducation) {
-      structure.education.push(currentEducation);
-    }
-
-    console.log('✅ Structure intelligente créée:', structure);
-    return structure;
   }
 
-  private static async generateRonaldoPrimePDF(cvText: string, filename: string): Promise<void> {
+  // Fallback: parsing manuel simple
+  private static parseCVManually(cvText: string): CVParsedData {
+    const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
+    
+    // Trouver le nom (première ligne en majuscules)
+    const name = lines.find(line => line.length > 3 && line.length < 50 && line === line.toUpperCase()) || 'Nom Prénom';
+    
+    // Trouver le contact (ligne avec @)
+    const contact = lines.find(line => line.includes('@')) || 'Contact';
+    
+    // Trouver le titre (ligne après le contact)
+    const contactIndex = lines.findIndex(line => line.includes('@'));
+    const title = contactIndex >= 0 && contactIndex + 1 < lines.length ? lines[contactIndex + 1] : 'Titre Professionnel';
+    
+    // Trouver le résumé (paragraphe long avant les sections)
+    const summary = lines.find(line => line.length > 50 && line.length < 300 && 
+      !line.includes('EXPERIENCE') && !line.includes('FORMATION') && 
+      !line.includes('SKILLS') && !line.includes('CERTIFICATIONS')) || 'Résumé professionnel';
+    
+    return {
+      name,
+      contact,
+      title,
+      summary,
+      experience: [],
+      education: [],
+      technicalSkills: '',
+      softSkills: '',
+      certifications: [],
+      additionalInfo: ''
+    };
+  }
+
+  static async generateCVPDF(cvText: string, jobDescription: string = '', filename?: string): Promise<void> {
     try {
-      // jsPDF déjà importé en haut du fichier
+      console.log('=== GÉNÉRATION PDF AVEC IA ===');
+      console.log('CV Text length:', cvText.length);
+      console.log('Job Description length:', jobDescription.length);
+      
+      // Parser le CV avec l'IA en incluant la description du job
+      const parsedCV = await this.parseCVWithAI(cvText, jobDescription);
+      
+      // Générer un nom de fichier dynamique si non fourni
+      let finalFilename = filename;
+      if (!finalFilename) {
+        const name = parsedCV.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        
+        // Utiliser localStorage pour compter les téléchargements
+        const storageKey = `cv-download-count-${name}`;
+        const currentCount = parseInt(localStorage.getItem(storageKey) || '0') + 1;
+        localStorage.setItem(storageKey, currentCount.toString());
+        
+        finalFilename = `${name}-cv-${currentCount}.pdf`;
+      }
+      
+      const { default: jsPDF } = await import('jspdf');
       
       const doc = new jsPDF({
         orientation: 'portrait',
@@ -240,14 +144,14 @@ export class PDFGenerator {
         format: 'a4'
       });
 
-      // Configuration optimisée pour le design Mimi Prime (version finale)
+      // Configuration
       const pageWidth = 210;
       const pageHeight = 297;
       const margin = 15;
       const maxWidth = pageWidth - (2 * margin);
       let currentY = margin;
 
-      // Fonction pour ajouter du texte avec le style Ronaldo Prime
+      // Fonction pour ajouter du texte
       const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
         if (currentY > pageHeight - 20) return;
         
@@ -259,9 +163,7 @@ export class PDFGenerator {
         }
         doc.setTextColor(color);
         
-        // Supprime tous les symboles * et les balises HTML
-        const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-        const lines = doc.splitTextToSize(cleanText, maxWidth);
+        const lines = doc.splitTextToSize(text, maxWidth);
         
         lines.forEach((line: string) => {
           if (currentY > pageHeight - 20) return;
@@ -278,1054 +180,171 @@ export class PDFGenerator {
         });
       };
 
-      // Parser amélioré pour capturer TOUT le contenu
-      const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
-      
-      console.log('📄 Lignes du CV à traiter:', lines.length);
-      console.log('📄 Premières lignes:', lines.slice(0, 10));
-      
-      // ANALYSE INTELLIGENTE - Validation du contenu avant génération
-      const contentAnalysis = this.analyzeContentIntelligence(lines);
-      console.log('🧠 Analyse intelligente:', contentAnalysis);
-      
-      // Ajuster les lignes selon l'analyse
-      const validatedLines = this.validateAndCleanLines(lines, contentAnalysis);
-      
-      let isHeader = true;
-      let currentSection = '';
-      let headerProcessed = 0;
-
-      for (let index = 0; index < validatedLines.length; index++) {
-        const line = validatedLines[index];
-        if (currentY > pageHeight - 20) break;
-
-        // Header (nom, contact, titre) - CENTRÉ - Limiter à 5 lignes max
-        if (isHeader && headerProcessed < 5) {
-          // Nom en majuscules - CENTRÉ et NOIR
-          if (line.length > 3 && line.length < 50 && line === line.toUpperCase() && 
-              !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') &&
-              !line.includes('SUMMARY') && !line.includes('RÉSUMÉ')) {
-            const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-            addText(cleanLine, 18, true, true, '#000000'); // Nom centré en noir
-            currentY += 3;
-            headerProcessed++;
-            console.log('✅ Nom détecté:', cleanLine);
-          } 
-          // Contact - CENTRÉ
-          else if (line.includes('@') || line.includes('|') || line.includes('+') || line.includes('phone') || line.includes('tel')) {
-            const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-            addText(cleanLine, 10, false, true, '#000000'); // Contact centré
-            currentY += 1;
-            headerProcessed++;
-            console.log('✅ Contact détecté:', cleanLine);
-          } 
-          // Titre de poste - CENTRÉ et GRAS
-          else if (line.length > 5 && line.length < 80 && 
-                   !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') && 
-                   !line.includes('FORMATION') && !line.includes('SKILLS') &&
-                   !line.includes('SUMMARY') && !line.includes('RÉSUMÉ') &&
-                   !line.includes('EDUCATION') && !line.includes('CERTIFICATIONS')) {
-            const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-            addText(cleanLine, 14, true, true, '#000000'); // Titre centré en gras
-            currentY += 2; // Moins d'espace pour rapprocher du résumé
-            headerProcessed++;
-            console.log('✅ Titre détecté:', cleanLine);
-          }
-        }
-        
-        // Détecter la fin du header - plus flexible
-        if (isHeader && (line.includes('PROFESSIONAL SUMMARY') || line.includes('RÉSUMÉ PROFESSIONNEL') ||
-                         line.includes('PROFESSIONAL EXPERIENCE') || line.includes('EXPÉRIENCE PROFESSIONNELLE') ||
-                         line.includes('EDUCATION') || line.includes('FORMATION') ||
-                         line.includes('SKILLS') || line.includes('COMPETENCES'))) {
-          isHeader = false;
-          currentY += 4;
-          console.log('✅ Fin du header détectée avec:', line);
-        }
-        
-        // Traiter le résumé professionnel (sans afficher le titre)
-        if (line.includes('PROFESSIONAL SUMMARY') || line.includes('RÉSUMÉ PROFESSIONNEL')) {
-          console.log('✅ Résumé professionnel détecté (titre ignoré)');
-          // Lire le contenu du résumé sans afficher le titre
-          let summaryContent = '';
-          let j = index + 1;
-          while (j < lines.length && lines[j].trim() && 
-                 !lines[j].includes('PROFESSIONAL EXPERIENCE') && !lines[j].includes('EXPÉRIENCE PROFESSIONNELLE') &&
-                 !lines[j].includes('EDUCATION') && !lines[j].includes('FORMATION') &&
-                 !lines[j].includes('TECHNICAL SKILLS') && !lines[j].includes('COMPÉTENCES') &&
-                 !lines[j].includes('COMPETENCES')) {
-            summaryContent += lines[j].trim() + ' ';
-            j++;
-          }
-          if (summaryContent.trim()) {
-            const cleanSummary = summaryContent.replace(/<[^>]*>/g, '').trim();
-            addText(cleanSummary, 10, false, false, '#000000'); // Résumé sans titre (+1pt)
-            currentY += 4;
-            console.log('✅ Résumé ajouté:', cleanSummary.substring(0, 100) + '...');
-          }
-          // Ignorer les lignes du résumé dans la boucle principale
-          index = j - 1; // Ajuster l'index pour sauter les lignes du résumé
-          continue;
-        }
-        
-        // Sections principales - avec lignes horizontales BLEUES - Plus flexible
-        const sectionKeywords = ['EXPERIENCE', 'EDUCATION', 'SKILLS', 'CERTIFICATIONS', 'ACHIEVEMENTS', 
-                                'FORMATION', 'COMPETENCES', 'PROJECTS', 'OTHER', 'SUMMARY', 'RÉSUMÉ'];
-        
-        const isSection = sectionKeywords.some(keyword => 
-          line.toUpperCase().includes(keyword) && line.length < 50
-        );
-        
-        if (isSection && !isHeader) {
-          currentY += 6; // Plus d'espace avant les sections
-          
-        // Nettoyer les balises HTML et tous les *
-        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-          
-          // Calculer la position exacte du texte
-          const textY = currentY;
-          addText(cleanLine, 12, true, false, '#000000'); // Sections en noir
-          
-          // Vérifier si c'est la dernière section (pas de ligne pour la dernière)
-          const isLastSection = cleanLine.includes('CERTIFICATIONS') || cleanLine.includes('ACHIEVEMENTS') || 
-                               cleanLine.includes('CERTIFICATIONS & ACHIEVEMENTS');
-          
-          if (!isLastSection) {
-            // Ligne horizontale NOIRE DIRECTEMENT SOUS le titre (plus fine et plus proche)
-            doc.setDrawColor(0, 0, 0); // Noir
-            doc.setLineWidth(0.5); // Plus fine
-            const lineY = textY + 3; // Plus proche du texte
-            doc.line(margin, lineY, pageWidth - margin, lineY);
-            currentY = lineY + 4; // Espace après la ligne
-          } else {
-            currentY += 3; // Juste un espace sans ligne pour la dernière section
-          }
-          
-          currentSection = cleanLine;
-          console.log('✅ Section détectée:', cleanLine);
-        }
-        // Formatage hiérarchique pour les sections principales
-        else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS') || currentSection.includes('EDUCATION') || currentSection.includes('FORMATION')) &&
-                 line.length > 5 && line.length < 100) {
-          
-          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-          
-          // Garder les tirets, supprimer seulement les ronds et étoiles
-          let processedLine = cleanLine;
-          if (cleanLine.startsWith('•') || cleanLine.startsWith('*')) {
-            processedLine = cleanLine.substring(1).trim();
-          }
-          
-          // Détecter si c'est le début d'une nouvelle expérience/éducation
-          const experienceKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
-                                     'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner',
-                                     'master', 'bachelor', 'degree', 'diploma', 'certificate', 'phd', 'doctorate',
-                                     'licence', 'maîtrise', 'bachelier', 'diplôme', 'certification'];
-          
-          const hasDate = /\d{4}/.test(processedLine) || processedLine.includes(' - ') || processedLine.includes(' | ') || processedLine.includes(' • ');
-          const isNewEntry = experienceKeywords.some(keyword => processedLine.toLowerCase().includes(keyword)) || hasDate;
-          
-          if (isNewEntry) {
-            currentY += 3; // Espace avant chaque nouvelle expérience/éducation
-            
-            // Séparer le début (en gras) du reste (normal)
-            let boldPart = '';
-            let normalPart = '';
-            
-            if (processedLine.includes(' - ')) {
-              const parts = processedLine.split(' - ');
-              boldPart = parts[0].trim();
-              normalPart = ' - ' + parts.slice(1).join(' - ');
-            } else if (processedLine.includes(' | ')) {
-              const parts = processedLine.split(' | ');
-              boldPart = parts[0].trim();
-              normalPart = ' | ' + parts.slice(1).join(' | ');
-            } else {
-              // Si pas de séparateur, prendre les premiers mots comme gras
-              const words = processedLine.split(' ');
-              if (words.length >= 3) {
-                boldPart = words.slice(0, 3).join(' ');
-                normalPart = ' ' + words.slice(3).join(' ');
-              } else {
-                boldPart = processedLine;
-              }
-            }
-            
-            // Afficher le texte complet en une seule ligne pour éviter la superposition
-            const fullText = boldPart + normalPart;
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(0, 0, 0);
-            
-            // Utiliser addText pour un formatage propre
-            addText(fullText, 11, true, false, '#000000');
-            
-            currentY += 2; // Espace après le titre
-            console.log('✅ Nouvelle expérience/éducation:', boldPart + normalPart);
-          } else {
-            // Description avec tiret si nécessaire
-            if (processedLine.length > 0) {
-              let displayLine = processedLine;
-              // Ajouter un tiret si ce n'est pas déjà un tiret
-              if (!processedLine.startsWith('-')) {
-                displayLine = '- ' + processedLine;
-              }
-              addText('    ' + displayLine, 10, false, false, '#000000'); // +1pt et tiret
-              currentY += 1.5; // Espace entre les descriptions
-              console.log('✅ Description avec tiret:', displayLine);
-            }
-          }
-        }
-        // TOUT LE RESTE - capturer avec suppression des ronds/étoiles seulement
-        else if (!isHeader && line.length > 0) {
-          // Nettoyer les balises HTML et supprimer seulement les ronds/étoiles
-          let cleanLine = line.replace(/<[^>]*>/g, '');
-          
-          // Supprimer seulement les ronds et étoiles, garder les tirets
-          if (cleanLine.startsWith('•') || cleanLine.startsWith('*')) {
-            cleanLine = cleanLine.substring(1).trim();
-          }
-          
-          if (cleanLine.length > 0) {
-            // Traduire "intérêt pour..." selon la langue du CV
-            let translatedLine = cleanLine;
-            if (cleanLine.toLowerCase().includes('intérêt pour') || cleanLine.toLowerCase().includes('intérêt')) {
-              // Détecter si le CV est en anglais
-              const isEnglish = cvText.toLowerCase().includes('professional experience') || 
-                               cvText.toLowerCase().includes('education') || 
-                               cvText.toLowerCase().includes('technical skills');
-              
-              if (isEnglish) {
-                translatedLine = cleanLine.replace(/intérêt pour/gi, 'interest in');
-                translatedLine = translatedLine.replace(/intérêt/gi, 'interest');
-              }
-            }
-            
-            // Si c'est dans une section, indenter, sinon texte normal
-            if (currentSection) {
-              addText('    ' + translatedLine, 10, false, false, '#000000'); // +1pt et indenté dans les sections
-              currentY += 1.5;
-            } else {
-              addText(translatedLine, 10, false, false, '#000000'); // +1pt et texte normal
-              currentY += 0.5;
-            }
-            console.log('✅ Texte nettoyé et traduit:', translatedLine);
-          }
-        }
-      }
-
-      doc.save(filename);
-      console.log('✅ PDF Ronaldo Prime généré avec succès');
-    } catch (error) {
-      console.error('Erreur génération Ronaldo Prime:', error);
-      throw error;
-    }
-  }
-
-  // GÉNÉRATION PDF À PARTIR DE LA STRUCTURE DE L'APERÇU
-  private static async generatePDFFromStructure(cvStructure: any, filename: string, language: string = 'french'): Promise<void> {
-    try {
-      // jsPDF déjà importé en haut du fichier
-      
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      // Configuration optimisée
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const margin = 15;
-      const maxWidth = pageWidth - (2 * margin);
-      let currentY = margin;
-
-      // Fonction pour ajouter du texte - VERSION MIMI PRIME
-      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
+      // Fonction pour ajouter une ligne horizontale DIRECTEMENT SOUS LE TITRE
+      const addHorizontalLine = (titleY: number) => {
         if (currentY > pageHeight - 20) return;
-        
-        doc.setFontSize(fontSize);
-        if (isBold) {
-          doc.setFont('helvetica', 'bold');
-        } else {
-          doc.setFont('helvetica', 'normal');
-        }
-        doc.setTextColor(color);
-        
-             // Nettoyer le HTML et tous les * (retirer <b>, <B>, **, *, etc.)
-             const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-        const lines = doc.splitTextToSize(cleanText, maxWidth);
-        
-        lines.forEach((line: string) => {
-          if (currentY > pageHeight - 20) return;
-          const xPos = isCenter ? (pageWidth - doc.getTextWidth(line)) / 2 : margin;
-          doc.text(line, xPos, currentY);
-          currentY += fontSize * 0.4; // Espacement Mimi Prime
-        });
+        doc.setDrawColor(0, 0, 0); // Noir
+        doc.setLineWidth(0.5);
+        // Placer la ligne DIRECTEMENT sous le titre (utiliser la position du titre)
+        doc.line(margin, titleY + 0.5, pageWidth - margin, titleY + 0.5);
+        currentY = titleY + 7; // Encore plus d'espace après la ligne pour séparer du contenu
       };
 
-      console.log('🎯 Génération PDF - VERSION SCREEN (Design classique professionnel)...');
-      
       // Fonction pour traduire les titres selon la langue
       const translateSectionTitle = (title: string): string => {
         const translations = {
-          'PROFESSIONAL EXPERIENCE': {
+          'EXPÉRIENCE PROFESSIONNELLE': {
             'french': 'EXPÉRIENCE PROFESSIONNELLE',
             'english': 'PROFESSIONAL EXPERIENCE',
             'dutch': 'WERKERVARING'
           },
-          'EDUCATION': {
+          'FORMATION': {
             'french': 'FORMATION',
             'english': 'EDUCATION',
             'dutch': 'OPLEIDING'
           },
-          'TECHNICAL SKILLS': {
+          'COMPÉTENCES TECHNIQUES': {
             'french': 'COMPÉTENCES TECHNIQUES',
             'english': 'TECHNICAL SKILLS',
             'dutch': 'TECHNISCHE VAARDIGHEDEN'
           },
-          'CERTIFICATIONS & ACHIEVEMENTS': {
-            'french': 'CERTIFICATIONS & RÉALISATIONS',
-            'english': 'CERTIFICATIONS & ACHIEVEMENTS',
-            'dutch': 'CERTIFICERINGEN & PRESTATIES'
+          'CERTIFICATIONS': {
+            'french': 'CERTIFICATIONS',
+            'english': 'CERTIFICATIONS',
+            'dutch': 'CERTIFICERINGEN'
           }
         };
         
-        return translations[title]?.[language] || title;
+        return translations[title]?.[this.detectJobDescriptionLanguage(jobDescription)] || title;
       };
 
-      // HEADER SCREEN - Design classique professionnel
-      if (cvStructure.personalInfo) {
-        // Nom - CENTRÉ et GRAS (sans **)
-        if (cvStructure.personalInfo.name) {
-          const cleanName = cvStructure.personalInfo.name.replace(/\*\*/g, '').toUpperCase();
-          addText(cleanName, 16, true, true, '#000000');
-          currentY += 4;
-        }
-
-        // Contact - CENTRÉ
-        const contactParts = [];
-        if (cvStructure.personalInfo.location) contactParts.push(cvStructure.personalInfo.location);
-        if (cvStructure.personalInfo.phone) contactParts.push(cvStructure.personalInfo.phone);
-        if (cvStructure.personalInfo.email) contactParts.push(cvStructure.personalInfo.email);
-        if (cvStructure.personalInfo.website) contactParts.push(cvStructure.personalInfo.website);
-        
-        if (contactParts.length > 0) {
-          addText(contactParts.join(' | '), 10, false, true, '#000000');
-          currentY += 4;
-        }
-
-        // Titre de poste - CENTRÉ et GRAS
-        if (cvStructure.personalInfo.title || cvStructure.title) {
-          const title = cvStructure.personalInfo.title || cvStructure.title;
-          addText(title.toUpperCase(), 12, true, true, '#000000');
-          currentY += 6; // Espacement avant le résumé
-        }
-      }
-
-      // PROFIL/RÉSUMÉ SCREEN - Style classique (sans titre)
-      if (cvStructure.summary && cvStructure.summary.trim()) {
-        // Retirer le titre "RÉSUMÉ PROFESSIONNEL" s'il existe
-        const cleanSummary = cvStructure.summary.replace(/RÉSUMÉ PROFESSIONNEL\s*/gi, '').replace(/PROFESSIONAL SUMMARY\s*/gi, '');
-        addText(cleanSummary, 10, false, false, '#000000');
-        currentY += 8; // Espacement avant les sections
-      }
-
-      // EXPÉRIENCE PROFESSIONNELLE - SCREEN STYLE
-      if (cvStructure.experience && cvStructure.experience.length > 0) {
-        // Titre de section avec ligne noire sous le titre (comme dans l'image)
-        addText(translateSectionTitle('PROFESSIONAL EXPERIENCE'), 12, true, false, '#000000');
-        const lineY = currentY + 3; // Ligne sous le titre
-        doc.setDrawColor(0, 0, 0); // NOIR
-        doc.setLineWidth(1.0); // Ligne visible
-        doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6; // Espacement après la ligne
-
-        // Chaque expérience - SCREEN STYLE (tirets simples)
-        cvStructure.experience.forEach((exp: any, index: number) => {
-          if (currentY > pageHeight - 30) return;
-
-          // Titre + Entreprise
-          if (exp.title || exp.company) {
-            const titleText = exp.title ? exp.title : '';
-            const companyText = exp.company ? ` - ${exp.company}` : '';
-            const dateText = exp.startDate && exp.endDate ? ` (${exp.startDate} - ${exp.endDate})` : '';
-            
-            addText(`${titleText}${companyText}${dateText}`, 11, true, false, '#000000');
-            currentY += 2;
-          }
-
-          // Description avec tirets simples (comme dans l'image)
-          if (exp.description && exp.description.trim()) {
-            const descriptionLines = exp.description.split('\n').filter((line: string) => line.trim());
-            descriptionLines.forEach((line: string) => {
-              if (currentY > pageHeight - 20) return;
-              const cleanLine = line.replace(/^[-•]\s*/, '').trim();
-              if (cleanLine) {
-                addText(`- ${cleanLine}`, 10, false, false, '#000000');
-                currentY += 1; // Espacement classique
-              }
-            });
-          }
-          
-          currentY += 2; // Espacement entre expériences
-        });
-      }
-
-      // FORMATION - SCREEN STYLE
-      if (cvStructure.education && cvStructure.education.length > 0) {
-        // Titre de section avec ligne noire sous le titre (comme dans l'image)
-        addText(translateSectionTitle('EDUCATION'), 12, true, false, '#000000');
-        const lineY = currentY + 3; // Ligne sous le titre
-        doc.setDrawColor(0, 0, 0); // NOIR
-        doc.setLineWidth(1.0); // Ligne visible
-        doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6; // Espacement après la ligne
-
-        // Chaque formation - SCREEN STYLE (tirets simples)
-        cvStructure.education.forEach((edu: any, index: number) => {
-          if (currentY > pageHeight - 30) return;
-
-          // Titre + École
-          if (edu.degree || edu.school) {
-            const degreeText = edu.degree ? edu.degree : '';
-            const schoolText = edu.school ? ` - ${edu.school}` : '';
-            const dateText = edu.startDate && edu.endDate ? ` (${edu.startDate} - ${edu.endDate})` : '';
-            
-            addText(`${degreeText}${schoolText}${dateText}`, 11, true, false, '#000000');
-            currentY += 2;
-          }
-
-          // Description avec tirets simples (comme dans l'image)
-          if (edu.description && edu.description.trim()) {
-            const descriptionLines = edu.description.split('\n').filter((line: string) => line.trim());
-            descriptionLines.forEach((line: string) => {
-              if (currentY > pageHeight - 20) return;
-              const cleanLine = line.replace(/^[-•]\s*/, '').trim();
-              if (cleanLine) {
-                addText(`- ${cleanLine}`, 10, false, false, '#000000');
-                currentY += 1; // Espacement classique
-              }
-            });
-          }
-          
-          currentY += 2; // Espacement entre formations
-        });
-      }
-
-      // COMPÉTENCES TECHNIQUES - SCREEN STYLE
-      if (cvStructure.skills && cvStructure.skills.length > 0) {
-        // Titre de section avec ligne noire sous le titre (comme dans l'image)
-        addText(translateSectionTitle('TECHNICAL SKILLS'), 12, true, false, '#000000');
-        const lineY = currentY + 3; // Ligne sous le titre
-        doc.setDrawColor(0, 0, 0); // NOIR
-        doc.setLineWidth(1.0); // Ligne visible
-        doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6; // Espacement après la ligne
-
-        // Grouper les compétences par catégorie (comme dans l'image)
-        const technicalSkills = [];
-        const softSkills = [];
-        const tools = [];
-        const languages = [];
-        
-        cvStructure.skills.forEach((skill: any) => {
-          const skillText = typeof skill === 'string' ? skill : skill.name || skill.skill;
-          const lowerSkill = skillText.toLowerCase();
-          
-          if (lowerSkill.includes('soft') || lowerSkill.includes('communication') || lowerSkill.includes('leadership')) {
-            softSkills.push(skillText);
-          } else if (lowerSkill.includes('tool') || lowerSkill.includes('office') || lowerSkill.includes('google')) {
-            tools.push(skillText);
-          } else if (lowerSkill.includes('français') || lowerSkill.includes('anglais') || lowerSkill.includes('langue')) {
-            languages.push(skillText);
-          } else {
-            technicalSkills.push(skillText);
-          }
-        });
-
-        // Afficher les compétences avec tirets simples (comme dans l'image)
-        if (technicalSkills.length > 0) {
-          addText(`- Compétences techniques: ${technicalSkills.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
-        }
-        if (softSkills.length > 0) {
-          addText(`- Soft skills: ${softSkills.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
-        }
-        if (tools.length > 0) {
-          addText(`- Outils: ${tools.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
-        }
-        if (languages.length > 0) {
-          addText(`- Langues: ${languages.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
-        }
-        
+      // === GÉNÉRATION PDF AVEC DONNÉES STRUCTURÉES ===
+      
+      // 1. HEADER - Nom, Contact, Titre
+      addText(parsedCV.name, 19, true, true, '#000000'); // 18 -> 19
+      currentY += 3;
+      
+      addText(parsedCV.contact, 11, false, true, '#000000'); // 10 -> 11
+      currentY += 2; // Augmenté de 1 à 2 pour plus d'espace
+      
+      addText(parsedCV.title, 15, true, true, '#000000'); // 14 -> 15
+      currentY += 4;
+      
+      // 2. RÉSUMÉ PROFESSIONNEL
+      if (parsedCV.summary && parsedCV.summary.trim()) {
+        addText(parsedCV.summary, 12, false, false, '#000000'); // 11 -> 12
         currentY += 3;
       }
-
-      // CERTIFICATIONS & ACHIEVEMENTS - SCREEN STYLE
-      if (cvStructure.certifications && cvStructure.certifications.length > 0) {
-        // Titre de section avec ligne noire sous le titre (comme dans l'image)
-        addText(translateSectionTitle('CERTIFICATIONS & ACHIEVEMENTS'), 12, true, false, '#000000');
-        const lineY = currentY + 3; // Ligne sous le titre
-        doc.setDrawColor(0, 0, 0); // NOIR
-        doc.setLineWidth(1.0); // Ligne visible
-        doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6; // Espacement après la ligne
-
-        // Certifications avec tirets simples (comme dans l'image)
-        cvStructure.certifications.forEach((cert: any, index: number) => {
-          if (currentY > pageHeight - 20) return;
-          const certText = typeof cert === 'string' ? cert : cert.name || cert.title;
-          const cleanCertText = certText.replace(/^[•·]\s*/, ''); // Retirer les ronds
-          addText(`- ${cleanCertText}`, 10, false, false, '#000000');
-          currentY += 1; // Espacement classique
-        });
-      }
-      // Si pas de certifications, la section n'apparaît PAS du tout
-
-      doc.save(filename);
-      console.log('✅ PDF généré avec succès à partir de la structure de l\'aperçu');
       
-    } catch (error) {
-      console.error('Erreur génération PDF depuis structure:', error);
-      throw error;
-    }
-  }
-
-  // ANALYSE INTELLIGENTE - Éviter les mises en forme bizarres
-  private static analyzeContentIntelligence(lines: string[]): any {
-    const analysis = {
-      hasName: false,
-      hasContact: false,
-      hasTitle: false,
-      hasSummary: false,
-      sections: [],
-      language: 'unknown',
-      issues: []
-    };
-
-    // Détecter la langue
-    const text = lines.join(' ').toLowerCase();
-    if (text.includes('professional experience') || text.includes('education') || text.includes('technical skills')) {
-      analysis.language = 'english';
-    } else if (text.includes('expérience professionnelle') || text.includes('formation') || text.includes('compétences')) {
-      analysis.language = 'french';
-    }
-
-    // Détecter les sections principales
-    const sectionKeywords = {
-      experience: ['professional experience', 'expérience professionnelle', 'work experience', 'expérience'],
-      education: ['education', 'formation', 'academic', 'académique'],
-      skills: ['technical skills', 'compétences techniques', 'skills', 'compétences'],
-      certifications: ['certifications', 'certificats', 'achievements', 'réalisations']
-    };
-
-    lines.forEach((line, index) => {
-      const upperLine = line.toUpperCase();
-      
-      // Détecter les sections
-      Object.keys(sectionKeywords).forEach(sectionType => {
-        if (sectionKeywords[sectionType].some(keyword => upperLine.includes(keyword.toUpperCase()))) {
-          analysis.sections.push({
-            type: sectionType,
-            line: line,
-            index: index
+      // 3. EXPÉRIENCE PROFESSIONNELLE
+      if (parsedCV.experience && parsedCV.experience.length > 0) {
+        currentY += 4;
+        const titleY = currentY;
+        addText(translateSectionTitle('EXPÉRIENCE PROFESSIONNELLE'), 13, true, false, '#000000'); // 12 -> 13
+        addHorizontalLine(titleY);
+        
+        parsedCV.experience.forEach(exp => {
+          // Entreprise et poste sur une ligne
+          const companyPosition = `${exp.company} - ${exp.position} (${exp.period})`;
+          addText(companyPosition, 11, true, false, '#000000'); // 10 -> 11
+          currentY += 1;
+          
+          // Descriptions avec bullet points
+          exp.description.forEach(desc => {
+            addText(`• ${desc}`, 11, false, false, '#000000'); // 10 -> 11
+            currentY += 2.5;
           });
-        }
-      });
-
-      // Détecter le nom (ligne en majuscules, pas trop longue)
-      if (!analysis.hasName && line.length > 3 && line.length < 50 && line === line.toUpperCase() && 
-          !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE')) {
-        analysis.hasName = true;
-      }
-
-      // Détecter le contact
-      if (!analysis.hasContact && (line.includes('@') || line.includes('|') || line.includes('+'))) {
-        analysis.hasContact = true;
-      }
-
-      // Détecter le titre de poste
-      if (!analysis.hasTitle && line.length > 5 && line.length < 80 && 
-          !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') && 
-          !line.includes('FORMATION') && !line.includes('SKILLS')) {
-        analysis.hasTitle = true;
-      }
-    });
-
-    // Détecter les problèmes
-    if (!analysis.hasName) analysis.issues.push('Pas de nom détecté');
-    if (!analysis.hasContact) analysis.issues.push('Pas de contact détecté');
-    if (!analysis.hasTitle) analysis.issues.push('Pas de titre de poste détecté');
-    if (analysis.sections.length < 3) analysis.issues.push('Pas assez de sections détectées');
-
-    return analysis;
-  }
-
-  // VALIDATION ET NETTOYAGE - Corriger les problèmes détectés
-  private static validateAndCleanLines(lines: string[], analysis: any): string[] {
-    let cleanedLines = [...lines];
-
-    // Si pas assez de sections, réorganiser intelligemment
-    if (analysis.sections.length < 3) {
-      console.log('🔧 Réorganisation intelligente des sections...');
-      
-      // Regrouper les lignes par type de contenu
-      const organizedLines = [];
-      let currentSection = '';
-      
-      lines.forEach(line => {
-        const upperLine = line.toUpperCase();
-        
-        // Détecter les nouvelles sections
-        if (upperLine.includes('PROFESSIONAL EXPERIENCE') || upperLine.includes('EXPÉRIENCE PROFESSIONNELLE')) {
-          currentSection = 'experience';
-          organizedLines.push('PROFESSIONAL EXPERIENCE');
-        } else if (upperLine.includes('EDUCATION') || upperLine.includes('FORMATION')) {
-          currentSection = 'education';
-          organizedLines.push('EDUCATION');
-        } else if (upperLine.includes('TECHNICAL SKILLS') || upperLine.includes('COMPÉTENCES TECHNIQUES')) {
-          currentSection = 'skills';
-          organizedLines.push('TECHNICAL SKILLS');
-        } else if (upperLine.includes('CERTIFICATIONS') || upperLine.includes('CERTIFICATS')) {
-          currentSection = 'certifications';
-          organizedLines.push('CERTIFICATIONS');
-        } else {
-          organizedLines.push(line);
-        }
-      });
-      
-      cleanedLines = organizedLines;
-    }
-
-    // Supprimer les lignes vides excessives
-    cleanedLines = cleanedLines.filter((line, index) => {
-      if (line.trim() === '') {
-        // Garder seulement une ligne vide entre les sections
-        const nextNonEmpty = cleanedLines.slice(index + 1).find(l => l.trim() !== '');
-        const prevNonEmpty = cleanedLines.slice(0, index).reverse().find(l => l.trim() !== '');
-        
-        if (nextNonEmpty && prevNonEmpty) {
-          const nextIsSection = ['PROFESSIONAL EXPERIENCE', 'EDUCATION', 'TECHNICAL SKILLS', 'CERTIFICATIONS'].some(s => nextNonEmpty.includes(s));
-          const prevIsSection = ['PROFESSIONAL EXPERIENCE', 'EDUCATION', 'TECHNICAL SKILLS', 'CERTIFICATIONS'].some(s => prevNonEmpty.includes(s));
-          
-          return nextIsSection || prevIsSection;
-        }
-      }
-      return true;
-    });
-
-    console.log('✅ Lignes nettoyées et validées:', cleanedLines.length);
-    return cleanedLines;
-  }
-
-  private static async generateHybridPDF(cvText: string, filename: string): Promise<void> {
-    try {
-      // jsPDF déjà importé en haut du fichier
-      
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      // Configuration optimisée pour remplir la page
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const margin = 10; // Marges très réduites
-      const maxWidth = pageWidth - (2 * margin);
-      let currentY = margin;
-
-      // Fonction pour ajouter du texte avec le style de l'aperçu
-      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, isRight: boolean = false, color: string = '#000000') => {
-        if (currentY > pageHeight - 15) return;
-        
-        doc.setFontSize(fontSize);
-        if (isBold) {
-          doc.setFont('helvetica', 'bold');
-        } else {
-          doc.setFont('helvetica', 'normal');
-        }
-        doc.setTextColor(color);
-        
-        // Supprime tous les symboles * et les balises HTML
-        const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-        const lines = doc.splitTextToSize(cleanText, maxWidth);
-        
-        lines.forEach((line: string) => {
-          if (currentY > pageHeight - 15) return;
-          let xPos = margin;
-          let align: any = 'left';
-          
-          if (isCenter) {
-            xPos = pageWidth / 2;
-            align = 'center';
-          } else if (isRight) {
-            xPos = pageWidth - margin;
-            align = 'right';
-          }
-          
-          doc.text(line, xPos, currentY, { align });
-          currentY += fontSize * 0.35; // Espacement très compact
+          currentY += 1;
         });
-      };
-
-      // Parser identique à l'aperçu pour le même rendu
-      const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
+      }
       
-      let isHeader = true;
-      let currentSection = '';
-
-      lines.forEach((line, index) => {
-        if (currentY > pageHeight - 15) return;
-
-        // Header (nom, contact, titre) - CENTRÉ comme l'aperçu
-        if (isHeader && index < 8) {
-          // Nom en majuscules - CENTRÉ
-          if (line.length > 3 && line.length < 50 && line === line.toUpperCase() && 
-              !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE')) {
-            addText(line, 16, true, true, false, '#1e3a8a'); // Nom centré en bleu
-            currentY += 2;
-          } 
-          // Contact - CENTRÉ
-          else if (line.includes('@') || line.includes('|') || line.includes('+')) {
-            addText(line, 9, false, true, false, '#000000'); // Contact centré
-            currentY += 1;
-          } 
-          // Titre de poste - CENTRÉ et plus grand
-          else if (line.length > 5 && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') && 
-                   !line.includes('FORMATION') && !line.includes('SKILLS')) {
-            addText(line, 12, true, true, false, '#000000'); // Titre centré en gras
-            currentY += 2;
-          }
-        }
+      // 4. FORMATION
+      if (parsedCV.education && parsedCV.education.length > 0) {
+        currentY += 4;
+        const titleY = currentY;
+        addText(translateSectionTitle('FORMATION'), 13, true, false, '#000000'); // 12 -> 13
+        addHorizontalLine(titleY);
         
-        // Détecter la fin du header
-        if (isHeader && (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('FORMATION'))) {
-          isHeader = false;
-          currentY += 3;
-        }
-        
-        // Sections principales - avec lignes horizontales
-        if (line === 'PROFESSIONAL EXPERIENCE' || 
-            line === 'EDUCATION' || 
-            line === 'PROFESSIONAL EXPERIENCE' || 
-            line === 'TECHNICAL SKILLS' || 
-            line === 'CERTIFICATIONS & ACHIEVEMENTS' ||
-            line === 'EXPÉRIENCE PROFESSIONNELLE' ||
-            line === 'FORMATION' ||
-            line === 'COMPETENCES' ||
-            line === 'COMPÉTENCES' ||
-            line === 'PROJECTS' ||
-            line === 'OTHER') {
+        parsedCV.education.forEach(edu => {
+          // Institution et diplôme sur une ligne
+          const institutionDegree = `${edu.institution} - ${edu.degree} (${edu.period})`;
+          addText(institutionDegree, 11, true, false, '#000000'); // 10 -> 11
+          currentY += 1;
           
-          currentY += 3;
-          // Ligne horizontale
-          doc.setDrawColor(30, 58, 138); // Bleu sérieux
-          doc.setLineWidth(0.5);
-          doc.line(margin, currentY - 1, pageWidth - margin, currentY - 1);
-          
-          addText(line, 10, true, false, false, '#1e3a8a'); // Sections en bleu sérieux
-          currentY += 2;
-          currentSection = line;
-        }
-        // Postes/titres dans les sections - EN GRAS
-        else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
-                 line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
-          // Vérifier si c'est un poste
-          const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
-                              'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner'];
-          if (jobKeywords.some(keyword => line.toLowerCase().includes(keyword))) {
-            addText(line, 10, true, false, false, '#000000'); // Postes en gras
-            currentY += 0.5;
+          // Description
+          if (edu.description) {
+            addText(`• ${edu.description}`, 11, false, false, '#000000'); // 10 -> 11
+            currentY += 2.5;
           }
-        }
-        // Contenu des sections
-        else if (currentSection && line.length > 0) {
-          // Formatage spécial pour les puces
-          if (line.startsWith('•') || line.startsWith('-')) {
-            addText('    ' + line, 8, false, false, false, '#000000'); // Puces indentées
-          } else {
-            addText(line, 8, false, false, false, '#000000'); // Texte normal
-          }
-        }
-      });
-
-      doc.save(filename);
-      console.log('✅ PDF hybride généré avec succès');
-    } catch (error) {
-      console.error('Erreur génération hybride:', error);
-      throw error;
-    }
-  }
-
-  private static async generateFallbackPDF(cvText: string, filename: string): Promise<void> {
-    try {
-      // jsPDF déjà importé en haut du fichier
-      
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      // Configuration améliorée
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const margin = 15;
-      const maxWidth = pageWidth - (2 * margin);
-      let currentY = margin;
-
-      // Fonction pour ajouter du texte avec formatage professionnel
-      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, isRight: boolean = false, color: string = '#000000') => {
-        if (currentY > pageHeight - 20) return;
-        
-        doc.setFontSize(fontSize);
-        // FORCER LE GRAS avec setTextColor et setFont correctement
-        if (isBold) {
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(0, 0, 0); // Noir pur pour le gras
-        } else {
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(0, 0, 0); // Noir normal
-        }
-        
-        // Supprime tous les symboles * et les balises HTML
-        const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-        const lines = doc.splitTextToSize(cleanText, maxWidth);
-        
-        lines.forEach((line: string) => {
-          if (currentY > pageHeight - 20) return;
-          let xPos = margin;
-          let align: any = 'left';
-          
-          if (isCenter) {
-            xPos = pageWidth / 2;
-            align = 'center';
-          } else if (isRight) {
-            xPos = pageWidth - margin;
-            align = 'right';
-          }
-          
-          doc.text(line, xPos, currentY, { align });
-          currentY += fontSize * 0.4; // Espacement standard
+          currentY += 1;
         });
-      };
-
-      // Parser pour design classique professionnel
-      const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
+      }
       
-      let isHeader = true;
-      let currentSection = '';
-      let name = '';
-      let contact = '';
-      let jobTitle = '';
-      let summary = '';
-
-      // Phase 1: Extraire les éléments du header
-      for (let i = 0; i < Math.min(lines.length, 10); i++) {
-        const line = lines[i];
+      // 5. CERTIFICATIONS (déplacées vers informations additionnelles)
+      
+      // 6. INFORMATIONS ADDITIONNELLES
+      if (parsedCV.technicalSkills || parsedCV.softSkills || parsedCV.additionalInfo || parsedCV.certifications.length > 0) {
+        currentY += 4;
+        const titleY = currentY;
+        addText('INFORMATIONS ADDITIONNELLES', 13, true, false, '#000000'); // 12 -> 13
+        addHorizontalLine(titleY);
         
-        // Nom en majuscules
-        if (!name && line.length > 3 && line.length < 50 && line === line.toUpperCase() && 
-            !line.includes('@') && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE')) {
-          name = line;
-        } 
-        // Contact
-        else if (!contact && (line.includes('@') || line.includes('|') || line.includes('+'))) {
-          contact = line;
-        } 
-        // Titre de poste
-        else if (!jobTitle && line.length > 5 && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE') && 
-                 !line.includes('FORMATION') && !line.includes('SKILLS') && !line.includes('SUMMARY')) {
-          jobTitle = line;
-        }
-        // Détecter le début du résumé
-        else if (line.includes('PROFESSIONAL SUMMARY') || line.includes('RÉSUMÉ PROFESSIONNEL')) {
-          // Prendre les lignes suivantes comme résumé
-          for (let j = i + 1; j < Math.min(lines.length, i + 5); j++) {
-            if (lines[j] && !lines[j].includes('EXPERIENCE') && !lines[j].includes('FORMATION')) {
-              summary += lines[j] + ' ';
-            } else {
-              break;
-            }
-          }
-          break;
-        }
-      }
-
-      // Phase 2: Afficher le header formaté
-      if (name) {
-        addText(name, 16, true, true, false, '#000000'); // Nom centré
-        currentY += 3;
-      }
-      
-      if (contact) {
-        addText(contact, 10, false, true, false, '#000000'); // Contact centré
-        currentY += 2;
-      }
-      
-      if (jobTitle) {
-        addText(jobTitle, 12, false, true, false, '#000000'); // Titre centré
-        currentY += 3;
-      }
-      
-      if (summary) {
-        addText(summary.trim(), 10, false, false, false, '#000000'); // Résumé justifié
-        currentY += 3;
-      }
-
-      // Phase 3: Traiter les sections
-      let skipToExperience = false;
-      lines.forEach((line, index) => {
-        if (currentY > pageHeight - 30) return;
-
-        // Ignorer les lignes déjà traitées dans le header
-        if (line === name || line === contact || line === jobTitle || 
-            line.includes('PROFESSIONAL SUMMARY') || line.includes('RÉSUMÉ PROFESSIONNEL')) {
-          return;
+        if (parsedCV.technicalSkills) {
+          addText(`• Compétences techniques : ${parsedCV.technicalSkills}`, 11, false, false, '#000000'); // 10 -> 11
+          currentY += 2.5;
         }
         
-        // Ignorer les lignes du résumé
-        if (summary && summary.includes(line)) {
-          return;
+        if (parsedCV.softSkills) {
+          addText(`• Soft skills : ${parsedCV.softSkills}`, 11, false, false, '#000000'); // 10 -> 11
+          currentY += 2.5;
         }
         
-        // Sections principales
-        if (line === 'PROFESSIONAL EXPERIENCE' || line === 'EDUCATION' || 
-            line === 'TECHNICAL SKILLS' || line === 'CERTIFICATIONS & ACHIEVEMENTS' ||
-            line === 'EXPÉRIENCE PROFESSIONNELLE' || line === 'FORMATION' ||
-            line === 'COMPETENCES' || line === 'COMPÉTENCES' || line === 'PROJECTS' ||
-            line === 'OTHER' || line === 'SKILLS') {
-          
-          currentY += 4; // Plus d'espace avant
-          addText(line, 12, true, false, false, '#000000'); // Sections EN GRAS
-          
-          // Ajouter une ligne en dessous du titre - FORCER LA VISIBILITÉ
-          doc.setDrawColor(0, 0, 0); // Couleur noire
-          doc.setLineWidth(1.0); // Ligne plus épaisse
-          doc.line(margin, currentY + 3, pageWidth - margin, currentY + 3); // Position ajustée
-          
-          currentY += 5; // Espace d'une ligne après le titre
-          currentSection = line;
+        if (parsedCV.certifications && parsedCV.certifications.length > 0) {
+          addText(`• Certifications : ${parsedCV.certifications.join(', ')}`, 11, false, false, '#000000'); // 10 -> 11
+          currentY += 2.5;
         }
-        // Entreprises (en gras) avec dates/lieux alignés à droite
-        else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
-                 line.length > 3 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-') &&
-                 !line.includes('@') && !line.includes('|') && !line.includes('+')) {
+        
+        if (parsedCV.additionalInfo) {
+          // Séparer les langues du reste des informations additionnelles
+          const infoParts = parsedCV.additionalInfo.split(',');
+          const languages = infoParts.filter(part => 
+            part.toLowerCase().includes('français') || 
+            part.toLowerCase().includes('anglais') || 
+            part.toLowerCase().includes('espagnol') || 
+            part.toLowerCase().includes('allemand') || 
+            part.toLowerCase().includes('italien') || 
+            part.toLowerCase().includes('néerlandais') || 
+            part.toLowerCase().includes('turc') ||
+            part.toLowerCase().includes('bilingue') ||
+            part.toLowerCase().includes('c1') ||
+            part.toLowerCase().includes('c2') ||
+            part.toLowerCase().includes('b1') ||
+            part.toLowerCase().includes('b2')
+          );
+          const otherInfo = infoParts.filter(part => !languages.includes(part));
           
-        // Nettoyer les balises HTML et tous les *
-        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
+          // Afficher les autres informations d'abord
+          if (otherInfo.length > 0) {
+            addText(`• ${otherInfo.join(', ')}`, 11, false, false, '#000000'); // 10 -> 11
+            currentY += 2.5;
+          }
           
-          // Vérifier si c'est une entreprise (pas un poste)
-          const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
-                              'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner'];
-          if (!jobKeywords.some(keyword => cleanLine.toLowerCase().includes(keyword))) {
-            // Vérifier s'il y a une date/lieu sur la même ligne
-            const parts = cleanLine.split(' • ');
-            if (parts.length === 2) {
-              addText(parts[0], 10, true, false, false, '#000000'); // Entreprise EN GRAS à gauche
-              addText(parts[1], 9, false, false, true, '#000000'); // Lieu à droite
-            } else {
-              addText(cleanLine, 10, true, false, false, '#000000'); // Entreprise EN GRAS
-            }
-            currentY += 1; // Plus d'espace
+          // Afficher les langues en gras en dernier (sans ** et sans duplication "langues")
+          if (languages.length > 0) {
+            const cleanLanguages = languages.map(lang => 
+              lang.replace(/\*\*/g, '').replace(/langues?\s*:?\s*/gi, '').trim()
+            ).join(', ');
+            addText(`• Langues : ${cleanLanguages}`, 11, true, false, '#000000'); // 10 -> 11
+            currentY += 2.5;
           }
         }
-        // Postes (en gras) avec dates alignées à droite
-        else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
-                 line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
-          
-        // Nettoyer les balises HTML et tous les *
-        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-          
-          const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
-                              'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner'];
-          if (jobKeywords.some(keyword => cleanLine.toLowerCase().includes(keyword))) {
-            // Vérifier s'il y a une date sur la même ligne
-            const parts = cleanLine.split(' • ');
-            if (parts.length === 2) {
-              addText(parts[0], 10, true, false, false, '#000000'); // Poste en gras à gauche
-              addText(parts[1], 9, false, false, true, '#000000'); // Date à droite
-            } else {
-              addText(cleanLine, 10, true, false, false, '#000000'); // Poste en gras
-            }
-            currentY += 0.8; // Plus d'espace
-          }
-        }
-        // Éducation et autres sections - formatage spécial
-        else if (currentSection && (currentSection.includes('EDUCATION') || currentSection.includes('FORMATION')) &&
-                 line.length > 3 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
-          
-        // Nettoyer les balises HTML et tous les *
-        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-          
-          // Détecter les diplômes et formations à mettre en gras
-          const educationKeywords = ['master', 'bachelor', 'degree', 'diploma', 'certificate', 'phd', 'doctorate', 
-                                   'licence', 'maîtrise', 'bachelier', 'master', 'diplôme', 'certification'];
-          
-          const isEducation = educationKeywords.some(keyword => cleanLine.toLowerCase().includes(keyword));
-          
-          if (isEducation) {
-            // Vérifier s'il y a une date sur la même ligne
-            const parts = cleanLine.split(' • ');
-            if (parts.length === 2) {
-              addText(parts[0], 10, true, false, false, '#000000'); // Diplôme EN GRAS à gauche
-              addText(parts[1], 9, false, false, true, '#000000'); // Date à droite
-            } else {
-              addText(cleanLine, 10, true, false, false, '#000000'); // Diplôme EN GRAS
-            }
-          } else {
-            // Institution normale
-            const parts = cleanLine.split(' • ');
-            if (parts.length === 2) {
-              addText(parts[0], 10, true, false, false, '#000000'); // Institution EN GRAS à gauche
-              addText(parts[1], 9, false, false, true, '#000000'); // Date à droite
-            } else {
-              addText(cleanLine, 10, true, false, false, '#000000'); // Institution EN GRAS
-            }
-          }
-          currentY += 1; // Plus d'espace
-        }
-        // Compétences et certifications - formatage simple
-        else if (currentSection && (currentSection.includes('SKILLS') || currentSection.includes('COMPETENCES') || 
-                 currentSection.includes('CERTIFICATIONS') || currentSection.includes('ACHIEVEMENTS')) &&
-                 line.length > 0) {
-          
-        // Nettoyer les balises HTML et tous les *
-        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-          
-          // Formatage spécial pour les sous-catégories
-          if (cleanLine.includes(':') && !cleanLine.startsWith('•')) {
-            addText(cleanLine, 10, true, false, false, '#000000'); // Sous-catégorie EN GRAS
-          } else {
-            addText(cleanLine, 9, false, false, false, '#000000'); // Contenu normal
-          }
-          currentY += 0.5; // Plus d'espace
-        }
-        // Puces et contenu - formatage indenté
-        else if (line.startsWith('•') || line.startsWith('-')) {
-          // Nettoyer les balises HTML et indenter les puces
-          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-          const indentedLine = '    ' + cleanLine;
-          addText(indentedLine, 9, false, false, false, '#000000'); // Puces indentées
-          currentY += 2.5; // Demi-ligne d'espace entre les bullet points
-        }
-        // Texte normal
-        else if (line.length > 0) {
-        // Nettoyer les balises HTML et tous les *
-        const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '').replace(/\*/g, '');
-          addText(cleanLine, 9, false, false, false, '#000000');
-          currentY += 0.3; // Plus d'espace
-        }
-      });
+      }
 
-      doc.save(filename);
+      doc.save(finalFilename);
+      console.log('✅ PDF généré avec succès:', finalFilename);
+      
     } catch (error) {
-      console.error('Erreur fallback PDF:', error);
+      console.error('❌ Erreur génération PDF:', error);
       throw new Error('Impossible de générer le PDF');
     }
   }
