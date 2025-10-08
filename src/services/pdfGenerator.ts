@@ -136,13 +136,13 @@ export class PDFGenerator {
         });
       };
 
-      // Fonction pour ajouter une ligne horizontale COLLÉE au titre
+      // Fonction pour ajouter une ligne horizontale VRAIMENT COLLÉE au titre
       const addHorizontalLine = () => {
         if (currentY > pageHeight - 20) return;
         doc.setDrawColor(0, 0, 0); // Noir
         doc.setLineWidth(0.5);
-        // Placer la ligne COLLÉE au titre (quasiment pas d'espace)
-        doc.line(margin, currentY + 0.2, pageWidth - margin, currentY + 0.2);
+        // Placer la ligne VRAIMENT COLLÉE au titre (presque pas d'espace)
+        doc.line(margin, currentY + 0.1, pageWidth - margin, currentY + 0.1);
         currentY += 3; // Espace après la ligne
       };
 
@@ -168,7 +168,7 @@ export class PDFGenerator {
       if (parsedCV.experience && parsedCV.experience.length > 0) {
         currentY += 4;
         addText('EXPÉRIENCE PROFESSIONNELLE', 12, true, false, '#000000');
-        currentY += 1; // Réduit de 3 à 1 pour coller la ligne
+        currentY += 0.5; // Presque pas d'espace pour vraiment coller la ligne
         addHorizontalLine();
         
         parsedCV.experience.forEach(exp => {
@@ -190,7 +190,7 @@ export class PDFGenerator {
       if (parsedCV.education && parsedCV.education.length > 0) {
         currentY += 4;
         addText('FORMATION', 12, true, false, '#000000');
-        currentY += 1; // Réduit de 3 à 1 pour coller la ligne
+        currentY += 0.5; // Presque pas d'espace pour vraiment coller la ligne
         addHorizontalLine();
         
         parsedCV.education.forEach(edu => {
@@ -212,7 +212,7 @@ export class PDFGenerator {
       if (parsedCV.certifications && parsedCV.certifications.length > 0) {
         currentY += 4;
         addText('CERTIFICATIONS & RÉALISATIONS', 12, true, false, '#000000');
-        currentY += 1; // Réduit de 3 à 1 pour coller la ligne
+        currentY += 0.5; // Presque pas d'espace pour vraiment coller la ligne
         addHorizontalLine();
         
         parsedCV.certifications.forEach(cert => {
@@ -225,7 +225,7 @@ export class PDFGenerator {
       if (parsedCV.skills || parsedCV.additionalInfo) {
         currentY += 4;
         addText('INFORMATIONS ADDITIONNELLES', 12, true, false, '#000000');
-        currentY += 1; // Réduit de 3 à 1 pour coller la ligne
+        currentY += 0.5; // Presque pas d'espace pour vraiment coller la ligne
         addHorizontalLine();
         
         if (parsedCV.skills) {
