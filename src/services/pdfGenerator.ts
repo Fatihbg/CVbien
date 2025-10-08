@@ -1,4 +1,5 @@
 import { config } from '../config/environment';
+import jsPDF from 'jspdf';
 
 export class PDFGenerator {
   static async generateCVPDF(cvData: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
@@ -128,6 +129,9 @@ export class PDFGenerator {
         } else if (currentExperience && line.startsWith('-')) {
           // Description de l'expérience
           currentExperience.description += (currentExperience.description ? '\n' : '') + line.substring(1).trim();
+        } else if (currentExperience && line.length > 10 && !line.includes('(') && !line.includes(' - ')) {
+          // Description continue (ligne sans tiret)
+          currentExperience.description += (currentExperience.description ? '\n' : '') + line.trim();
         }
       } else if (currentSection === 'education') {
         // Nouvelle formation
@@ -153,6 +157,9 @@ export class PDFGenerator {
         } else if (currentEducation && line.startsWith('-')) {
           // Description de la formation
           currentEducation.description += (currentEducation.description ? '\n' : '') + line.substring(1).trim();
+        } else if (currentEducation && line.length > 10 && !line.includes('(') && !line.includes(' - ')) {
+          // Description continue (ligne sans tiret)
+          currentEducation.description += (currentEducation.description ? '\n' : '') + line.trim();
         }
       } else if (currentSection === 'skills') {
         // Compétences (lignes avec deux points ou listes séparées par virgules)
@@ -196,7 +203,7 @@ export class PDFGenerator {
 
   private static async generateRonaldoPrimePDF(cvText: string, filename: string): Promise<void> {
     try {
-      const { default: jsPDF } = await import('jspdf');
+      // jsPDF déjà importé en haut du fichier
       
       const doc = new jsPDF({
         orientation: 'portrait',
@@ -487,7 +494,7 @@ export class PDFGenerator {
   // GÉNÉRATION PDF À PARTIR DE LA STRUCTURE DE L'APERÇU
   private static async generatePDFFromStructure(cvStructure: any, filename: string): Promise<void> {
     try {
-      const { default: jsPDF } = await import('jspdf');
+      // jsPDF déjà importé en haut du fichier
       
       const doc = new jsPDF({
         orientation: 'portrait',
@@ -502,7 +509,7 @@ export class PDFGenerator {
       const maxWidth = pageWidth - (2 * margin);
       let currentY = margin;
 
-      // Fonction pour ajouter du texte
+      // Fonction pour ajouter du texte - VERSION MIMI PRIME
       const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
         if (currentY > pageHeight - 20) return;
         
@@ -514,67 +521,72 @@ export class PDFGenerator {
         }
         doc.setTextColor(color);
         
-        const lines = doc.splitTextToSize(text, maxWidth);
+        // Nettoyer le HTML et les ** (retirer <b>, <B>, **, etc.)
+        const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
+        const lines = doc.splitTextToSize(cleanText, maxWidth);
         
         lines.forEach((line: string) => {
           if (currentY > pageHeight - 20) return;
           const xPos = isCenter ? (pageWidth - doc.getTextWidth(line)) / 2 : margin;
           doc.text(line, xPos, currentY);
-          currentY += fontSize * 0.4;
+          currentY += fontSize * 0.4; // Espacement Mimi Prime
         });
       };
 
-      console.log('🎯 Génération PDF à partir de la structure de l\'aperçu...');
+      console.log('🎯 Génération PDF - VERSION SCREEN (Design classique professionnel)...');
 
-      // HEADER - Nom, contact, titre (basé sur la structure de l'aperçu)
+      // HEADER SCREEN - Design classique professionnel
       if (cvStructure.personalInfo) {
-        // Nom - CENTRÉ et GRAS
+        // Nom - CENTRÉ et GRAS (sans **)
         if (cvStructure.personalInfo.name) {
-          addText(cvStructure.personalInfo.name.toUpperCase(), 16, true, true, '#000000');
+          const cleanName = cvStructure.personalInfo.name.replace(/\*\*/g, '').toUpperCase();
+          addText(cleanName, 16, true, true, '#000000');
           currentY += 4;
         }
 
         // Contact - CENTRÉ
         const contactParts = [];
-        if (cvStructure.personalInfo.email) contactParts.push(cvStructure.personalInfo.email);
-        if (cvStructure.personalInfo.phone) contactParts.push(cvStructure.personalInfo.phone);
         if (cvStructure.personalInfo.location) contactParts.push(cvStructure.personalInfo.location);
+        if (cvStructure.personalInfo.phone) contactParts.push(cvStructure.personalInfo.phone);
+        if (cvStructure.personalInfo.email) contactParts.push(cvStructure.personalInfo.email);
+        if (cvStructure.personalInfo.website) contactParts.push(cvStructure.personalInfo.website);
         
         if (contactParts.length > 0) {
           addText(contactParts.join(' | '), 10, false, true, '#000000');
           currentY += 4;
         }
 
-        // Titre de poste - CENTRÉ et GRAS (plus proche du résumé)
+        // Titre de poste - CENTRÉ et GRAS
         if (cvStructure.personalInfo.title || cvStructure.title) {
           const title = cvStructure.personalInfo.title || cvStructure.title;
           addText(title.toUpperCase(), 12, true, true, '#000000');
-          currentY += 2; // Moins d'espace pour rapprocher du résumé
+          currentY += 6; // Espacement avant le résumé
         }
       }
 
-      // PROFIL/RÉSUMÉ (SANS TITRE "PROFESSIONAL SUMMARY")
-      if (cvStructure.summary) {
-        // Pas de titre, directement le contenu
-        addText(cvStructure.summary, 11, false, false, '#000000');
-        currentY += 6;
+      // PROFIL/RÉSUMÉ SCREEN - Style classique (sans titre)
+      if (cvStructure.summary && cvStructure.summary.trim()) {
+        // Retirer le titre "RÉSUMÉ PROFESSIONNEL" s'il existe
+        const cleanSummary = cvStructure.summary.replace(/RÉSUMÉ PROFESSIONNEL\s*/gi, '').replace(/PROFESSIONAL SUMMARY\s*/gi, '');
+        addText(cleanSummary, 10, false, false, '#000000');
+        currentY += 8; // Espacement avant les sections
       }
 
-      // EXPÉRIENCE PROFESSIONNELLE
+      // EXPÉRIENCE PROFESSIONNELLE - SCREEN STYLE
       if (cvStructure.experience && cvStructure.experience.length > 0) {
-        // Titre de section avec ligne
-        addText('PROFESSIONAL EXPERIENCE', 12, true, false, '#1e40af');
-        const lineY = currentY + 3;
-        doc.setDrawColor(30, 64, 175); // Bleu sérieux
-        doc.setLineWidth(0.8);
+        // Titre de section avec ligne noire sous le titre (comme dans l'image)
+        addText('PROFESSIONAL EXPERIENCE', 12, true, false, '#000000');
+        const lineY = currentY + 3; // Ligne sous le titre
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(1.0); // Ligne visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6;
+        currentY = lineY + 6; // Espacement après la ligne
 
-        // Chaque expérience
+        // Chaque expérience - SCREEN STYLE (tirets simples)
         cvStructure.experience.forEach((exp: any, index: number) => {
           if (currentY > pageHeight - 30) return;
 
-          // Titre + Entreprise (en gras partiellement)
+          // Titre + Entreprise
           if (exp.title || exp.company) {
             const titleText = exp.title ? exp.title : '';
             const companyText = exp.company ? ` - ${exp.company}` : '';
@@ -584,36 +596,38 @@ export class PDFGenerator {
             currentY += 2;
           }
 
-          // Description avec tirets
-          if (exp.description) {
+          // Description avec tirets simples (comme dans l'image)
+          if (exp.description && exp.description.trim()) {
             const descriptionLines = exp.description.split('\n').filter((line: string) => line.trim());
             descriptionLines.forEach((line: string) => {
               if (currentY > pageHeight - 20) return;
               const cleanLine = line.replace(/^[-•]\s*/, '').trim();
-              addText(`- ${cleanLine}`, 10, false, false, '#000000');
-              currentY += 1;
+              if (cleanLine) {
+                addText(`- ${cleanLine}`, 10, false, false, '#000000');
+                currentY += 1; // Espacement classique
+              }
             });
           }
           
-          currentY += 2;
+          currentY += 2; // Espacement entre expériences
         });
       }
 
-      // FORMATION
+      // FORMATION - SCREEN STYLE
       if (cvStructure.education && cvStructure.education.length > 0) {
-        // Titre de section avec ligne
-        addText('EDUCATION', 12, true, false, '#1e40af');
-        const lineY = currentY + 3;
-        doc.setDrawColor(30, 64, 175);
-        doc.setLineWidth(0.8);
+        // Titre de section avec ligne noire sous le titre (comme dans l'image)
+        addText('EDUCATION', 12, true, false, '#000000');
+        const lineY = currentY + 3; // Ligne sous le titre
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(1.0); // Ligne visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6;
+        currentY = lineY + 6; // Espacement après la ligne
 
-        // Chaque formation
+        // Chaque formation - SCREEN STYLE (tirets simples)
         cvStructure.education.forEach((edu: any, index: number) => {
           if (currentY > pageHeight - 30) return;
 
-          // Titre + École (en gras partiellement)
+          // Titre + École
           if (edu.degree || edu.school) {
             const degreeText = edu.degree ? edu.degree : '';
             const schoolText = edu.school ? ` - ${edu.school}` : '';
@@ -623,30 +637,32 @@ export class PDFGenerator {
             currentY += 2;
           }
 
-          // Description avec tirets
-          if (edu.description) {
+          // Description avec tirets simples (comme dans l'image)
+          if (edu.description && edu.description.trim()) {
             const descriptionLines = edu.description.split('\n').filter((line: string) => line.trim());
             descriptionLines.forEach((line: string) => {
               if (currentY > pageHeight - 20) return;
               const cleanLine = line.replace(/^[-•]\s*/, '').trim();
-              addText(`- ${cleanLine}`, 10, false, false, '#000000');
-              currentY += 1;
+              if (cleanLine) {
+                addText(`- ${cleanLine}`, 10, false, false, '#000000');
+                currentY += 1; // Espacement classique
+              }
             });
           }
           
-          currentY += 2;
+          currentY += 2; // Espacement entre formations
         });
       }
 
-      // COMPÉTENCES TECHNIQUES (avec sous-catégories)
+      // COMPÉTENCES TECHNIQUES - SCREEN STYLE
       if (cvStructure.skills && cvStructure.skills.length > 0) {
-        // Titre de section avec ligne
-        addText('TECHNICAL SKILLS', 12, true, false, '#1e40af');
-        const lineY = currentY + 3;
-        doc.setDrawColor(30, 64, 175);
-        doc.setLineWidth(0.8);
+        // Titre de section avec ligne noire sous le titre (comme dans l'image)
+        addText('TECHNICAL SKILLS', 12, true, false, '#000000');
+        const lineY = currentY + 3; // Ligne sous le titre
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(1.0); // Ligne visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6;
+        currentY = lineY + 6; // Espacement après la ligne
 
         // Grouper les compétences par catégorie (comme dans l'image)
         const technicalSkills = [];
@@ -669,50 +685,51 @@ export class PDFGenerator {
           }
         });
 
-        // Afficher les sous-catégories avec deux points (pas de tirets)
+        // Afficher les compétences avec tirets simples (comme dans l'image)
         if (technicalSkills.length > 0) {
-          addText(`Compétences techniques: ${technicalSkills.join(', ')}`, 10, false, false, '#000000');
+          addText(`- Compétences techniques: ${technicalSkills.join(', ')}`, 10, false, false, '#000000');
           currentY += 1;
         }
         if (softSkills.length > 0) {
-          addText(`Soft skills: ${softSkills.join(', ')}`, 10, false, false, '#000000');
+          addText(`- Soft skills: ${softSkills.join(', ')}`, 10, false, false, '#000000');
           currentY += 1;
         }
         if (tools.length > 0) {
-          addText(`Outils: ${tools.join(', ')}`, 10, false, false, '#000000');
+          addText(`- Outils: ${tools.join(', ')}`, 10, false, false, '#000000');
           currentY += 1;
         }
         if (languages.length > 0) {
-          addText(`Langues: ${languages.join(', ')}`, 10, false, false, '#000000');
+          addText(`- Langues: ${languages.join(', ')}`, 10, false, false, '#000000');
           currentY += 1;
         }
         
-        currentY += 2;
+        currentY += 3;
       }
 
-      // CERTIFICATIONS & ACHIEVEMENTS (SECTION CONDITIONNELLE)
+      // CERTIFICATIONS & ACHIEVEMENTS - SCREEN STYLE
       if (cvStructure.certifications && cvStructure.certifications.length > 0) {
-        // Titre de section avec ligne
-        addText('CERTIFICATIONS & ACHIEVEMENTS', 12, true, false, '#1e40af');
-        const lineY = currentY + 3;
-        doc.setDrawColor(30, 64, 175);
-        doc.setLineWidth(0.8);
+        // Titre de section avec ligne noire sous le titre (comme dans l'image)
+        addText('CERTIFICATIONS & ACHIEVEMENTS', 12, true, false, '#000000');
+        const lineY = currentY + 3; // Ligne sous le titre
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(1.0); // Ligne visible
         doc.line(margin, lineY, pageWidth - margin, lineY);
-        currentY = lineY + 6;
+        currentY = lineY + 6; // Espacement après la ligne
 
-        // Certifications avec tirets
+        // Certifications avec tirets simples (comme dans l'image)
         cvStructure.certifications.forEach((cert: any, index: number) => {
           if (currentY > pageHeight - 20) return;
           const certText = typeof cert === 'string' ? cert : cert.name || cert.title;
-          addText(`- ${certText}`, 10, false, false, '#000000');
-          currentY += 1;
+          const cleanCertText = certText.replace(/^[•·]\s*/, ''); // Retirer les ronds
+          addText(`- ${cleanCertText}`, 10, false, false, '#000000');
+          currentY += 1; // Espacement classique
         });
       }
       // Si pas de certifications, la section n'apparaît PAS du tout
 
       doc.save(filename);
       console.log('✅ PDF généré avec succès à partir de la structure de l\'aperçu');
-
+      
     } catch (error) {
       console.error('Erreur génération PDF depuis structure:', error);
       throw error;
@@ -848,7 +865,7 @@ export class PDFGenerator {
 
   private static async generateHybridPDF(cvText: string, filename: string): Promise<void> {
     try {
-      const { default: jsPDF } = await import('jspdf');
+      // jsPDF déjà importé en haut du fichier
       
       const doc = new jsPDF({
         orientation: 'portrait',
@@ -986,7 +1003,7 @@ export class PDFGenerator {
 
   private static async generateFallbackPDF(cvText: string, filename: string): Promise<void> {
     try {
-      const { default: jsPDF } = await import('jspdf');
+      // jsPDF déjà importé en haut du fichier
       
       const doc = new jsPDF({
         orientation: 'portrait',
@@ -1102,7 +1119,7 @@ export class PDFGenerator {
       let skipToExperience = false;
       lines.forEach((line, index) => {
         if (currentY > pageHeight - 30) return;
-        
+
         // Ignorer les lignes déjà traitées dans le header
         if (line === name || line === contact || line === jobTitle || 
             line.includes('PROFESSIONAL SUMMARY') || line.includes('RÉSUMÉ PROFESSIONNEL')) {
