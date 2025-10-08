@@ -157,9 +157,9 @@ export const CVPreview: React.FC = () => {
           
           {/* Barre de progression */}
           {isDownloading && (
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-3" style={{ marginTop: '8px' }}>
               <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${downloadProgress}%` }}
               ></div>
             </div>

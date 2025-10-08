@@ -1601,16 +1601,16 @@ export const HomePage: React.FC = () => {
                       marginBottom: '16px',
                       filter: 'drop-shadow(0 4px 20px rgba(102, 126, 234, 0.3))'
                     }}>⚡</div>
-                    <h4 style={{
-                      fontSize: '18px',
-                      fontWeight: '600',
+                    <h4 style={{ 
+                      fontSize: '18px', 
+                      fontWeight: '600', 
                       margin: '0 0 8px 0',
                       color: '#000'
                     }}>
-                      En attente de génération
+                      {t.main.waitingForGeneration}
                     </h4>
                     <p style={{ fontSize: '14px', opacity: 0.8, margin: 0, color: '#000' }}>
-                      Uploadez votre CV et saisissez la description du poste pour commencer
+                      {t.main.uploadInstructions}
                     </p>
                   </div>
                 )}
@@ -1867,11 +1867,13 @@ export const HomePage: React.FC = () => {
                         alignItems: 'center',
                         gap: '8px'
                       }}>
-                        🤖 <span>Score ATS Élevé</span>
+                        🤖 <span>{isEnglish ? 'High ATS Score' : 'Score ATS Élevé'}</span>
                       </h3>
                       <p style={{ fontSize: '14px', margin: 0 }}>
-                        Optimisation pour les systèmes de recrutement automatisés (ATS). 
-                        Mots-clés stratégiques, formatage professionnel, et structure optimale pour passer les filtres robots.
+                        {isEnglish 
+                          ? 'Optimization for automated recruitment systems (ATS). Strategic keywords, professional formatting, and optimal structure to pass robot filters.'
+                          : 'Optimisation pour les systèmes de recrutement automatisés (ATS). Mots-clés stratégiques, formatage professionnel, et structure optimale pour passer les filtres robots.'
+                        }
                       </p>
                     </div>
 
@@ -1885,11 +1887,13 @@ export const HomePage: React.FC = () => {
                         alignItems: 'center',
                         gap: '8px'
                       }}>
-                        ✨ <span>Intelligence Adaptative</span>
+                        ✨ <span>{isEnglish ? 'Adaptive Intelligence' : 'Intelligence Adaptative'}</span>
                       </h3>
                       <p style={{ fontSize: '14px', margin: 0 }}>
-                        Ajout intelligent des soft skills demandés, reformulation des compétences techniques, 
-                        et connexion stratégique entre vos expériences et les exigences du poste.
+                        {isEnglish 
+                          ? 'Intelligent addition of requested soft skills, reformulation of technical skills, and strategic connection between your experiences and job requirements.'
+                          : 'Ajout intelligent des soft skills demandés, reformulation des compétences techniques, et connexion stratégique entre vos expériences et les exigences du poste.'
+                        }
                       </p>
                     </div>
 
@@ -1907,7 +1911,10 @@ export const HomePage: React.FC = () => {
                         textAlign: 'center',
                         color: '#1a365d'
                       }}>
-                        <strong>💡 Résultat :</strong> Un CV professionnel, optimisé ATS, qui maximise vos chances d'être recruté !
+                        <strong>💡 {isEnglish ? 'Result:' : 'Résultat :'}</strong> {isEnglish 
+                          ? 'A professional, ATS-optimized resume that maximizes your chances of being hired!'
+                          : 'Un CV professionnel, optimisé ATS, qui maximise vos chances d\'être recruté !'
+                        }
                       </p>
                     </div>
 
@@ -1924,8 +1931,10 @@ export const HomePage: React.FC = () => {
                         color: '#166534',
                         fontWeight: '500'
                       }}>
-                        🔒 <strong>Confidentialité :</strong> Aucune donnée personnelle n'est conservée. 
-                        Vos informations sont traitées en temps réel et supprimées immédiatement après génération.
+                        🔒 <strong>{isEnglish ? 'Confidentiality:' : 'Confidentialité :'}</strong> {isEnglish 
+                          ? 'No personal data is kept. Your information is processed in real-time and deleted immediately after generation.'
+                          : 'Aucune donnée personnelle n\'est conservée. Vos informations sont traitées en temps réel et supprimées immédiatement après génération.'
+                        }
                       </p>
                     </div>
                   </div>
