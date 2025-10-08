@@ -52,17 +52,29 @@ export const CVPreview: React.FC = () => {
   };
 
   const handleDownload = async () => {
-    if (!generatedCV) return;
+    console.log('🚀 handleDownload appelé');
+    console.log('📄 generatedCV:', generatedCV);
+    console.log('📄 generatedCV type:', typeof generatedCV);
+    console.log('📄 generatedCV length:', generatedCV?.length);
     
+    if (!generatedCV) {
+      console.log('❌ Aucun CV généré');
+      return;
+    }
+    
+    console.log('✅ Démarrage du téléchargement');
     setIsDownloading(true);
     setDownloadProgress(0);
     
     try {
+      console.log('🔄 Démarrage de la progression');
       // Simulation de progression qui monte à 90%
       const progressInterval = setInterval(() => {
         setDownloadProgress(prev => {
+          console.log('📊 Progression:', prev + 15);
           if (prev >= 90) {
             clearInterval(progressInterval);
+            console.log('📊 Progression arrêtée à 90%');
             return 90;
           }
           return prev + 15; // Plus rapide pour arriver à 90%
@@ -72,7 +84,9 @@ export const CVPreview: React.FC = () => {
       // Attendre un peu à 90% pour simuler la génération PDF
       setTimeout(async () => {
         try {
+          console.log('🎯 Génération PDF démarrée');
           await PDFGenerator.generateCVPDF(generatedCV);
+          console.log('✅ PDF généré avec succès');
           
           // Finaliser la progression
           setDownloadProgress(100);

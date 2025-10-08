@@ -21,6 +21,8 @@ export const HomePage: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileRecommendation, setShowMobileRecommendation] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   
   // Hook de traduction
   const { t, language, isEnglish } = useTranslation();
@@ -314,26 +316,69 @@ export const HomePage: React.FC = () => {
   };
 
   const handleDownloadPDF = async () => {
-    if (generatedCV && uploadedFile) {
-      try {
-        // Générer le nom de fichier basé sur le fichier original
-        const originalName = uploadedFile.name;
-        const nameWithoutExt = originalName.replace(/\.[^/.]+$/, ""); // Enlever l'extension
-        
-        // Utiliser un compteur basé sur le localStorage pour chaque nom de fichier
-        const storageKey = `cv_counter_${nameWithoutExt}`;
-        const currentCounter = parseInt(localStorage.getItem(storageKey) || '0') + 1;
-        localStorage.setItem(storageKey, currentCounter.toString());
-        
-        // Générer le nom de fichier avec le compteur - TOUJOURS en PDF
-        const filename = `${nameWithoutExt}_${currentCounter}.pdf`;
-        
-        console.log(`Téléchargement du CV: ${filename}`);
-        await PDFGenerator.generateCVPDF(generatedCV, filename);
-      } catch (error) {
-        console.error('Erreur lors du téléchargement:', error);
-        alert('Erreur lors du téléchargement du PDF');
-      }
+    if (!generatedCV || !uploadedFile) return;
+    
+    console.log('🚀 handleDownloadPDF appelé');
+    setIsDownloading(true);
+    setDownloadProgress(0);
+    
+    try {
+      // Simulation de progression qui monte à 90%
+      const progressInterval = setInterval(() => {
+        setDownloadProgress(prev => {
+          console.log('📊 Progression:', prev + 15);
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            console.log('📊 Progression arrêtée à 90%');
+            return 90;
+          }
+          return prev + 15; // Plus rapide pour arriver à 90%
+        });
+      }, 150);
+      
+      // Attendre un peu à 90% pour simuler la génération PDF
+      setTimeout(async () => {
+        try {
+          console.log('🎯 Génération PDF démarrée');
+          
+          // Générer le nom de fichier basé sur le fichier original
+          const originalName = uploadedFile.name;
+          const nameWithoutExt = originalName.replace(/\.[^/.]+$/, ""); // Enlever l'extension
+          
+          // Utiliser un compteur basé sur le localStorage pour chaque nom de fichier
+          const storageKey = `cv_counter_${nameWithoutExt}`;
+          const currentCounter = parseInt(localStorage.getItem(storageKey) || '0') + 1;
+          localStorage.setItem(storageKey, currentCounter.toString());
+          
+          // Générer le nom de fichier avec le compteur - TOUJOURS en PDF
+          const filename = `${nameWithoutExt}_${currentCounter}.pdf`;
+          
+          console.log(`Téléchargement du CV: ${filename}`);
+          await PDFGenerator.generateCVPDF(generatedCV, filename);
+          console.log('✅ PDF généré avec succès');
+          
+          // Finaliser la progression
+          setDownloadProgress(100);
+          
+          // Réinitialiser après un délai
+          setTimeout(() => {
+            setIsDownloading(false);
+            setDownloadProgress(0);
+          }, 800);
+          
+        } catch (error) {
+          console.error('Erreur lors de la génération du PDF:', error);
+          alert('Erreur lors du téléchargement du PDF');
+          setIsDownloading(false);
+          setDownloadProgress(0);
+        }
+      }, 1000); // Attendre 1 seconde à 90%
+      
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+      alert('Erreur lors du téléchargement du PDF');
+      setIsDownloading(false);
+      setDownloadProgress(0);
     }
   };
 
@@ -1628,17 +1673,42 @@ export const HomePage: React.FC = () => {
                   }
                   handleDownloadPDF();
                 }}
+                disabled={isDownloading}
                 style={{
                   width: '100%',
                   padding: '12px 24px',
                   fontSize: '16px',
                   fontWeight: '700',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: isDownloading 
+                    ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' 
+                    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   borderRadius: '16px',
-                  boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)'
+                  boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
+                  opacity: isDownloading ? 0.8 : 1,
+                  cursor: isDownloading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
                 }}
               >
-                📥 {t.main.downloadPDF.toUpperCase()}
+                {isDownloading ? (
+                  <>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      borderTop: '2px solid white',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }}></div>
+                    <span>Téléchargement... {downloadProgress}%</span>
+                  </>
+                ) : (
+                  <>
+                    📥 {t.main.downloadPDF.toUpperCase()}
+                  </>
+                )}
               </button>
             </div>
           )}
