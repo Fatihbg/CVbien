@@ -212,21 +212,10 @@ export class PDFGenerator {
         });
       }
       
-      // 5. CERTIFICATIONS
-      if (parsedCV.certifications && parsedCV.certifications.length > 0) {
-        currentY += 4;
-        const titleY = currentY;
-        addText('CERTIFICATIONS & RÉALISATIONS', 12, true, false, '#000000');
-        addHorizontalLine(titleY);
-        
-        parsedCV.certifications.forEach(cert => {
-          addText(`• ${cert}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
-          currentY += 2.5;
-        });
-      }
+      // 5. CERTIFICATIONS (déplacées vers informations additionnelles)
       
       // 6. INFORMATIONS ADDITIONNELLES
-      if (parsedCV.technicalSkills || parsedCV.softSkills || parsedCV.additionalInfo) {
+      if (parsedCV.technicalSkills || parsedCV.softSkills || parsedCV.additionalInfo || parsedCV.certifications.length > 0) {
         currentY += 4;
         const titleY = currentY;
         addText('INFORMATIONS ADDITIONNELLES', 12, true, false, '#000000');
@@ -242,9 +231,40 @@ export class PDFGenerator {
           currentY += 2.5;
         }
         
-        if (parsedCV.additionalInfo) {
-          addText(`• ${parsedCV.additionalInfo}`, 10, false, false, '#000000');
+        if (parsedCV.certifications && parsedCV.certifications.length > 0) {
+          addText(`• Certifications : ${parsedCV.certifications.join(', ')}`, 10, false, false, '#000000');
           currentY += 2.5;
+        }
+        
+        if (parsedCV.additionalInfo) {
+          // Séparer les langues du reste des informations additionnelles
+          const infoParts = parsedCV.additionalInfo.split(',');
+          const languages = infoParts.filter(part => 
+            part.toLowerCase().includes('français') || 
+            part.toLowerCase().includes('anglais') || 
+            part.toLowerCase().includes('espagnol') || 
+            part.toLowerCase().includes('allemand') || 
+            part.toLowerCase().includes('italien') || 
+            part.toLowerCase().includes('néerlandais') || 
+            part.toLowerCase().includes('turc') ||
+            part.toLowerCase().includes('c1') ||
+            part.toLowerCase().includes('c2') ||
+            part.toLowerCase().includes('b1') ||
+            part.toLowerCase().includes('b2')
+          );
+          const otherInfo = infoParts.filter(part => !languages.includes(part));
+          
+          // Afficher les autres informations d'abord
+          if (otherInfo.length > 0) {
+            addText(`• ${otherInfo.join(', ')}`, 10, false, false, '#000000');
+            currentY += 2.5;
+          }
+          
+          // Afficher les langues en gras en dernier
+          if (languages.length > 0) {
+            addText(`• Langues : ${languages.join(', ')}`, 10, true, false, '#000000');
+            currentY += 2.5;
+          }
         }
       }
 
