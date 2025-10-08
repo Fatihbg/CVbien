@@ -53,7 +53,8 @@ export class PDFGenerator {
       experience: [],
       education: [],
       skills: [],
-      certifications: []
+      certifications: [],
+      additionalInfo: []
     };
 
     let currentSection = '';
@@ -99,11 +100,14 @@ export class PDFGenerator {
       } else if (upperLine.includes('EDUCATION') || upperLine.includes('FORMATION')) {
         currentSection = 'education';
         continue;
-      } else if (upperLine.includes('TECHNICAL SKILLS') || upperLine.includes('COMPÉTENCES TECHNIQUES')) {
+      } else if (upperLine.includes('TECHNICAL SKILLS') || upperLine.includes('COMPÉTENCES TECHNIQUES') || upperLine.includes('SKILLS') || upperLine.includes('COMPÉTENCES')) {
         currentSection = 'skills';
         continue;
-      } else if (upperLine.includes('CERTIFICATIONS') || upperLine.includes('CERTIFICATS')) {
+      } else if (upperLine.includes('CERTIFICATIONS') || upperLine.includes('CERTIFICATS') || upperLine.includes('ACHIEVEMENTS') || upperLine.includes('RÉALISATIONS')) {
         currentSection = 'certifications';
+        continue;
+      } else if (upperLine.includes('ADDITIONAL INFORMATION') || upperLine.includes('INFORMATIONS ADDITIONNELLES') || upperLine.includes('AUTRES INFORMATIONS')) {
+        currentSection = 'additional';
         continue;
       }
 
@@ -181,6 +185,13 @@ export class PDFGenerator {
           structure.certifications.push(line.substring(1).trim());
         } else if (line.trim()) {
           structure.certifications.push(line.trim());
+        }
+      } else if (currentSection === 'additional') {
+        // Informations additionnelles
+        if (line.startsWith('-')) {
+          structure.additionalInfo.push(line.substring(1).trim());
+        } else if (line.trim()) {
+          structure.additionalInfo.push(line.trim());
         }
       } else if (!currentSection && line.length > 20 && !line.includes('@') && !line.includes('|')) {
         // Probablement le résumé (avant les sections)
@@ -575,6 +586,9 @@ export class PDFGenerator {
         const cleanSummary = cvStructure.summary.replace(/RÉSUMÉ PROFESSIONNEL\s*/gi, '').replace(/PROFESSIONAL SUMMARY\s*/gi, '');
         addText(cleanSummary, 10, false, false, '#000000');
         currentY += 8; // Espacement avant les sections
+        console.log('✅ Résumé ajouté au PDF:', cleanSummary.substring(0, 100) + '...');
+      } else {
+        console.log('⚠️ Aucun résumé trouvé dans la structure');
       }
 
       // EXPÉRIENCE PROFESSIONNELLE - SCREEN STYLE
@@ -628,9 +642,13 @@ export class PDFGenerator {
         doc.line(margin, lineY, pageWidth - margin, lineY);
         currentY = lineY + 6; // Espacement après la ligne
 
+        console.log('📚 Formations trouvées:', cvStructure.education.length);
+
         // Chaque formation - SCREEN STYLE (tirets simples)
         cvStructure.education.forEach((edu: any, index: number) => {
           if (currentY > pageHeight - 30) return;
+
+          console.log(`📚 Formation ${index + 1}:`, edu);
 
           // Titre + École
           if (edu.degree || edu.school) {
@@ -657,6 +675,8 @@ export class PDFGenerator {
           
           currentY += 2; // Espacement entre formations
         });
+      } else {
+        console.log('⚠️ Aucune formation trouvée dans la structure');
       }
 
       // COMPÉTENCES TECHNIQUES - SCREEN STYLE
@@ -669,46 +689,22 @@ export class PDFGenerator {
         doc.line(margin, lineY, pageWidth - margin, lineY);
         currentY = lineY + 6; // Espacement après la ligne
 
-        // Grouper les compétences par catégorie (comme dans l'image)
-        const technicalSkills = [];
-        const softSkills = [];
-        const tools = [];
-        const languages = [];
-        
-        cvStructure.skills.forEach((skill: any) => {
-          const skillText = typeof skill === 'string' ? skill : skill.name || skill.skill;
-          const lowerSkill = skillText.toLowerCase();
+        console.log('🔧 Compétences trouvées:', cvStructure.skills.length);
+
+        // Afficher toutes les compétences avec tirets simples
+        cvStructure.skills.forEach((skill: any, index: number) => {
+          if (currentY > pageHeight - 20) return;
           
-          if (lowerSkill.includes('soft') || lowerSkill.includes('communication') || lowerSkill.includes('leadership')) {
-            softSkills.push(skillText);
-          } else if (lowerSkill.includes('tool') || lowerSkill.includes('office') || lowerSkill.includes('google')) {
-            tools.push(skillText);
-          } else if (lowerSkill.includes('français') || lowerSkill.includes('anglais') || lowerSkill.includes('langue')) {
-            languages.push(skillText);
-          } else {
-            technicalSkills.push(skillText);
+          const skillText = typeof skill === 'string' ? skill : skill.name || skill.skill;
+          if (skillText && skillText.trim()) {
+            addText(`- ${skillText}`, 10, false, false, '#000000');
+            currentY += 1;
           }
         });
-
-        // Afficher les compétences avec tirets simples (comme dans l'image)
-        if (technicalSkills.length > 0) {
-          addText(`- Compétences techniques: ${technicalSkills.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
-        }
-        if (softSkills.length > 0) {
-          addText(`- Soft skills: ${softSkills.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
-        }
-        if (tools.length > 0) {
-          addText(`- Outils: ${tools.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
-        }
-        if (languages.length > 0) {
-          addText(`- Langues: ${languages.join(', ')}`, 10, false, false, '#000000');
-          currentY += 1;
-        }
         
         currentY += 3;
+      } else {
+        console.log('⚠️ Aucune compétence trouvée dans la structure');
       }
 
       // CERTIFICATIONS & ACHIEVEMENTS - SCREEN STYLE
@@ -721,6 +717,8 @@ export class PDFGenerator {
         doc.line(margin, lineY, pageWidth - margin, lineY);
         currentY = lineY + 6; // Espacement après la ligne
 
+        console.log('🏆 Certifications trouvées:', cvStructure.certifications.length);
+
         // Certifications avec tirets simples (comme dans l'image)
         cvStructure.certifications.forEach((cert: any, index: number) => {
           if (currentY > pageHeight - 20) return;
@@ -729,8 +727,34 @@ export class PDFGenerator {
           addText(`- ${cleanCertText}`, 10, false, false, '#000000');
           currentY += 1; // Espacement classique
         });
+      } else {
+        console.log('⚠️ Aucune certification trouvée dans la structure');
       }
-      // Si pas de certifications, la section n'apparaît PAS du tout
+
+      // INFORMATIONS ADDITIONNELLES - SCREEN STYLE
+      if (cvStructure.additionalInfo && cvStructure.additionalInfo.length > 0) {
+        // Titre de section avec ligne noire sous le titre (comme dans l'image)
+        addText('ADDITIONAL INFORMATION', 12, true, false, '#000000');
+        const lineY = currentY + 3; // Ligne sous le titre
+        doc.setDrawColor(0, 0, 0); // NOIR
+        doc.setLineWidth(1.0); // Ligne visible
+        doc.line(margin, lineY, pageWidth - margin, lineY);
+        currentY = lineY + 6; // Espacement après la ligne
+
+        console.log('ℹ️ Informations additionnelles trouvées:', cvStructure.additionalInfo.length);
+
+        // Informations additionnelles avec tirets simples
+        cvStructure.additionalInfo.forEach((info: any, index: number) => {
+          if (currentY > pageHeight - 20) return;
+          const infoText = typeof info === 'string' ? info : info.name || info.title;
+          if (infoText && infoText.trim()) {
+            addText(`- ${infoText}`, 10, false, false, '#000000');
+            currentY += 1;
+          }
+        });
+      } else {
+        console.log('⚠️ Aucune information additionnelle trouvée dans la structure');
+      }
 
       doc.save(filename);
       console.log('✅ PDF généré avec succès à partir de la structure de l\'aperçu');
