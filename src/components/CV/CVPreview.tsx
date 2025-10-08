@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useCVStore } from '../../store/cvStore';
+import { useCVGenerationStore } from '../../store/cvGenerationStore';
 import { Download, Edit3, Save, X } from 'lucide-react';
 import { PDFGenerator } from '../../services/pdfGenerator';
 import { useTranslation } from '../../hooks/useTranslation';
+import { CVDisplay } from './CVDisplay';
 
 export const CVPreview: React.FC = () => {
-  const { generatedCV, originalATSScore, generatedATSScore } = useCVStore();
+  const { generatedCV, atsScore } = useCVGenerationStore();
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
@@ -71,7 +72,7 @@ export const CVPreview: React.FC = () => {
       // Attendre un peu à 90% pour simuler la génération PDF
       setTimeout(async () => {
         try {
-          await PDFGenerator.generateCVPDF(JSON.stringify(generatedCV));
+          await PDFGenerator.generateCVPDF(generatedCV);
           
           // Finaliser la progression
           setDownloadProgress(100);
@@ -196,79 +197,20 @@ export const CVPreview: React.FC = () => {
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <h4 className="font-medium text-green-900 mb-1">{t.main.atsScore}</h4>
           <div className="text-2xl font-bold text-green-600">
-            {generatedATSScore || 0}/100
+            {atsScore || 0}/100
           </div>
         </div>
       </div>
 
       {/* CV Preview */}
       <div className="bg-white border border-gray-200 rounded-lg p-8 max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          {renderEditableField('name', generatedCV.personalInfo.name, 'text-3xl font-bold text-gray-900')}
-          <div className="mt-2 space-y-1">
-            {renderEditableField('email', generatedCV.personalInfo.email, 'text-gray-600')}
-            {renderEditableField('phone', generatedCV.personalInfo.phone, 'text-gray-600')}
-            {renderEditableField('location', generatedCV.personalInfo.location, 'text-gray-600')}
-          </div>
-        </div>
-
-        {/* Summary */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-3">Profil</h2>
-          {renderEditableField('summary', generatedCV.summary, 'text-gray-700 leading-relaxed')}
-        </div>
-
-        {/* Experience */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Expérience professionnelle</h2>
-          <div className="space-y-4">
-            {generatedCV.experience.map((exp, index) => (
-              <div key={index} className="border-l-4 border-primary-500 pl-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    {renderEditableField(`exp-title-${index}`, exp.title, 'font-semibold text-gray-900')}
-                    <div className="text-primary-600 font-medium">{exp.company}</div>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {exp.startDate} - {exp.current ? 'Présent' : exp.endDate}
-                  </div>
-                </div>
-                {renderEditableField(`exp-desc-${index}`, exp.description, 'text-gray-700 text-sm')}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Education */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Formation</h2>
-          <div className="space-y-2">
-            {generatedCV.education.map((edu, index) => (
-              <div key={index} className="flex justify-between items-center">
-                <div>
-                  {renderEditableField(`edu-degree-${index}`, edu.degree, 'font-medium text-gray-900')}
-                  <div className="text-gray-600">{edu.school}</div>
-                </div>
-                <div className="text-sm text-gray-500">{edu.graduationDate}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Skills */}
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Compétences</h2>
-          <div className="flex flex-wrap gap-2">
-            {generatedCV.skills.map((skill, index) => (
-              <span
-                key={index}
-                className="bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          padding: '12px',
+          minHeight: '400px'
+        }}>
+          <CVDisplay cvText={generatedCV} />
         </div>
       </div>
     </div>
