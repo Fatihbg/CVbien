@@ -145,7 +145,7 @@ export class PDFGenerator {
         doc.setLineWidth(0.5);
         // Placer la ligne DIRECTEMENT sous le titre (utiliser la position du titre)
         doc.line(margin, titleY + 0.5, pageWidth - margin, titleY + 0.5);
-        currentY = titleY + 3; // Espace après la ligne
+        currentY = titleY + 5; // Plus d'espace après la ligne pour séparer du contenu
       };
 
       // === GÉNÉRATION PDF AVEC DONNÉES STRUCTURÉES ===
