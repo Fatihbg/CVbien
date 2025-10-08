@@ -157,9 +157,9 @@ export class PDFGenerator {
         
         doc.setFontSize(fontSize);
         if (isBold) {
-          doc.setFont('helvetica', 'bold');
+          doc.setFont('calibri', 'bold');
         } else {
-          doc.setFont('helvetica', 'normal');
+          doc.setFont('calibri', 'normal');
         }
         doc.setTextColor(color);
         
@@ -188,6 +188,27 @@ export class PDFGenerator {
         // Placer la ligne DIRECTEMENT sous le titre (utiliser la position du titre)
         doc.line(margin, titleY + 0.5, pageWidth - margin, titleY + 0.5);
         currentY = titleY + 7; // Encore plus d'espace après la ligne pour séparer du contenu
+      };
+
+      // Fonction pour détecter la langue de l'offre d'emploi (copiée localement)
+      const detectJobDescriptionLanguage = (jobDesc: string): string => {
+        const frenchKeywords = ['recherche', 'poste', 'entreprise', 'expérience', 'compétences', 'mission', 'profil', 'candidat', 'équipe', 'développement'];
+        const englishKeywords = ['looking for', 'position', 'company', 'experience', 'skills', 'mission', 'profile', 'candidate', 'team', 'development'];
+        const dutchKeywords = ['zoeken', 'functie', 'bedrijf', 'ervaring', 'vaardigheden', 'missie', 'profiel', 'kandidaat', 'team', 'ontwikkeling'];
+        
+        const lowerJobDesc = jobDesc.toLowerCase();
+        
+        const frenchCount = frenchKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
+        const englishCount = englishKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
+        const dutchCount = dutchKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
+        
+        if (dutchCount > frenchCount && dutchCount > englishCount) {
+          return 'dutch';
+        } else if (englishCount > frenchCount && englishCount > dutchCount) {
+          return 'english';
+        } else {
+          return 'french'; // Par défaut français
+        }
       };
 
       // Fonction pour traduire les titres selon la langue
@@ -220,7 +241,7 @@ export class PDFGenerator {
           ? jobDescription 
           : ((jobDescription as any)?.description || (jobDescription as any)?.title || '');
         
-        const detectedLanguage = this.detectJobDescriptionLanguage(jobDescText);
+        const detectedLanguage = detectJobDescriptionLanguage(jobDescText);
         console.log('🔍 PDF Language Detection:', {
           jobDescText: jobDescText.substring(0, 100) + '...',
           detectedLanguage,
