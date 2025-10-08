@@ -215,7 +215,12 @@ export class PDFGenerator {
           }
         };
         
-        return translations[title]?.[this.detectJobDescriptionLanguage(jobDescription)] || title;
+        // Extraire la vraie description textuelle du jobDescription
+        const jobDescText = typeof jobDescription === 'string' 
+          ? jobDescription 
+          : (jobDescription?.description || jobDescription?.title || '');
+        
+        return translations[title]?.[this.detectJobDescriptionLanguage(jobDescText)] || title;
       };
 
       // === GÉNÉRATION PDF AVEC DONNÉES STRUCTURÉES ===
