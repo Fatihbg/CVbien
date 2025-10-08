@@ -157,7 +157,7 @@ export class PDFGenerator {
       currentY += 3;
       
       addText(parsedCV.contact, 10, false, true, '#000000');
-      currentY += 1;
+      currentY += 2; // Augmenté de 1 à 2 pour plus d'espace
       
       addText(parsedCV.title, 14, true, true, '#000000');
       currentY += 4;
@@ -260,9 +260,10 @@ export class PDFGenerator {
             currentY += 2.5;
           }
           
-          // Afficher les langues en gras en dernier
+          // Afficher les langues en gras en dernier (sans **)
           if (languages.length > 0) {
-            addText(`• Langues : ${languages.join(', ')}`, 10, true, false, '#000000');
+            const cleanLanguages = languages.map(lang => lang.replace(/\*\*/g, '')).join(', ');
+            addText(`• Langues : ${cleanLanguages}`, 10, true, false, '#000000');
             currentY += 2.5;
           }
         }
