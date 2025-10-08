@@ -147,66 +147,47 @@ export const CVPreview: React.FC = () => {
           <button
             onClick={handleDownload}
             disabled={isDownloading}
-            className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              padding: '16px 32px',
+              fontSize: '16px',
+              fontWeight: '700',
+              background: isDownloading 
+                ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' 
+                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '16px',
+              boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
+              cursor: isDownloading ? 'not-allowed' : 'pointer',
+              opacity: isDownloading ? 0.8 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 0.3s ease'
+            }}
           >
-            <Download className="h-4 w-4" />
-            <span>
-              {isDownloading ? `${t.main.downloadProgress} ${downloadProgress}%` : t.main.downloadPDF}
-            </span>
+            {isDownloading ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderTop: '2px solid white',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+                <span>{t.main.downloadProgress} {downloadProgress}%</span>
+              </div>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                <span>{t.main.downloadPDF}</span>
+              </>
+            )}
           </button>
           
-          {/* Barre de progression identique à celle de génération */}
-          {isDownloading && (
-            <div className="slide-up" style={{ 
-              marginTop: '16px',
-              maxWidth: '400px',
-              margin: '16px auto 0 auto'
-            }}>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                marginBottom: '8px' 
-              }}>
-                <span style={{ 
-                  fontSize: '14px', 
-                  color: 'var(--text-secondary)',
-                  fontWeight: '600'
-                }}>
-                  {downloadProgress}%
-                </span>
-              </div>
-              <div className="progress-bar" style={{
-                width: '100%',
-                height: '8px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
-              }}>
-                <div className="progress-fill" style={{
-                  width: `${downloadProgress}%`,
-                  height: '100%',
-                  background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                  borderRadius: '16px',
-                  transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    top: '0',
-                    left: '0',
-                    height: '100%',
-                    width: '100%',
-                    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
-                    animation: 'shimmer 2s infinite'
-                  }}></div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

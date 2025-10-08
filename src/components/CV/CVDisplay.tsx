@@ -8,10 +8,15 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText }) => {
   // Parser le CV de manière simple et directe
   const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
   
-  // Fonction pour formater le texte avec les balises <B> et supprimer les **
+  // Fonction pour formater le texte avec les balises <B> et supprimer TOUS les **
   const formatText = (text: string) => {
-    // Supprimer tous les ** du texte
-    let cleanText = text.replace(/\*\*/g, '');
+    // Supprimer TOUS les ** du texte (plusieurs méthodes pour être sûr)
+    let cleanText = text
+      .replace(/\*\*/g, '') // Supprime **
+      .replace(/\*([^*]+)\*/g, '$1') // Supprime *texte*
+      .replace(/\*([^*]*)\*/g, '$1') // Supprime *texte* même vide
+      .replace(/\*+/g, '') // Supprime toute séquence de *
+      .trim();
     
     return cleanText.split('<B>').map((part, index) => {
       if (index === 0) return part;
