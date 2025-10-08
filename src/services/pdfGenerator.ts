@@ -218,7 +218,7 @@ export class PDFGenerator {
         // Extraire la vraie description textuelle du jobDescription
         const jobDescText = typeof jobDescription === 'string' 
           ? jobDescription 
-          : (jobDescription?.description || jobDescription?.title || '');
+          : ((jobDescription as any)?.description || (jobDescription as any)?.title || '');
         
         return translations[title]?.[this.detectJobDescriptionLanguage(jobDescText)] || title;
       };
