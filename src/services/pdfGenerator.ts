@@ -551,7 +551,7 @@ export class PDFGenerator {
 
       // EN-TÊTE - Format exact spécifié
       if (cvStructure.personalInfo) {
-        // Prénom NOM - MAJUSCULES, GRAS, plus grand
+        // Prénom NOM - MAJUSCULES, GRAS, plus grand, CENTRÉ
         if (cvStructure.personalInfo.name) {
           const cleanName = cvStructure.personalInfo.name.replace(/\*\*/g, '').toUpperCase();
           addText(cleanName, 18, true, true, '#000000'); // Plus grand que le reste
@@ -567,8 +567,19 @@ export class PDFGenerator {
         
         if (contactParts.length > 0) {
           addText(contactParts.join(' | '), 10, false, true, '#000000');
-          currentY += 6; // Espacement avant le profil
+          currentY += 4; // Espacement avant le titre de poste
           console.log('✅ Coordonnées ajoutées:', contactParts.join(' | '));
+        }
+
+        // Titre de poste - CENTRÉ et GRAS
+        if (cvStructure.personalInfo.title || cvStructure.title) {
+          const title = cvStructure.personalInfo.title || cvStructure.title;
+          const cleanTitle = title.replace(/https?:\/\/[^\s]+/g, '').trim();
+          if (cleanTitle) {
+            addText(cleanTitle, 12, true, true, '#000000');
+            currentY += 6; // Espacement avant le profil
+            console.log('✅ Titre ajouté:', cleanTitle);
+          }
         }
       }
 
@@ -606,9 +617,9 @@ export class PDFGenerator {
 
           console.log(`💼 Expérience ${index + 1}:`, exp);
 
-          // Nom entreprise/école + Période sur la même ligne
+          // Format exact : "Nom entreprise (Période)"
           if (exp.company || exp.title) {
-            const companyText = exp.company ? exp.company : exp.title;
+            const companyText = exp.company || exp.title;
             const dateText = exp.startDate && exp.endDate ? ` (${exp.startDate} - ${exp.endDate})` : '';
             
             addText(`${companyText}${dateText}`, 11, true, false, '#000000');
@@ -654,9 +665,9 @@ export class PDFGenerator {
 
           console.log(`📚 Formation ${index + 1}:`, edu);
 
-          // Nom école + Période sur la même ligne
+          // Format exact : "Nom école (Période)"
           if (edu.school || edu.degree) {
-            const schoolText = edu.school ? edu.school : edu.degree;
+            const schoolText = edu.school || edu.degree;
             const dateText = edu.startDate && edu.endDate ? ` (${edu.startDate} - ${edu.endDate})` : '';
             
             addText(`${schoolText}${dateText}`, 11, true, false, '#000000');
@@ -696,11 +707,11 @@ export class PDFGenerator {
 
         console.log('🔧 Compétences trouvées:', cvStructure.skills.length);
 
-        // Compétences listées en ligne et séparées par des virgules
+        // Compétences listées en ligne et séparées par des virgules (sans URLs parasites)
         const skillsText = cvStructure.skills.map((skill: any) => {
           const skillText = typeof skill === 'string' ? skill : skill.name || skill.skill;
           return skillText ? skillText.trim() : '';
-        }).filter(skill => skill).join(', ');
+        }).filter(skill => skill && !skill.includes('http') && !skill.includes('www.')).join(', ');
 
         if (skillsText) {
           addText(`Compétences: ${skillsText}`, 10, false, false, '#000000');
@@ -740,21 +751,6 @@ export class PDFGenerator {
           const certText = typeof cert === 'string' ? cert : cert.name || cert.title;
           if (certText && certText.trim()) {
             addText(`• ${certText}`, 10, false, false, '#000000');
-            currentY += 1;
-          }
-        });
-      }
-
-      // Ajouter les informations additionnelles si elles existent
-      if (cvStructure.additionalInfo && cvStructure.additionalInfo.length > 0) {
-        console.log('ℹ️ Informations additionnelles trouvées:', cvStructure.additionalInfo.length);
-
-        // Informations additionnelles avec bullet points ronds
-        cvStructure.additionalInfo.forEach((info: any, index: number) => {
-          if (currentY > pageHeight - 20) return;
-          const infoText = typeof info === 'string' ? info : info.name || info.title;
-          if (infoText && infoText.trim()) {
-            addText(`• ${infoText}`, 10, false, false, '#000000');
             currentY += 1;
           }
         });
