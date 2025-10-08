@@ -17,7 +17,8 @@ interface CVParsedData {
     period: string;
     description: string;
   }>;
-  skills: string;
+  technicalSkills: string;
+  softSkills: string;
   certifications: string[];
   additionalInfo: string;
 }
@@ -79,7 +80,8 @@ export class PDFGenerator {
       summary,
       experience: [],
       education: [],
-      skills: '',
+      technicalSkills: '',
+      softSkills: '',
       certifications: [],
       additionalInfo: ''
     };
@@ -145,7 +147,7 @@ export class PDFGenerator {
         doc.setLineWidth(0.5);
         // Placer la ligne DIRECTEMENT sous le titre (utiliser la position du titre)
         doc.line(margin, titleY + 0.5, pageWidth - margin, titleY + 0.5);
-        currentY = titleY + 5; // Plus d'espace après la ligne pour séparer du contenu
+        currentY = titleY + 7; // Encore plus d'espace après la ligne pour séparer du contenu
       };
 
       // === GÉNÉRATION PDF AVEC DONNÉES STRUCTURÉES ===
@@ -224,19 +226,24 @@ export class PDFGenerator {
       }
       
       // 6. INFORMATIONS ADDITIONNELLES
-      if (parsedCV.skills || parsedCV.additionalInfo) {
+      if (parsedCV.technicalSkills || parsedCV.softSkills || parsedCV.additionalInfo) {
         currentY += 4;
         const titleY = currentY;
         addText('INFORMATIONS ADDITIONNELLES', 12, true, false, '#000000');
         addHorizontalLine(titleY);
         
-        if (parsedCV.skills) {
-          addText(`• Compétences : ${parsedCV.skills}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
+        if (parsedCV.technicalSkills) {
+          addText(`• Compétences techniques : ${parsedCV.technicalSkills}`, 10, false, false, '#000000');
+          currentY += 2.5;
+        }
+        
+        if (parsedCV.softSkills) {
+          addText(`• Soft skills : ${parsedCV.softSkills}`, 10, false, false, '#000000');
           currentY += 2.5;
         }
         
         if (parsedCV.additionalInfo) {
-          addText(`• ${parsedCV.additionalInfo}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
+          addText(`• ${parsedCV.additionalInfo}`, 10, false, false, '#000000');
           currentY += 2.5;
         }
       }
