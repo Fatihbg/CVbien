@@ -36,7 +36,10 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText }) => {
       'merci', 'thank you', 'cordialement', 'sincerely', 'salutations', 'regards',
       'résultat', 'result', 'conclusion', 'en résumé', 'in summary', 'finalement',
       'pour finir', 'to conclude', 'ainsi', 'therefore', 'par conséquent', 'consequently',
-      'n\'hésitez pas', 'don\'t hesitate', 'contactez-moi', 'contact me'
+      'n\'hésitez pas', 'don\'t hesitate', 'contactez-moi', 'contact me',
+      'ce cv est optimisé', 'this cv is optimized', 'optimisé pour tenir', 'optimized to fit',
+      'reflète mes compétences', 'reflects my skills', 'pertinentes pour le poste', 'relevant for the position',
+      'chez sopra steria', 'at sopra steria', 'sopra steria', 'compétences et expériences', 'skills and experiences'
     ];
     
     const lowerLine = line.toLowerCase();
