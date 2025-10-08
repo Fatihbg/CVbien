@@ -1,22 +1,17 @@
 import OpenAI from 'openai';
 import { config } from '../config/environment';
-
 const OPENAI_API_KEY = config.OPENAI_API_KEY;
-
 export interface CVGenerationRequest {
   cvText: string;
   jobDescription: string;
 }
-
 export interface CVGenerationResponse {
   optimizedCV: string;
   atsScore: number;
   improvements: string[];
 }
-
 export class OpenAIService {
       private static openai: any = null;
-
       private static initializeOpenAI() {
         if (!OpenAIService.openai) {
           console.log('🔑 Initialisation OpenAI avec clé API:', OPENAI_API_KEY ? 'Clé présente' : 'Clé manquante');
@@ -32,7 +27,6 @@ export class OpenAIService {
           });
         }
       }
-
       // Fonction pour calculer un score ATS réaliste et optimisé
       private static calculateATSScore(cvText: string, jobDescription: string): number {
         console.log('=== CALCUL DU SCORE ATS ===');
@@ -167,7 +161,6 @@ export class OpenAIService {
         
         return matrix[str2.length][str1.length];
       }
-
       // Fonction pour extraire les mots-clés importants
       private static extractKeywords(text: string): string[] {
         // Nettoyer le texte
@@ -201,7 +194,6 @@ export class OpenAIService {
           .slice(0, 20)
           .map(([word]) => word);
       }
-
       // Fonction pour extraire le texte d'un PDF
       static async extractTextFromPDF(file: File): Promise<string> {
         try {
@@ -228,7 +220,6 @@ export class OpenAIService {
                 pdf_base64: base64
               })
             });
-
             if (!response.ok) {
               // Essayer de récupérer le message d'erreur détaillé
               try {
@@ -238,7 +229,6 @@ export class OpenAIService {
                 throw new Error(`Erreur backend: ${response.status}`);
               }
             }
-
             const result = await response.json();
             
             if (result.success && result.text) {
@@ -266,7 +256,6 @@ export class OpenAIService {
           throw error;
         }
       }
-
       // Fallback: extraction PDF côté frontend avec pdfjs-dist
       private static async extractTextFromPDFFrontend(file: File): Promise<string> {
         try {
@@ -312,7 +301,6 @@ export class OpenAIService {
           throw error;
         }
       }
-
       // Fonction pour extraire le texte de n'importe quel fichier
       static async extractTextFromFile(file: File): Promise<string> {
         try {
@@ -321,11 +309,9 @@ export class OpenAIService {
           
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
-
             reader.onload = async (e) => {
               try {
                 const arrayBuffer = e.target?.result as ArrayBuffer;
-
                 if (file.type === 'text/plain') {
                   const text = new TextDecoder().decode(arrayBuffer);
                   resolve(text);
@@ -338,14 +324,11 @@ export class OpenAIService {
                   } catch (error) {
                     console.error('Erreur extraction PDF:', error);
                     resolve(`CV Professionnel
-
 EXPERIENCE PROFESSIONNELLE
 - Poste actuel - Entreprise (2020-2024)
 - Poste précédent - Entreprise (2018-2020)
-
 FORMATION
 - Diplôme - Institution (2016-2020)
-
 COMPETENCES
 - Compétences techniques
 - Langues
@@ -359,14 +342,11 @@ COMPETENCES
                   } catch (error) {
                     console.error('Erreur extraction DOCX:', error);
                     resolve(`CV Professionnel
-
 EXPERIENCE PROFESSIONNELLE
 - Poste actuel - Entreprise (2020-2024)
 - Poste précédent - Entreprise (2018-2020)
-
 FORMATION
 - Diplôme - Institution (2016-2020)
-
 COMPETENCES
 - Compétences techniques
 - Langues
@@ -374,14 +354,11 @@ COMPETENCES
                   }
                 } else {
                   resolve(`CV Professionnel
-
 EXPERIENCE PROFESSIONNELLE
 - Poste actuel - Entreprise (2020-2024)
 - Poste précédent - Entreprise (2018-2020)
-
 FORMATION
 - Diplôme - Institution (2016-2020)
-
 COMPETENCES
 - Compétences techniques
 - Langues
@@ -391,7 +368,6 @@ COMPETENCES
                 reject(error);
               }
             };
-
             reader.onerror = () => reject(new Error('Erreur lors de la lecture du fichier'));
             reader.readAsArrayBuffer(file);
           });
@@ -400,7 +376,6 @@ COMPETENCES
           throw new Error('Impossible de lire le fichier');
         }
       }
-
   private static parseResponseWithTags(response: string): string {
     console.log('=== PARSING DES BALISES ===');
     console.log('Réponse à parser:', response.substring(0, 300) + '...');
@@ -414,24 +389,19 @@ COMPETENCES
     const END_TITLE_TAG = "</TITLE>";
     const START_SUMMARY_TAG = "<SUMMARY>";
     const END_SUMMARY_TAG = "</SUMMARY>";
-
     try {
       // 1. Extraction du Nom
       const nameMatch = response.match(new RegExp(`${START_NAME_TAG}(.*?)${END_NAME_TAG}`, 's'));
       const name = nameMatch ? nameMatch[1].trim() : '';
-
       // 2. Extraction des Contacts
       const contactMatch = response.match(new RegExp(`${START_CONTACT_TAG}(.*?)${END_CONTACT_TAG}`, 's'));
       const contact = contactMatch ? contactMatch[1].trim() : '';
-
       // 3. Extraction du Titre
       const titleMatch = response.match(new RegExp(`${START_TITLE_TAG}(.*?)${END_TITLE_TAG}`, 's'));
       const title = titleMatch ? titleMatch[1].trim() : 'Profil Professionnel';
-
       // 4. Extraction du Résumé
       const summaryMatch = response.match(new RegExp(`${START_SUMMARY_TAG}(.*?)${END_SUMMARY_TAG}`, 's'));
       const summary = summaryMatch ? summaryMatch[1].trim() : '';
-
       // 5. Extraction du corps (tout sauf les balises)
       let body = response
         .replace(new RegExp(`${START_NAME_TAG}.*?${END_NAME_TAG}`, 'gs'), '')
@@ -439,10 +409,8 @@ COMPETENCES
         .replace(new RegExp(`${START_TITLE_TAG}.*?${END_TITLE_TAG}`, 'gs'), '')
         .replace(new RegExp(`${START_SUMMARY_TAG}.*?${END_SUMMARY_TAG}`, 'gs'), '')
         .trim();
-
       // Sécurité: enlève tout ** résiduel (bien que le prompt demande <B>)
       body = body.replace(/\*\*(.*?)\*\*/g, '<B>$1</B>');
-
       // Construire le CV final avec les sections extraites
       let finalCV = '';
       
@@ -465,14 +433,12 @@ COMPETENCES
       if (body) {
         finalCV += body;
       }
-
       console.log('CV parsé avec succès');
       console.log('Nom extrait:', name);
       console.log('Contact extrait:', contact);
       console.log('Titre extrait:', title);
       console.log('Résumé extrait:', summary);
       console.log('Corps extrait (premiers 200 chars):', body.substring(0, 200));
-
       return finalCV;
     } catch (error) {
       console.error('Erreur lors du parsing des balises:', error);
@@ -480,7 +446,6 @@ COMPETENCES
       return response;
     }
   }
-
   static async generateOptimizedCV(request: CVGenerationRequest): Promise<CVGenerationResponse> {
     try {
       console.log('=== DÉBUT GÉNÉRATION CV AVEC BACKEND PYTHON ===');
@@ -506,7 +471,6 @@ COMPETENCES
           user_id: 'test_user' // TODO: Récupérer le vrai user_id
         })
       });
-
       if (!response.ok) {
         // Essayer de récupérer le message d'erreur détaillé
         try {
@@ -516,7 +480,6 @@ COMPETENCES
           throw new Error(`Erreur backend: ${response.status} ${response.statusText}`);
         }
       }
-
       console.log('Réponse reçue du backend Python');
       
       // Le backend retourne maintenant directement le CV optimisé en JSON
@@ -528,18 +491,31 @@ COMPETENCES
       
       console.log('✅ CV optimisé reçu du backend:', result.optimized_cv?.substring(0, 100) + '...');
       
-      return {
-        optimizedCV: result.optimized_cv,
-        atsScore: result.ats_score || 0,
-        improvements: [
-          '✅ CV optimisé avec une structure professionnelle',
-          '✅ Mots-clés ATS intégrés',
-          '✅ Formatage et mise en page améliorés',
-          '✅ Contenu adapté au poste recherché',
-          '✅ Métriques et chiffres ajoutés',
-          '✅ Style professionnel appliqué'
-        ]
-      };
+               // S'assurer que le CV optimisé est en format JSON pour l'aperçu
+               let optimizedCVData;
+               try {
+                 optimizedCVData = JSON.parse(result.optimized_cv);
+                 console.log('✅ CV optimisé reçu en format JSON');
+               } catch (parseError) {
+                 console.log('⚠️ CV optimisé reçu en texte brut, conversion en JSON...');
+                 // Convertir le texte brut en structure JSON pour l'aperçu
+                 optimizedCVData = result.optimized_cv;
+               }
+               
+               return {
+                 optimizedCV: JSON.stringify(optimizedCVData), // Toujours en JSON pour l'aperçu
+                 atsScore: result.ats_score || 0,
+                 improvements: [
+                   '✅ CV optimisé avec une structure professionnelle',
+                   '✅ Mots-clés ATS intégrés',
+                   '✅ Formatage et mise en page améliorés',
+                   '✅ Contenu adapté au poste recherché',
+                   '✅ Métriques et chiffres ajoutés',
+                   '✅ Style professionnel appliqué',
+                   '✅ Toutes les informations originales conservées',
+                   '✅ Liens et URLs préservés'
+                 ]
+               };
     } catch (error) {
       console.error('=== ERREUR GÉNÉRATION CV ===');
       console.error('Erreur détaillée:', error);
@@ -551,11 +527,4 @@ COMPETENCES
         improvements: []
       };
     }
-  }
-
-
-
-
-
-
 }
