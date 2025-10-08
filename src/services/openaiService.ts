@@ -553,9 +553,4 @@ ${request.jobDescription.substring(0, 200)}...`,
     }
   }
 
-
-
-
-
-
 }

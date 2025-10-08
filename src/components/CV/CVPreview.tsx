@@ -6,7 +6,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { CVDisplay } from './CVDisplay';
 
 export const CVPreview: React.FC = () => {
-  const { generatedCV, atsScore } = useCVGenerationStore();
+  const { generatedCV, atsScore, jobDescription } = useCVGenerationStore();
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
@@ -85,7 +85,7 @@ export const CVPreview: React.FC = () => {
       setTimeout(async () => {
         try {
           console.log('🎯 Génération PDF démarrée');
-          await PDFGenerator.generateCVPDF(generatedCV);
+          await PDFGenerator.generateCVPDF(generatedCV, jobDescription);
           console.log('✅ PDF généré avec succès');
           
           // Finaliser la progression
