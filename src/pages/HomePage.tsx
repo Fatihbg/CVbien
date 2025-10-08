@@ -354,7 +354,7 @@ export const HomePage: React.FC = () => {
           const filename = `${nameWithoutExt}_${currentCounter}.pdf`;
           
           console.log(`Téléchargement du CV: ${filename}`);
-          await PDFGenerator.generateCVPDF(generatedCV, filename);
+          await PDFGenerator.generateCVPDF(generatedCV, jobDescription, filename);
           console.log('✅ PDF généré avec succès');
           
           // Finaliser la progression

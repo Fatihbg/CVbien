@@ -24,10 +24,36 @@ interface CVParsedData {
 }
 
 export class PDFGenerator {
+  // Fonction pour détecter la langue de l'offre d'emploi
+  private static detectJobDescriptionLanguage(jobDescription: string): string {
+    // Détection simple basée sur des mots-clés
+    const frenchKeywords = ['recherche', 'poste', 'entreprise', 'expérience', 'compétences', 'mission', 'profil', 'candidat', 'équipe', 'développement'];
+    const englishKeywords = ['looking for', 'position', 'company', 'experience', 'skills', 'mission', 'profile', 'candidate', 'team', 'development'];
+    const dutchKeywords = ['zoeken', 'functie', 'bedrijf', 'ervaring', 'vaardigheden', 'missie', 'profiel', 'kandidaat', 'team', 'ontwikkeling'];
+    
+    const lowerJobDesc = jobDescription.toLowerCase();
+    
+    const frenchCount = frenchKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
+    const englishCount = englishKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
+    const dutchCount = dutchKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
+    
+    if (dutchCount > frenchCount && dutchCount > englishCount) {
+      return 'dutch';
+    } else if (englishCount > frenchCount && englishCount > dutchCount) {
+      return 'english';
+    } else {
+      return 'french'; // Par défaut français
+    }
+  }
+
   // Utiliser l'IA pour parser le CV
   private static async parseCVWithAI(cvText: string, jobDescription: string = ''): Promise<CVParsedData> {
     try {
       console.log('🤖 Utilisation de l\'IA pour parser le CV...');
+      
+      // Détecter la langue de l'offre d'emploi
+      const jobLanguage = this.detectJobDescriptionLanguage(jobDescription);
+      console.log('🌍 Langue détectée pour le PDF:', jobLanguage);
       
       const response = await fetch(`${config.API_BASE_URL}/parse-cv`, {
         method: 'POST',
@@ -36,7 +62,8 @@ export class PDFGenerator {
         },
         body: JSON.stringify({
           cv_text: cvText,
-          job_description: jobDescription
+          job_description: jobDescription,
+          target_language: jobLanguage // Langue de l'offre d'emploi
         })
       });
 
