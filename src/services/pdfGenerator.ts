@@ -153,18 +153,18 @@ export class PDFGenerator {
       // === GÉNÉRATION PDF AVEC DONNÉES STRUCTURÉES ===
       
       // 1. HEADER - Nom, Contact, Titre
-      addText(parsedCV.name, 18, true, true, '#000000');
+      addText(parsedCV.name, 19, true, true, '#000000'); // 18 -> 19
       currentY += 3;
       
-      addText(parsedCV.contact, 10, false, true, '#000000');
+      addText(parsedCV.contact, 11, false, true, '#000000'); // 10 -> 11
       currentY += 2; // Augmenté de 1 à 2 pour plus d'espace
       
-      addText(parsedCV.title, 14, true, true, '#000000');
+      addText(parsedCV.title, 15, true, true, '#000000'); // 14 -> 15
       currentY += 4;
       
       // 2. RÉSUMÉ PROFESSIONNEL
       if (parsedCV.summary && parsedCV.summary.trim()) {
-        addText(parsedCV.summary, 11, false, false, '#000000'); // Augmenté de 10 à 11
+        addText(parsedCV.summary, 12, false, false, '#000000'); // 11 -> 12
         currentY += 3;
       }
       
@@ -172,18 +172,18 @@ export class PDFGenerator {
       if (parsedCV.experience && parsedCV.experience.length > 0) {
         currentY += 4;
         const titleY = currentY;
-        addText('EXPÉRIENCE PROFESSIONNELLE', 12, true, false, '#000000');
+        addText('EXPÉRIENCE PROFESSIONNELLE', 13, true, false, '#000000'); // 12 -> 13
         addHorizontalLine(titleY);
         
         parsedCV.experience.forEach(exp => {
           // Entreprise et poste sur une ligne
           const companyPosition = `${exp.company} - ${exp.position} (${exp.period})`;
-          addText(companyPosition, 10, true, false, '#000000');
+          addText(companyPosition, 11, true, false, '#000000'); // 10 -> 11
           currentY += 1;
           
           // Descriptions avec bullet points
           exp.description.forEach(desc => {
-            addText(`• ${desc}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
+            addText(`• ${desc}`, 11, false, false, '#000000'); // 10 -> 11
             currentY += 2.5;
           });
           currentY += 1;
@@ -194,18 +194,18 @@ export class PDFGenerator {
       if (parsedCV.education && parsedCV.education.length > 0) {
         currentY += 4;
         const titleY = currentY;
-        addText('FORMATION', 12, true, false, '#000000');
+        addText('FORMATION', 13, true, false, '#000000'); // 12 -> 13
         addHorizontalLine(titleY);
         
         parsedCV.education.forEach(edu => {
           // Institution et diplôme sur une ligne
           const institutionDegree = `${edu.institution} - ${edu.degree} (${edu.period})`;
-          addText(institutionDegree, 10, true, false, '#000000');
+          addText(institutionDegree, 11, true, false, '#000000'); // 10 -> 11
           currentY += 1;
           
           // Description
           if (edu.description) {
-            addText(`• ${edu.description}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
+            addText(`• ${edu.description}`, 11, false, false, '#000000'); // 10 -> 11
             currentY += 2.5;
           }
           currentY += 1;
@@ -218,21 +218,21 @@ export class PDFGenerator {
       if (parsedCV.technicalSkills || parsedCV.softSkills || parsedCV.additionalInfo || parsedCV.certifications.length > 0) {
         currentY += 4;
         const titleY = currentY;
-        addText('INFORMATIONS ADDITIONNELLES', 12, true, false, '#000000');
+        addText('INFORMATIONS ADDITIONNELLES', 13, true, false, '#000000'); // 12 -> 13
         addHorizontalLine(titleY);
         
         if (parsedCV.technicalSkills) {
-          addText(`• Compétences techniques : ${parsedCV.technicalSkills}`, 10, false, false, '#000000');
+          addText(`• Compétences techniques : ${parsedCV.technicalSkills}`, 11, false, false, '#000000'); // 10 -> 11
           currentY += 2.5;
         }
         
         if (parsedCV.softSkills) {
-          addText(`• Soft skills : ${parsedCV.softSkills}`, 10, false, false, '#000000');
+          addText(`• Soft skills : ${parsedCV.softSkills}`, 11, false, false, '#000000'); // 10 -> 11
           currentY += 2.5;
         }
         
         if (parsedCV.certifications && parsedCV.certifications.length > 0) {
-          addText(`• Certifications : ${parsedCV.certifications.join(', ')}`, 10, false, false, '#000000');
+          addText(`• Certifications : ${parsedCV.certifications.join(', ')}`, 11, false, false, '#000000'); // 10 -> 11
           currentY += 2.5;
         }
         
@@ -247,6 +247,7 @@ export class PDFGenerator {
             part.toLowerCase().includes('italien') || 
             part.toLowerCase().includes('néerlandais') || 
             part.toLowerCase().includes('turc') ||
+            part.toLowerCase().includes('bilingue') ||
             part.toLowerCase().includes('c1') ||
             part.toLowerCase().includes('c2') ||
             part.toLowerCase().includes('b1') ||
@@ -256,14 +257,16 @@ export class PDFGenerator {
           
           // Afficher les autres informations d'abord
           if (otherInfo.length > 0) {
-            addText(`• ${otherInfo.join(', ')}`, 10, false, false, '#000000');
+            addText(`• ${otherInfo.join(', ')}`, 11, false, false, '#000000'); // 10 -> 11
             currentY += 2.5;
           }
           
-          // Afficher les langues en gras en dernier (sans **)
+          // Afficher les langues en gras en dernier (sans ** et sans duplication "langues")
           if (languages.length > 0) {
-            const cleanLanguages = languages.map(lang => lang.replace(/\*\*/g, '')).join(', ');
-            addText(`• Langues : ${cleanLanguages}`, 10, true, false, '#000000');
+            const cleanLanguages = languages.map(lang => 
+              lang.replace(/\*\*/g, '').replace(/langues?\s*:?\s*/gi, '').trim()
+            ).join(', ');
+            addText(`• Langues : ${cleanLanguages}`, 11, true, false, '#000000'); // 10 -> 11
             currentY += 2.5;
           }
         }
