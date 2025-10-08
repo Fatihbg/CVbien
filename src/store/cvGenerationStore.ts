@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { OpenAIService } from '../services/openaiService';
 import { config } from '../config/environment';
+import { useCVStore } from './cvStore';
 
 interface CVGenerationResponse {
   optimizedCV: string;
@@ -216,6 +217,10 @@ COMPETENCES
         progress: 100,
         progressMessage: 'CV généré avec succès !'
       });
+      
+      // Mettre à jour le store principal avec les scores ATS
+      const cvStore = useCVStore.getState();
+      cvStore.setATSScores(0, atsScore); // Score original = 0, Score généré = atsScore
     } catch (error) {
       console.error('Erreur lors de la génération:', error);
       set({ 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCVStore } from '../../store/cvStore';
 import { Download, Edit3, Save, X } from 'lucide-react';
 import { PDFGenerator } from '../../services/pdfGenerator';
+import { useTranslation } from '../../hooks/useTranslation';
 
 export const CVPreview: React.FC = () => {
   const { generatedCV, originalATSScore, generatedATSScore } = useCVStore();
@@ -9,6 +10,7 @@ export const CVPreview: React.FC = () => {
   const [editingValue, setEditingValue] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const { t } = useTranslation();
   // const [isEditing, setIsEditing] = useState(false);
 
   if (!generatedCV) {
@@ -127,22 +129,34 @@ export const CVPreview: React.FC = () => {
     <div className="card">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-semibold">4. Aperçu du CV</h3>
-        <button
-          onClick={handleDownload}
-          disabled={isDownloading}
-          className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Download className="h-4 w-4" />
-          <span>
-            {isDownloading ? `Téléchargement... ${downloadProgress}%` : 'Télécharger PDF'}
-          </span>
-        </button>
+        <div className="flex flex-col space-y-2">
+          <button
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="h-4 w-4" />
+            <span>
+              {isDownloading ? `${t.main.downloadProgress} ${downloadProgress}%` : t.main.downloadPDF}
+            </span>
+          </button>
+          
+          {/* Barre de progression */}
+          {isDownloading && (
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${downloadProgress}%` }}
+              ></div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Score ATS */}
       <div className="mb-6">
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h4 className="font-medium text-green-900 mb-1">Score ATS</h4>
+          <h4 className="font-medium text-green-900 mb-1">{t.main.atsScore}</h4>
           <div className="text-2xl font-bold text-green-600">
             {generatedATSScore || 0}/100
           </div>

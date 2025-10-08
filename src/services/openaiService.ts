@@ -482,8 +482,7 @@ COMPETENCES
           '✅ Métriques et chiffres ajoutés',
           '✅ Style professionnel appliqué',
           '✅ Toutes les informations originales conservées',
-          '✅ Formations enrichies avec liens au poste',
-          '✅ Soft skills et compétences techniques séparées'
+          '✅ Formations enrichies avec liens au poste'
         ]
       };
     } catch (error) {

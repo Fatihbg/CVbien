@@ -1671,8 +1671,7 @@ export const HomePage: React.FC = () => {
                     marginBottom: '8px',
                     fontStyle: 'italic'
                   }}>
-                    L'objectif de ce nouveau CV n'est pas d'être le plus beau/esthétique possible, 
-                    mais d'être optimisé au maximum dans une structure professionnelle et claire.
+                    {t.main.improvementsExplanation}
                   </p>
                   <h4 style={{ 
                     fontSize: '14px', 

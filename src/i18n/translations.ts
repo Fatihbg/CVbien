@@ -14,25 +14,27 @@ export interface Translations {
   };
   
   // Main content
-  main: {
-    title: string;
-    subtitle: string;
-    uploadTitle: string;
-    uploadSubtitle: string;
-    dragDrop: string;
-    or: string;
-    selectFile: string;
-    jobDescriptionTitle: string;
-    jobDescriptionPlaceholder: string;
-    generateButton: string;
-    creditInfo: string;
-    downloadPDF: string;
-    editCV: string;
-    previewTitle: string;
-    atsScore: string;
-    improvements: string;
-    advice: string;
-  };
+    main: {
+      title: string;
+      subtitle: string;
+      uploadTitle: string;
+      uploadSubtitle: string;
+      dragDrop: string;
+      or: string;
+      selectFile: string;
+      jobDescriptionTitle: string;
+      jobDescriptionPlaceholder: string;
+      generateButton: string;
+      creditInfo: string;
+      downloadPDF: string;
+      editCV: string;
+      previewTitle: string;
+      atsScore: string;
+      improvements: string;
+      advice: string;
+      improvementsExplanation: string;
+      downloadProgress: string;
+    };
   
   // Auth modal
   auth: {
@@ -150,7 +152,9 @@ export const translations: Record<string, Translations> = {
       previewTitle: "Aperçu de votre CV optimisé",
       atsScore: "Score ATS",
       improvements: "Améliorations apportées",
-      advice: "💡 Conseil : Plus il y a de chiffres (%, €, années), de liens (LinkedIn, portfolio) et de mots-clés de l'offre, plus le score ATS est élevé !"
+      advice: "💡 Conseil : Plus il y a de chiffres (%, €, années), de liens (LinkedIn, portfolio) et de mots-clés de l'offre, plus le score ATS est élevé !",
+      improvementsExplanation: "L'objectif de ce nouveau CV n'est pas d'être le plus beau/esthétique possible, mais d'être optimisé au maximum dans une structure professionnelle et claire.",
+      downloadProgress: "Téléchargement..."
     },
     auth: {
       login: "Connexion",
@@ -252,7 +256,9 @@ export const translations: Record<string, Translations> = {
       previewTitle: "Preview of your optimized resume",
       atsScore: "ATS Score",
       improvements: "Improvements made",
-      advice: "💡 Tip: More numbers (%, $, years), links (LinkedIn, portfolio) and job offer keywords lead to a higher ATS score!"
+      advice: "💡 Tip: More numbers (%, $, years), links (LinkedIn, portfolio) and job offer keywords lead to a higher ATS score!",
+      improvementsExplanation: "The goal of this new resume is not to be the most beautiful/aesthetic possible, but to be optimized to the maximum in a professional and clear structure.",
+      downloadProgress: "Downloading..."
     },
     auth: {
       login: "Login",
