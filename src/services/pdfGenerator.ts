@@ -118,7 +118,27 @@ export class PDFGenerator {
           console.log('✅ Fin du header détectée avec:', line);
         }
         
-        // Sections principales - avec lignes horizontales BLEUES - Plus flexible
+        // Traiter le résumé professionnel (après le header, avant les sections)
+        if (!isHeader && !currentSection && line.length > 20 && line.length < 300 && 
+            !line.includes('PROFESSIONAL EXPERIENCE') && !line.includes('EXPÉRIENCE PROFESSIONNELLE') &&
+            !line.includes('EDUCATION') && !line.includes('FORMATION') &&
+            !line.includes('SKILLS') && !line.includes('COMPETENCES') &&
+            !line.includes('CERTIFICATIONS') && !line.includes('ACHIEVEMENTS') &&
+            !line.startsWith('•') && !line.startsWith('-') && !line.includes('---')) {
+          
+          // Nettoyer les balises HTML et les **
+          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
+          
+          // Vérifier si c'est une phrase de conclusion à ignorer
+          if (!cleanLine.includes('enthousiaste') && !cleanLine.includes('contribuer au succès') && 
+              !cleanLine.includes('solutions innovantes') && !cleanLine.includes('transformation digitale')) {
+            addText(cleanLine, 10, false, false, '#000000'); // Résumé professionnel
+            currentY += 2;
+            console.log('✅ Résumé professionnel détecté:', cleanLine);
+          }
+        }
+        
+        // Sections principales - avec lignes horizontales NOIRES - Plus flexible
         const sectionKeywords = ['EXPERIENCE', 'EDUCATION', 'SKILLS', 'CERTIFICATIONS', 'ACHIEVEMENTS', 
                                 'FORMATION', 'COMPETENCES', 'PROJECTS', 'OTHER', 'SUMMARY', 'RÉSUMÉ'];
         
@@ -126,22 +146,26 @@ export class PDFGenerator {
           line.toUpperCase().includes(keyword) && line.length < 50
         );
         
-        if (isSection && !isHeader) {
+        // Éviter la duplication des titres de sections
+        if (isSection && !isHeader && line !== currentSection) {
           currentY += 4;
           
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+          // Nettoyer les balises HTML et les **
+          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
           
-          addText(cleanLine, 12, true, false, '#000000'); // Sections en noir
-          currentY += 3;
-          
-          // Ligne horizontale NOIRE SOUS le titre
-          doc.setDrawColor(0, 0, 0); // Noir
-          doc.setLineWidth(1.0);
-          doc.line(margin, currentY - 1, pageWidth - margin, currentY - 1);
-          
-          currentSection = cleanLine;
-          console.log('✅ Section détectée:', cleanLine);
+          // Ignorer les lignes avec "---"
+          if (!cleanLine.includes('---')) {
+            addText(cleanLine, 12, true, false, '#000000'); // Sections en noir
+            currentY += 3;
+            
+            // Ligne horizontale NOIRE SOUS le titre
+            doc.setDrawColor(0, 0, 0); // Noir
+            doc.setLineWidth(1.0);
+            doc.line(margin, currentY - 1, pageWidth - margin, currentY - 1);
+            
+            currentSection = cleanLine;
+            console.log('✅ Section détectée:', cleanLine);
+          }
         }
         // Postes/titres dans les sections - EN GRAS - Plus flexible
         else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
@@ -166,8 +190,8 @@ export class PDFGenerator {
         }
         // TOUT LE RESTE - capturer absolument tout
         else if (!isHeader && line.length > 0) {
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+          // Nettoyer les balises HTML et les **
+          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
           
           // Formatage spécial pour les puces
           if (cleanLine.startsWith('•') || cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
@@ -479,8 +503,8 @@ export class PDFGenerator {
                  line.length > 3 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-') &&
                  !line.includes('@') && !line.includes('|') && !line.includes('+')) {
           
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+          // Nettoyer les balises HTML et les **
+          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
           
           // Vérifier si c'est une entreprise (pas un poste)
           const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
@@ -501,8 +525,8 @@ export class PDFGenerator {
         else if (currentSection && (currentSection.includes('EXPERIENCE') || currentSection.includes('PROJECTS')) &&
                  line.length > 5 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
           
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+          // Nettoyer les balises HTML et les **
+          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
           
           const jobKeywords = ['analyst', 'consultant', 'developer', 'manager', 'engineer', 'specialist', 'coordinator', 
                               'director', 'lead', 'senior', 'junior', 'intern', 'assistant', 'ceo', 'founder', 'owner'];
@@ -522,8 +546,8 @@ export class PDFGenerator {
         else if (currentSection && (currentSection.includes('EDUCATION') || currentSection.includes('FORMATION')) &&
                  line.length > 3 && line.length < 80 && !line.startsWith('•') && !line.startsWith('-')) {
           
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+          // Nettoyer les balises HTML et les **
+          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
           
           // Détecter les diplômes et formations à mettre en gras
           const educationKeywords = ['master', 'bachelor', 'degree', 'diploma', 'certificate', 'phd', 'doctorate', 
@@ -557,8 +581,8 @@ export class PDFGenerator {
                  currentSection.includes('CERTIFICATIONS') || currentSection.includes('ACHIEVEMENTS')) &&
                  line.length > 0) {
           
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
+          // Nettoyer les balises HTML et les **
+          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
           
           // Formatage spécial pour les sous-catégories
           if (cleanLine.includes(':') && !cleanLine.startsWith('•')) {
@@ -578,10 +602,16 @@ export class PDFGenerator {
         }
         // Texte normal
         else if (line.length > 0) {
-          // Nettoyer les balises HTML
-          const cleanLine = line.replace(/<[^>]*>/g, '');
-          addText(cleanLine, 9, false, false, false, '#000000');
-          currentY += 0.3; // Plus d'espace
+          // Nettoyer les balises HTML et les **
+          const cleanLine = line.replace(/<[^>]*>/g, '').replace(/\*\*/g, '');
+          
+          // Ignorer les phrases de conclusion à la fin du CV
+          if (!cleanLine.includes('enthousiaste') && !cleanLine.includes('contribuer au succès') && 
+              !cleanLine.includes('solutions innovantes') && !cleanLine.includes('transformation digitale') &&
+              !cleanLine.includes('---')) {
+            addText(cleanLine, 9, false, false, false, '#000000');
+            currentY += 0.3; // Plus d'espace
+          }
         }
       });
 
