@@ -24,7 +24,7 @@ interface CVParsedData {
 
 export class PDFGenerator {
   // Utiliser l'IA pour parser le CV
-  private static async parseCVWithAI(cvText: string): Promise<CVParsedData> {
+  private static async parseCVWithAI(cvText: string, jobDescription: string = ''): Promise<CVParsedData> {
     try {
       console.log('🤖 Utilisation de l\'IA pour parser le CV...');
       
@@ -34,7 +34,8 @@ export class PDFGenerator {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          cv_text: cvText
+          cv_text: cvText,
+          job_description: jobDescription
         })
       });
 
@@ -84,13 +85,14 @@ export class PDFGenerator {
     };
   }
 
-  static async generateCVPDF(cvText: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
+  static async generateCVPDF(cvText: string, jobDescription: string = '', filename: string = 'optimized-cv.pdf'): Promise<void> {
     try {
       console.log('=== GÉNÉRATION PDF AVEC IA ===');
       console.log('CV Text length:', cvText.length);
+      console.log('Job Description length:', jobDescription.length);
       
-      // Parser le CV avec l'IA
-      const parsedCV = await this.parseCVWithAI(cvText);
+      // Parser le CV avec l'IA en incluant la description du job
+      const parsedCV = await this.parseCVWithAI(cvText, jobDescription);
       
       const { default: jsPDF } = await import('jspdf');
       
@@ -136,14 +138,14 @@ export class PDFGenerator {
         });
       };
 
-      // Fonction pour ajouter une ligne horizontale VRAIMENT COLLÉE au titre
-      const addHorizontalLine = () => {
+      // Fonction pour ajouter une ligne horizontale DIRECTEMENT SOUS LE TITRE
+      const addHorizontalLine = (titleY: number) => {
         if (currentY > pageHeight - 20) return;
         doc.setDrawColor(0, 0, 0); // Noir
         doc.setLineWidth(0.5);
-        // Placer la ligne VRAIMENT COLLÉE au titre (presque pas d'espace)
-        doc.line(margin, currentY + 0.1, pageWidth - margin, currentY + 0.1);
-        currentY += 3; // Espace après la ligne
+        // Placer la ligne DIRECTEMENT sous le titre (utiliser la position du titre)
+        doc.line(margin, titleY + 0.5, pageWidth - margin, titleY + 0.5);
+        currentY = titleY + 3; // Espace après la ligne
       };
 
       // === GÉNÉRATION PDF AVEC DONNÉES STRUCTURÉES ===
@@ -167,9 +169,9 @@ export class PDFGenerator {
       // 3. EXPÉRIENCE PROFESSIONNELLE
       if (parsedCV.experience && parsedCV.experience.length > 0) {
         currentY += 4;
+        const titleY = currentY;
         addText('EXPÉRIENCE PROFESSIONNELLE', 12, true, false, '#000000');
-        currentY += 0.5; // Presque pas d'espace pour vraiment coller la ligne
-        addHorizontalLine();
+        addHorizontalLine(titleY);
         
         parsedCV.experience.forEach(exp => {
           // Entreprise et poste sur une ligne
@@ -189,9 +191,9 @@ export class PDFGenerator {
       // 4. FORMATION
       if (parsedCV.education && parsedCV.education.length > 0) {
         currentY += 4;
+        const titleY = currentY;
         addText('FORMATION', 12, true, false, '#000000');
-        currentY += 0.5; // Presque pas d'espace pour vraiment coller la ligne
-        addHorizontalLine();
+        addHorizontalLine(titleY);
         
         parsedCV.education.forEach(edu => {
           // Institution et diplôme sur une ligne
@@ -211,9 +213,9 @@ export class PDFGenerator {
       // 5. CERTIFICATIONS
       if (parsedCV.certifications && parsedCV.certifications.length > 0) {
         currentY += 4;
+        const titleY = currentY;
         addText('CERTIFICATIONS & RÉALISATIONS', 12, true, false, '#000000');
-        currentY += 0.5; // Presque pas d'espace pour vraiment coller la ligne
-        addHorizontalLine();
+        addHorizontalLine(titleY);
         
         parsedCV.certifications.forEach(cert => {
           addText(`• ${cert}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
@@ -224,9 +226,9 @@ export class PDFGenerator {
       // 6. INFORMATIONS ADDITIONNELLES
       if (parsedCV.skills || parsedCV.additionalInfo) {
         currentY += 4;
+        const titleY = currentY;
         addText('INFORMATIONS ADDITIONNELLES', 12, true, false, '#000000');
-        currentY += 0.5; // Presque pas d'espace pour vraiment coller la ligne
-        addHorizontalLine();
+        addHorizontalLine(titleY);
         
         if (parsedCV.skills) {
           addText(`• Compétences : ${parsedCV.skills}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
