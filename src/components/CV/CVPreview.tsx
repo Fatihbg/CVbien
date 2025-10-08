@@ -155,13 +155,56 @@ export const CVPreview: React.FC = () => {
             </span>
           </button>
           
-          {/* Barre de progression */}
+          {/* Barre de progression identique à celle de génération */}
           {isDownloading && (
-            <div className="w-full bg-gray-200 rounded-full h-3" style={{ marginTop: '8px' }}>
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
-                style={{ width: `${downloadProgress}%` }}
-              ></div>
+            <div className="slide-up" style={{ 
+              marginTop: '16px',
+              maxWidth: '400px',
+              margin: '16px auto 0 auto'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginBottom: '8px' 
+              }}>
+                <span style={{ 
+                  fontSize: '14px', 
+                  color: 'var(--text-secondary)',
+                  fontWeight: '600'
+                }}>
+                  {downloadProgress}%
+                </span>
+              </div>
+              <div className="progress-bar" style={{
+                width: '100%',
+                height: '8px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}>
+                <div className="progress-fill" style={{
+                  width: `${downloadProgress}%`,
+                  height: '100%',
+                  background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                  borderRadius: '16px',
+                  transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    height: '100%',
+                    width: '100%',
+                    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+                    animation: 'shimmer 2s infinite'
+                  }}></div>
+                </div>
+              </div>
             </div>
           )}
         </div>

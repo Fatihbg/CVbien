@@ -8,9 +8,12 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText }) => {
   // Parser le CV de manière simple et directe
   const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
   
-  // Fonction pour formater le texte avec les balises <B>
+  // Fonction pour formater le texte avec les balises <B> et supprimer les **
   const formatText = (text: string) => {
-    return text.split('<B>').map((part, index) => {
+    // Supprimer tous les ** du texte
+    let cleanText = text.replace(/\*\*/g, '');
+    
+    return cleanText.split('<B>').map((part, index) => {
       if (index === 0) return part;
       const [boldText, rest] = part.split('</B>');
       return (
@@ -20,6 +23,19 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText }) => {
         </React.Fragment>
       );
     });
+  };
+
+  // Fonction pour détecter les phrases de conclusion à supprimer
+  const isConclusionPhrase = (line: string) => {
+    const conclusionKeywords = [
+      'merci', 'thank you', 'cordialement', 'sincerely', 'salutations', 'regards',
+      'résultat', 'result', 'conclusion', 'en résumé', 'in summary', 'finalement',
+      'pour finir', 'to conclude', 'ainsi', 'therefore', 'par conséquent', 'consequently',
+      'n\'hésitez pas', 'don\'t hesitate', 'contactez-moi', 'contact me'
+    ];
+    
+    const lowerLine = line.toLowerCase();
+    return conclusionKeywords.some(keyword => lowerLine.includes(keyword));
   };
 
   // Fonction pour détecter si une ligne est un titre de section
@@ -57,6 +73,9 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText }) => {
       {lines.map((line, index) => {
         // Ignorer les lignes vides
         if (!line || line.length === 0) return null;
+        
+        // Ignorer les phrases de conclusion
+        if (isConclusionPhrase(line)) return null;
         
         // Header (nom en majuscules) - première ligne qui est un nom
         if (index === 0 && line.length > 3 && line.length < 50 && line === line.toUpperCase() && !line.includes('@') && !isSectionTitle(line)) {
