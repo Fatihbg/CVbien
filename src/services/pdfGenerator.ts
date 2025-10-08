@@ -87,7 +87,7 @@ export class PDFGenerator {
     };
   }
 
-  static async generateCVPDF(cvText: string, jobDescription: string = '', filename: string = 'optimized-cv.pdf'): Promise<void> {
+  static async generateCVPDF(cvText: string, jobDescription: string = '', filename?: string): Promise<void> {
     try {
       console.log('=== GÉNÉRATION PDF AVEC IA ===');
       console.log('CV Text length:', cvText.length);
@@ -95,6 +95,19 @@ export class PDFGenerator {
       
       // Parser le CV avec l'IA en incluant la description du job
       const parsedCV = await this.parseCVWithAI(cvText, jobDescription);
+      
+      // Générer un nom de fichier dynamique si non fourni
+      let finalFilename = filename;
+      if (!finalFilename) {
+        const name = parsedCV.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        
+        // Utiliser localStorage pour compter les téléchargements
+        const storageKey = `cv-download-count-${name}`;
+        const currentCount = parseInt(localStorage.getItem(storageKey) || '0') + 1;
+        localStorage.setItem(storageKey, currentCount.toString());
+        
+        finalFilename = `${name}-cv-${currentCount}.pdf`;
+      }
       
       const { default: jsPDF } = await import('jspdf');
       
@@ -272,8 +285,8 @@ export class PDFGenerator {
         }
       }
 
-      doc.save(filename);
-      console.log('✅ PDF généré avec succès');
+      doc.save(finalFilename);
+      console.log('✅ PDF généré avec succès:', finalFilename);
       
     } catch (error) {
       console.error('❌ Erreur génération PDF:', error);

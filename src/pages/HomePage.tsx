@@ -1664,23 +1664,33 @@ export const HomePage: React.FC = () => {
                 borderRadius: '12px',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
               }}>
-                <h4 style={{ 
-                  fontSize: '14px', 
-                  fontWeight: '600', 
-                  color: 'var(--text-primary)', 
-                  marginBottom: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}>
-                  <div style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-                  }} />
-                  {t.main.improvements.toUpperCase()} :
-                </h4>
+                <div style={{ marginBottom: '12px' }}>
+                  <p style={{
+                    fontSize: '12px',
+                    color: 'var(--text-secondary)',
+                    marginBottom: '8px',
+                    fontStyle: 'italic'
+                  }}>
+                    L'objectif de ce nouveau CV n'est pas d'être le plus beau/esthétique possible, 
+                    mais d'être optimisé au maximum dans une structure professionnelle et claire.
+                  </p>
+                  <h4 style={{ 
+                    fontSize: '14px', 
+                    fontWeight: '600', 
+                    color: 'var(--text-primary)', 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <div style={{
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+                    }} />
+                    {t.main.improvements.toUpperCase()} :
+                  </h4>
+                </div>
                 <ul style={{ fontSize: '12px', color: 'var(--text-secondary)', paddingLeft: '16px', margin: '0 0 12px 0' }}>
                   {(improvements || []).map((improvement, index) => (
                     <li key={index} style={{ marginBottom: '6px', lineHeight: '1.4' }}>{improvement}</li>

@@ -478,12 +478,12 @@ COMPETENCES
         improvements: [
           '✅ CV optimisé avec une structure professionnelle',
           '✅ Mots-clés ATS intégrés',
-          '✅ Formatage et mise en page améliorés',
           '✅ Contenu adapté au poste recherché',
           '✅ Métriques et chiffres ajoutés',
           '✅ Style professionnel appliqué',
           '✅ Toutes les informations originales conservées',
-          '✅ Liens et URLs préservés'
+          '✅ Formations enrichies avec liens au poste',
+          '✅ Soft skills et compétences techniques séparées'
         ]
       };
     } catch (error) {

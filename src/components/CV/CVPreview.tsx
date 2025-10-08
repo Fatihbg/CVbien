@@ -7,6 +7,8 @@ export const CVPreview: React.FC = () => {
   const { generatedCV, originalATSScore, generatedATSScore } = useCVStore();
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   // const [isEditing, setIsEditing] = useState(false);
 
   if (!generatedCV) {
@@ -43,10 +45,37 @@ export const CVPreview: React.FC = () => {
   const handleDownload = async () => {
     if (!generatedCV) return;
     
+    setIsDownloading(true);
+    setDownloadProgress(0);
+    
     try {
+      // Simulation de progression
+      const progressInterval = setInterval(() => {
+        setDownloadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 100);
+      
       await PDFGenerator.generateCVPDF(JSON.stringify(generatedCV));
+      
+      // Finaliser la progression
+      clearInterval(progressInterval);
+      setDownloadProgress(100);
+      
+      // Réinitialiser après un délai
+      setTimeout(() => {
+        setIsDownloading(false);
+        setDownloadProgress(0);
+      }, 500);
+      
     } catch (error) {
       console.error('Erreur lors de la génération du PDF:', error);
+      setIsDownloading(false);
+      setDownloadProgress(0);
     }
   };
 
@@ -100,23 +129,20 @@ export const CVPreview: React.FC = () => {
         <h3 className="text-lg font-semibold">4. Aperçu du CV</h3>
         <button
           onClick={handleDownload}
-          className="btn-primary flex items-center space-x-2"
+          disabled={isDownloading}
+          className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Download className="h-4 w-4" />
-          <span>Télécharger PDF</span>
+          <span>
+            {isDownloading ? `Téléchargement... ${downloadProgress}%` : 'Télécharger PDF'}
+          </span>
         </button>
       </div>
 
-      {/* Scores ATS */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <h4 className="font-medium text-red-900 mb-1">Score ATS original</h4>
-          <div className="text-2xl font-bold text-red-600">
-            {originalATSScore || 0}/100
-          </div>
-        </div>
+      {/* Score ATS */}
+      <div className="mb-6">
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h4 className="font-medium text-green-900 mb-1">Score ATS optimisé</h4>
+          <h4 className="font-medium text-green-900 mb-1">Score ATS</h4>
           <div className="text-2xl font-bold text-green-600">
             {generatedATSScore || 0}/100
           </div>
