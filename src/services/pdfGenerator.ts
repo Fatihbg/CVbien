@@ -4,26 +4,23 @@ import jsPDF from 'jspdf';
 export class PDFGenerator {
   static async generateCVPDF(cvData: string, filename: string = 'optimized-cv.pdf'): Promise<void> {
     try {
-      console.log('=== GÉNÉRATION PDF - STRUCTURE INTELLIGENTE OBLIGATOIRE ===');
+      console.log('=== GÉNÉRATION PDF - FORCER STRUCTURE APERÇU ===');
       
       // TOUJOURS essayer de parser en JSON d'abord (structure de l'aperçu)
       let cvStructure;
       try {
         cvStructure = JSON.parse(cvData);
-        console.log('📊 Structure JSON détectée - utilisation de l\'aperçu intelligent:', cvStructure);
+        console.log('📊 Structure JSON de l\'aperçu détectée:', cvStructure);
         
-        // Utiliser la structure de l'aperçu pour générer le PDF (TOUJOURS)
+        // FORCER l'utilisation de la structure de l'aperçu
         await this.generatePDFFromStructure(cvStructure, filename);
         
       } catch (parseError) {
-        console.log('⚠️ Texte brut détecté - FORCER l\'utilisation de la structure de l\'aperçu...');
+        console.log('⚠️ Texte brut détecté - Conversion forcée en structure aperçu...');
         
-        // Si c'est du texte brut, c'est un problème - on devrait toujours avoir la structure JSON
-        console.error('❌ Erreur: Le CV optimisé devrait toujours être en format JSON');
-        
-        // Fallback: essayer de convertir le texte brut
+        // Si c'est du texte brut, convertir en structure aperçu
         cvStructure = this.convertTextToIntelligentStructure(cvData);
-        console.log('🧠 Structure intelligente créée (fallback):', cvStructure);
+        console.log('🧠 Structure aperçu créée:', cvStructure);
         
         // Utiliser la structure convertie pour générer le PDF
         await this.generatePDFFromStructure(cvStructure, filename);
@@ -549,7 +546,8 @@ export class PDFGenerator {
         });
       };
 
-      console.log('🎯 Génération PDF - VERSION SCREEN (Design classique professionnel)...');
+      console.log('🎯 Génération PDF - STRUCTURE APERÇU EXACTE...');
+      console.log('📋 Structure complète reçue:', cvStructure);
 
       // HEADER SCREEN - Design classique professionnel
       if (cvStructure.personalInfo) {
@@ -558,25 +556,34 @@ export class PDFGenerator {
           const cleanName = cvStructure.personalInfo.name.replace(/\*\*/g, '').toUpperCase();
           addText(cleanName, 16, true, true, '#000000');
           currentY += 4;
+          console.log('✅ Nom ajouté:', cleanName);
         }
 
-        // Contact - CENTRÉ
+        // Contact - CENTRÉ (sans doublons de liens)
         const contactParts = [];
         if (cvStructure.personalInfo.location) contactParts.push(cvStructure.personalInfo.location);
         if (cvStructure.personalInfo.phone) contactParts.push(cvStructure.personalInfo.phone);
         if (cvStructure.personalInfo.email) contactParts.push(cvStructure.personalInfo.email);
-        if (cvStructure.personalInfo.website) contactParts.push(cvStructure.personalInfo.website);
+        if (cvStructure.personalInfo.website && !cvStructure.personalInfo.title?.includes(cvStructure.personalInfo.website)) {
+          contactParts.push(cvStructure.personalInfo.website);
+        }
         
         if (contactParts.length > 0) {
           addText(contactParts.join(' | '), 10, false, true, '#000000');
           currentY += 4;
+          console.log('✅ Contact ajouté:', contactParts.join(' | '));
         }
 
-        // Titre de poste - CENTRÉ et GRAS
+        // Titre de poste - CENTRÉ et GRAS (sans liens dupliqués)
         if (cvStructure.personalInfo.title || cvStructure.title) {
           const title = cvStructure.personalInfo.title || cvStructure.title;
-          addText(title.toUpperCase(), 12, true, true, '#000000');
-          currentY += 6; // Espacement avant le résumé
+          // Supprimer les liens dupliqués du titre
+          const cleanTitle = title.replace(/https?:\/\/[^\s]+/g, '').trim();
+          if (cleanTitle) {
+            addText(cleanTitle.toUpperCase(), 12, true, true, '#000000');
+            currentY += 6; // Espacement avant le résumé
+            console.log('✅ Titre ajouté:', cleanTitle);
+          }
         }
       }
 
@@ -601,9 +608,13 @@ export class PDFGenerator {
         doc.line(margin, lineY, pageWidth - margin, lineY);
         currentY = lineY + 6; // Espacement après la ligne
 
+        console.log('💼 Expériences trouvées:', cvStructure.experience.length);
+
         // Chaque expérience - SCREEN STYLE (tirets simples)
         cvStructure.experience.forEach((exp: any, index: number) => {
           if (currentY > pageHeight - 30) return;
+
+          console.log(`💼 Expérience ${index + 1}:`, exp);
 
           // Titre + Entreprise
           if (exp.title || exp.company) {
@@ -630,6 +641,8 @@ export class PDFGenerator {
           
           currentY += 2; // Espacement entre expériences
         });
+      } else {
+        console.log('⚠️ Aucune expérience trouvée dans la structure');
       }
 
       // FORMATION - SCREEN STYLE
