@@ -136,13 +136,14 @@ export class PDFGenerator {
         });
       };
 
-      // Fonction pour ajouter une ligne horizontale
+      // Fonction pour ajouter une ligne horizontale DIRECTEMENT sous le titre
       const addHorizontalLine = () => {
         if (currentY > pageHeight - 20) return;
         doc.setDrawColor(0, 0, 0); // Noir
         doc.setLineWidth(0.5);
-        doc.line(margin, currentY + 1, pageWidth - margin, currentY + 1);
-        currentY += 2;
+        // Placer la ligne DIRECTEMENT sous le titre (pas d'espace supplémentaire)
+        doc.line(margin, currentY + 0.5, pageWidth - margin, currentY + 0.5);
+        currentY += 3; // Espace après la ligne
       };
 
       // === GÉNÉRATION PDF AVEC DONNÉES STRUCTURÉES ===
@@ -159,7 +160,7 @@ export class PDFGenerator {
       
       // 2. RÉSUMÉ PROFESSIONNEL
       if (parsedCV.summary && parsedCV.summary.trim()) {
-        addText(parsedCV.summary, 10, false, false, '#000000');
+        addText(parsedCV.summary, 11, false, false, '#000000'); // Augmenté de 10 à 11
         currentY += 3;
       }
       
@@ -178,7 +179,7 @@ export class PDFGenerator {
           
           // Descriptions avec bullet points
           exp.description.forEach(desc => {
-            addText(`• ${desc}`, 9, false, false, '#000000');
+            addText(`• ${desc}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
             currentY += 2.5;
           });
           currentY += 1;
@@ -200,7 +201,7 @@ export class PDFGenerator {
           
           // Description
           if (edu.description) {
-            addText(`• ${edu.description}`, 9, false, false, '#000000');
+            addText(`• ${edu.description}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
             currentY += 2.5;
           }
           currentY += 1;
@@ -215,7 +216,7 @@ export class PDFGenerator {
         addHorizontalLine();
         
         parsedCV.certifications.forEach(cert => {
-          addText(`• ${cert}`, 9, false, false, '#000000');
+          addText(`• ${cert}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
           currentY += 2.5;
         });
       }
@@ -228,12 +229,12 @@ export class PDFGenerator {
         addHorizontalLine();
         
         if (parsedCV.skills) {
-          addText(`• Compétences : ${parsedCV.skills}`, 9, false, false, '#000000');
+          addText(`• Compétences : ${parsedCV.skills}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
           currentY += 2.5;
         }
         
         if (parsedCV.additionalInfo) {
-          addText(`• ${parsedCV.additionalInfo}`, 9, false, false, '#000000');
+          addText(`• ${parsedCV.additionalInfo}`, 10, false, false, '#000000'); // Augmenté de 9 à 10
           currentY += 2.5;
         }
       }
