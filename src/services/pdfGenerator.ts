@@ -143,15 +143,16 @@ export class PDFGenerator {
       const jobLanguage = this.detectJobDescriptionLanguage(jobDescription);
       console.log('🌍 Langue détectée pour le PDF:', jobLanguage);
       
-      const response = await fetch(`${config.API_BASE_URL}/parse-cv`, {
+      const response = await fetch(`${config.API_BASE_URL}/optimize-cv`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          cv_text: cvText,
+          cv_content: cvText,
           job_description: jobDescription,
-          target_language: jobLanguage // Langue de l'offre d'emploi
+          target_language: jobLanguage,
+          instructions: "CRITICAL: Preserve ALL content from original CV. ZERO TOLERANCE for content removal. Translate everything to match job offer language."
         })
       });
 
@@ -161,7 +162,13 @@ export class PDFGenerator {
 
       const result = await response.json();
       console.log('✅ CV parsé par l\'IA:', result);
-      return result;
+      
+      if (result.success && result.optimized_cv) {
+        // Parser le CV optimisé pour le convertir en structure CVParsedData
+        return this.parseCVManually(result.optimized_cv);
+      } else {
+        throw new Error('Réponse backend invalide');
+      }
       
     } catch (error) {
       console.error('❌ Erreur parsing IA, fallback manuel:', error);
