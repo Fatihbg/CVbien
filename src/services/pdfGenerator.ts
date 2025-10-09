@@ -594,15 +594,9 @@ export class PDFGenerator {
           }
         };
         
-        // Extraire la vraie description textuelle du jobDescription
-        const jobDescText = typeof jobDescription === 'string' 
-          ? jobDescription 
-          : ((jobDescription as any)?.description || (jobDescription as any)?.title || '');
-        
         console.log('🔍 PDF Language Debug - Raw jobDescription:', jobDescription);
         console.log('🔍 PDF Language Debug - Extracted text:', jobDescText);
         
-        const detectedLanguage = detectJobDescriptionLanguage(jobDescText);
         console.log('🔍 PDF Language Detection:', {
           jobDescText: jobDescText.substring(0, 100) + '...',
           detectedLanguage,
@@ -612,6 +606,14 @@ export class PDFGenerator {
         
         return translations[title]?.[detectedLanguage] || title;
       };
+
+      // Détecter la langue une seule fois au début
+      const jobDescText = typeof jobDescription === 'string' 
+        ? jobDescription 
+        : ((jobDescription as any)?.description || (jobDescription as any)?.title || '');
+      
+      const detectedLanguage = detectJobDescriptionLanguage(jobDescText);
+      console.log('🌍 Langue détectée pour le PDF:', detectedLanguage);
 
       // Fonction pour traduire les soft skills selon la langue - AMÉLIORÉE
       const translateSoftSkills = (softSkills: string): string => {
