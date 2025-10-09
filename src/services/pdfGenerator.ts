@@ -81,18 +81,19 @@ export class PDFGenerator {
     }
   }
 
-  // Fallback: parsing manuel simple
+  // Fallback: parsing manuel amélioré
   private static parseCVManually(cvText: string): CVParsedData {
+    console.log('🔍 Parsing manuel du CV...');
     const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
     
     // Trouver le nom (première ligne en majuscules)
     const name = lines.find(line => line.length > 3 && line.length < 50 && line === line.toUpperCase()) || 'Nom Prénom';
     
-    // Trouver le contact (ligne avec @)
-    const contact = lines.find(line => line.includes('@')) || 'Contact';
+    // Trouver le contact (ligne avec @ ou téléphone)
+    const contact = lines.find(line => line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/)) || 'Contact';
     
     // Trouver le titre (ligne après le contact)
-    const contactIndex = lines.findIndex(line => line.includes('@'));
+    const contactIndex = lines.findIndex(line => line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/));
     const title = contactIndex >= 0 && contactIndex + 1 < lines.length ? lines[contactIndex + 1] : 'Titre Professionnel';
     
     // Trouver le résumé (paragraphe long avant les sections)
@@ -100,16 +101,133 @@ export class PDFGenerator {
       !line.includes('EXPERIENCE') && !line.includes('FORMATION') && 
       !line.includes('SKILLS') && !line.includes('CERTIFICATIONS')) || 'Résumé professionnel';
     
+    // Parser les expériences
+    const experience: Array<{company: string; position: string; period: string; description: string[]}> = [];
+    const education: Array<{institution: string; degree: string; period: string; description: string}> = [];
+    
+    let currentSection = '';
+    let currentExperience: any = null;
+    let currentEducation: any = null;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      if (line.includes('EXPERIENCE') || line.includes('EXPÉRIENCE')) {
+        currentSection = 'experience';
+        continue;
+      }
+      if (line.includes('EDUCATION') || line.includes('FORMATION')) {
+        currentSection = 'education';
+        continue;
+      }
+      
+      // Parser les expériences (format: Company - Position (Period))
+      if (currentSection === 'experience' && line.includes('-') && line.includes('(') && line.includes(')')) {
+        if (currentExperience) {
+          experience.push(currentExperience);
+        }
+        const parts = line.split(' - ');
+        if (parts.length >= 2) {
+          const company = parts[0];
+          const positionPeriod = parts[1];
+          const periodMatch = positionPeriod.match(/\(([^)]+)\)/);
+          const period = periodMatch ? periodMatch[1] : '';
+          const position = positionPeriod.replace(/\([^)]+\)/, '').trim();
+          
+          currentExperience = {
+            company,
+            position,
+            period,
+            description: []
+          };
+        }
+      } else if (currentSection === 'experience' && currentExperience && line.startsWith('•')) {
+        currentExperience.description.push(line.replace('•', '').trim());
+      }
+      
+      // Parser les formations (format: Institution - Degree (Period))
+      if (currentSection === 'education' && line.includes('-') && line.includes('(') && line.includes(')')) {
+        if (currentEducation) {
+          education.push(currentEducation);
+        }
+        const parts = line.split(' - ');
+        if (parts.length >= 2) {
+          const institution = parts[0];
+          const degreePeriod = parts[1];
+          const periodMatch = degreePeriod.match(/\(([^)]+)\)/);
+          const period = periodMatch ? periodMatch[1] : '';
+          const degree = degreePeriod.replace(/\([^)]+\)/, '').trim();
+          
+          currentEducation = {
+            institution,
+            degree,
+            period,
+            description: ''
+          };
+        }
+      } else if (currentSection === 'education' && currentEducation && line.startsWith('•')) {
+        currentEducation.description = line.replace('•', '').trim();
+      }
+    }
+    
+    if (currentExperience) experience.push(currentExperience);
+    if (currentEducation) education.push(currentEducation);
+    
+    // Parser les compétences techniques
+    let technicalSkills = '';
+    const skillsMatch = cvText.match(/Compétences techniques\s*:?\s*([^•\n]+)/i);
+    if (skillsMatch) {
+      technicalSkills = skillsMatch[1].trim();
+    }
+    
+    // Parser les soft skills
+    let softSkills = '';
+    const softMatch = cvText.match(/Soft skills\s*:?\s*([^•\n]+)/i);
+    if (softMatch) {
+      softSkills = softMatch[1].trim();
+    }
+    
+    // Parser les certifications - amélioré pour détecter différentes variantes
+    let certifications: string[] = [];
+    
+    // Chercher différentes variantes de section certifications
+    const certPatterns = [
+      /Certifications?\s*:?\s*([^•\n]+)/i,
+      /Certificats?\s*:?\s*([^•\n]+)/i,
+      /Certificat\s*:?\s*([^•\n]+)/i,
+      /Qualifications?\s*:?\s*([^•\n]+)/i,
+      /Formations?\s*certifiantes?\s*:?\s*([^•\n]+)/i
+    ];
+    
+    for (const pattern of certPatterns) {
+      const certMatch = cvText.match(pattern);
+      if (certMatch && certMatch[1].trim()) {
+        const certText = certMatch[1].trim();
+        // Diviser par virgules, points-virgules, ou retours à la ligne
+        certifications = certText.split(/[,;]/).map(c => c.trim()).filter(c => c && c.length > 2);
+        break;
+      }
+    }
+    
+    console.log('📊 Données parsées:', {
+      experiences: experience.length,
+      educations: education.length,
+      technicalSkills: technicalSkills.length,
+      softSkills: softSkills.length,
+      certifications: certifications.length,
+      certText: certifications.join(', ')
+    });
+    
     return {
       name,
       contact,
       title,
       summary,
-      experience: [],
-      education: [],
-      technicalSkills: '',
-      softSkills: '',
-      certifications: [],
+      experience,
+      education,
+      technicalSkills,
+      softSkills,
+      certifications,
       additionalInfo: ''
     };
   }
