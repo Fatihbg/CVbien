@@ -26,23 +26,111 @@ interface CVParsedData {
 export class PDFGenerator {
   // Fonction pour détecter la langue de l'offre d'emploi
   private static detectJobDescriptionLanguage(jobDescription: string): string {
-    // Détection simple basée sur des mots-clés
-    const frenchKeywords = ['recherche', 'poste', 'entreprise', 'expérience', 'compétences', 'mission', 'profil', 'candidat', 'équipe', 'développement'];
-    const englishKeywords = ['looking for', 'position', 'company', 'experience', 'skills', 'mission', 'profile', 'candidate', 'team', 'development'];
-    const dutchKeywords = ['zoeken', 'functie', 'bedrijf', 'ervaring', 'vaardigheden', 'missie', 'profiel', 'kandidaat', 'team', 'ontwikkeling'];
+    console.log('🌍 DÉTECTION LANGUE OFFRE (AMÉLIORÉE):', jobDescription);
     
-    const lowerJobDesc = jobDescription.toLowerCase();
+    // Extraire le texte de l'objet jobDescription si nécessaire
+    let textToAnalyze = '';
+    if (typeof jobDescription === 'string') {
+      textToAnalyze = jobDescription;
+    } else if (jobDescription && typeof jobDescription === 'object') {
+      // Si c'est un objet, essayer d'extraire description ou title
+      textToAnalyze = (jobDescription as any).description || (jobDescription as any).title || JSON.stringify(jobDescription);
+    }
     
-    const frenchCount = frenchKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
-    const englishCount = englishKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
-    const dutchCount = dutchKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
+    console.log('📝 Texte à analyser (premiers 200 chars):', textToAnalyze.substring(0, 200));
     
-    if (dutchCount > frenchCount && dutchCount > englishCount) {
-      return 'dutch';
-    } else if (englishCount > frenchCount && englishCount > dutchCount) {
+    const lowerText = textToAnalyze.toLowerCase();
+    
+    // Mots-clés anglais - ÉTENDUS
+    const englishKeywords = [
+      'experience', 'skills', 'requirements', 'responsibilities', 'education', 'degree', 'bachelor', 'master', 'phd', 
+      'years', 'required', 'preferred', 'knowledge', 'ability', 'team', 'work', 'project', 'development', 'management', 
+      'analysis', 'communication', 'english', 'fluent', 'native', 'speaking', 'written', 'language', 'proficiency',
+      'candidate', 'position', 'role', 'company', 'industry', 'sector', 'business', 'professional', 'career',
+      'salary', 'benefits', 'location', 'remote', 'office', 'full-time', 'part-time', 'contract', 'permanent',
+      'interview', 'application', 'resume', 'cv', 'qualifications', 'background', 'profile', 'expertise',
+      'looking for', 'mission', 'profile', 'candidate', 'team'
+    ];
+    
+    // Mots-clés français - ÉTENDUS
+    const frenchKeywords = [
+      'expérience', 'compétences', 'exigences', 'responsabilités', 'formation', 'diplôme', 'licence', 'master', 'doctorat',
+      'années', 'requis', 'préféré', 'connaissance', 'capacité', 'équipe', 'travail', 'projet', 'développement', 'gestion',
+      'analyse', 'communication', 'français', 'courant', 'natif', 'parlé', 'écrit', 'langue', 'maîtrise',
+      'candidat', 'poste', 'rôle', 'entreprise', 'secteur', 'business', 'professionnel', 'carrière',
+      'salaire', 'avantages', 'lieu', 'télétravail', 'bureau', 'temps plein', 'temps partiel', 'contrat', 'permanent',
+      'entretien', 'candidature', 'cv', 'qualifications', 'profil', 'expertise',
+      'recherche', 'mission', 'équipe'
+    ];
+    
+    // Mots-clés néerlandais - ÉTENDUS
+    const dutchKeywords = [
+      'ervaring', 'vaardigheden', 'vereisten', 'verantwoordelijkheden', 'opleiding', 'diploma', 'bachelor', 'master', 'doctoraat',
+      'jaren', 'vereist', 'voorkeur', 'kennis', 'vaardigheid', 'team', 'werk', 'project', 'ontwikkeling', 'beheer',
+      'analyse', 'communicatie', 'nederlands', 'vloeiend', 'moedertaal', 'gesproken', 'geschreven', 'taal', 'beheersing',
+      'kandidaat', 'functie', 'rol', 'bedrijf', 'industrie', 'sector', 'zakelijk', 'professioneel', 'carrière',
+      'salaris', 'voordelen', 'locatie', 'thuiswerk', 'kantoor', 'voltijds', 'deeltijds', 'contract', 'vast',
+      'sollicitatie', 'aanvraag', 'cv', 'kwalificaties', 'achtergrond', 'profiel', 'expertise',
+      'zoeken', 'missie', 'team'
+    ];
+    
+    let englishCount = 0;
+    let frenchCount = 0;
+    let dutchCount = 0;
+    
+    // Compter les occurrences de chaque langue
+    englishKeywords.forEach(keyword => {
+      const matches = (lowerText.match(new RegExp(keyword, 'g')) || []).length;
+      englishCount += matches;
+    });
+    
+    frenchKeywords.forEach(keyword => {
+      const matches = (lowerText.match(new RegExp(keyword, 'g')) || []).length;
+      frenchCount += matches;
+    });
+    
+    dutchKeywords.forEach(keyword => {
+      const matches = (lowerText.match(new RegExp(keyword, 'g')) || []).length;
+      dutchCount += matches;
+    });
+    
+    console.log('📊 COMPTEURS LANGUE DÉTAILLÉS:', { 
+      english: englishCount, 
+      french: frenchCount, 
+      dutch: dutchCount,
+      totalChars: textToAnalyze.length 
+    });
+    
+    // Logique de détection améliorée
+    const totalMatches = englishCount + frenchCount + dutchCount;
+    const threshold = Math.max(1, Math.floor(totalMatches * 0.3)); // Au moins 30% des mots-clés
+    
+    console.log('🎯 Seuil minimum:', threshold);
+    
+    if (englishCount >= threshold && englishCount > frenchCount && englishCount > dutchCount) {
+      console.log('🇺🇸 LANGUE DÉTECTÉE: ANGLAIS');
       return 'english';
+    } else if (dutchCount >= threshold && dutchCount > frenchCount && dutchCount > englishCount) {
+      console.log('🇳🇱 LANGUE DÉTECTÉE: NÉERLANDAIS');
+      return 'dutch';
+    } else if (frenchCount >= threshold && frenchCount > englishCount && frenchCount > dutchCount) {
+      console.log('🇫🇷 LANGUE DÉTECTÉE: FRANÇAIS');
+      return 'french';
     } else {
-      return 'french'; // Par défaut français
+      // Fallback : analyser les premiers mots pour détecter la langue
+      const firstWords = lowerText.split(' ').slice(0, 20).join(' ');
+      console.log('🔄 Fallback - Premiers mots:', firstWords);
+      
+      if (firstWords.includes('the ') || firstWords.includes('and ') || firstWords.includes('of ') || firstWords.includes('in ')) {
+        console.log('🇺🇸 FALLBACK: ANGLAIS détecté');
+        return 'english';
+      } else if (firstWords.includes('de ') || firstWords.includes('het ') || firstWords.includes('en ') || firstWords.includes('van ')) {
+        console.log('🇳🇱 FALLBACK: NÉERLANDAIS détecté');
+        return 'dutch';
+      } else {
+        console.log('🇫🇷 FALLBACK: FRANÇAIS (par défaut)');
+        return 'french';
+      }
     }
   }
 
@@ -498,6 +586,11 @@ export class PDFGenerator {
             'french': 'CERTIFICATIONS',
             'english': 'CERTIFICATIONS',
             'dutch': 'CERTIFICERINGEN'
+          },
+          'INFORMATIONS ADDITIONNELLES': {
+            'french': 'INFORMATIONS ADDITIONNELLES',
+            'english': 'ADDITIONAL INFORMATION',
+            'dutch': 'AANVULLENDE INFORMATIE'
           }
         };
         
@@ -518,6 +611,92 @@ export class PDFGenerator {
         });
         
         return translations[title]?.[detectedLanguage] || title;
+      };
+
+      // Fonction pour traduire les soft skills selon la langue - AMÉLIORÉE
+      const translateSoftSkills = (softSkills: string): string => {
+        console.log('🔄 Traduction soft skills - Langue:', detectedLanguage, 'Original:', softSkills);
+        
+        const commonSoftSkills = {
+          'french': {
+            'Esprit d\'équipe': 'Teamwork',
+            'Communication': 'Communication',
+            'Analyse': 'Analysis',
+            'Créativité': 'Creativity',
+            'Adaptabilité': 'Adaptability',
+            'Leadership': 'Leadership',
+            'Gestion du temps': 'Time Management',
+            'Résolution de problèmes': 'Problem Solving',
+            'Travail en équipe': 'Teamwork',
+            'Collaboration': 'Collaboration',
+            'Innovation': 'Innovation',
+            'Persévérance': 'Perseverance',
+            'Autonomie': 'Autonomy',
+            'Rigueur': 'Rigor',
+            'Polyvalence': 'Versatility',
+            'Empathie': 'Empathy',
+            'Négociation': 'Negotiation',
+            'Formation': 'Training',
+            'Mentorat': 'Mentoring'
+          },
+          'english': {
+            'Teamwork': 'Teamwork',
+            'Communication': 'Communication',
+            'Analysis': 'Analysis',
+            'Creativity': 'Creativity',
+            'Adaptability': 'Adaptability',
+            'Leadership': 'Leadership',
+            'Time Management': 'Time Management',
+            'Problem Solving': 'Problem Solving',
+            'Collaboration': 'Collaboration',
+            'Innovation': 'Innovation',
+            'Perseverance': 'Perseverance',
+            'Autonomy': 'Autonomy',
+            'Rigor': 'Rigor',
+            'Versatility': 'Versatility',
+            'Empathy': 'Empathy',
+            'Negotiation': 'Negotiation',
+            'Training': 'Training',
+            'Mentoring': 'Mentoring'
+          },
+          'dutch': {
+            'Teamwork': 'Teamwerk',
+            'Communication': 'Communicatie',
+            'Analysis': 'Analyse',
+            'Creativity': 'Creativiteit',
+            'Adaptability': 'Aanpassingsvermogen',
+            'Leadership': 'Leiderschap',
+            'Time Management': 'Tijdbeheer',
+            'Problem Solving': 'Probleemoplossing',
+            'Collaboration': 'Samenwerking',
+            'Innovation': 'Innovatie',
+            'Perseverance': 'Doorzettingsvermogen',
+            'Autonomy': 'Autonomie',
+            'Rigor': 'Stiptheid',
+            'Versatility': 'Veelzijdigheid',
+            'Empathy': 'Empathie',
+            'Negotiation': 'Onderhandeling',
+            'Training': 'Opleiding',
+            'Mentoring': 'Mentoring'
+          }
+        };
+        
+        let translatedSkills = softSkills;
+        
+        // Traduire selon la langue détectée
+        if (detectedLanguage === 'english') {
+          Object.entries(commonSoftSkills.french).forEach(([french, english]) => {
+            translatedSkills = translatedSkills.replace(new RegExp(french.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), english);
+          });
+        } else if (detectedLanguage === 'dutch') {
+          Object.entries(commonSoftSkills.french).forEach(([french, dutch]) => {
+            const dutchTranslation = commonSoftSkills.dutch[french] || french;
+            translatedSkills = translatedSkills.replace(new RegExp(french.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), dutchTranslation);
+          });
+        }
+        
+        console.log('✅ Soft skills traduits:', translatedSkills);
+        return translatedSkills;
       };
 
       // === GÉNÉRATION PDF AVEC DONNÉES STRUCTURÉES ===
@@ -588,22 +767,33 @@ export class PDFGenerator {
       if (parsedCV.technicalSkills || parsedCV.softSkills || parsedCV.additionalInfo || parsedCV.certifications.length > 0) {
         currentY += 4;
         const titleY = currentY;
-        addText('INFORMATIONS ADDITIONNELLES', 11.5, true, false, '#000000'); // 11 -> 11.5 (+0.5pt)
+        addText(translateSectionTitle('INFORMATIONS ADDITIONNELLES'), 11.5, true, false, '#000000'); // 11 -> 11.5 (+0.5pt)
         addHorizontalLine(titleY);
         
         if (parsedCV.technicalSkills) {
-          addText(`• Compétences techniques : ${parsedCV.technicalSkills}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+          // Traduire le label selon la langue
+          const techSkillsLabel = detectedLanguage === 'english' ? 'Technical skills' : 
+                                 detectedLanguage === 'dutch' ? 'Technische vaardigheden' : 
+                                 'Compétences techniques';
+          addText(`• ${techSkillsLabel} : ${parsedCV.technicalSkills}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
           currentY += 2.5;
         }
         
         if (parsedCV.softSkills) {
-          addText(`• Soft skills : ${parsedCV.softSkills}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+          const translatedSoftSkills = translateSoftSkills(parsedCV.softSkills);
+          addText(`• Soft skills : ${translatedSoftSkills}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
           currentY += 2.5;
         }
         
         if (parsedCV.certifications && parsedCV.certifications.length > 0) {
           console.log('🎯 AFFICHAGE CERTIFICATIONS dans PDF:', parsedCV.certifications);
-          addText(`• Certifications : `, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+          
+          // Traduire le label selon la langue
+          const certLabel = detectedLanguage === 'english' ? 'Certifications' : 
+                           detectedLanguage === 'dutch' ? 'Certificeringen' : 
+                           'Certifications';
+          
+          addText(`• ${certLabel} : `, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
           // Ajouter les certifications en gras
           const certText = parsedCV.certifications.join(', ');
           console.log('🎯 Texte certifications à afficher:', certText);
