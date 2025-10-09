@@ -84,7 +84,10 @@ export class PDFGenerator {
   // Fallback: parsing manuel amélioré
   private static parseCVManually(cvText: string): CVParsedData {
     console.log('🔍 Parsing manuel du CV...');
+    console.log('📄 Texte CV reçu (premiers 500 caractères):', cvText.substring(0, 500));
+    console.log('📄 Texte CV reçu (derniers 500 caractères):', cvText.substring(Math.max(0, cvText.length - 500)));
     const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
+    console.log('📝 Nombre de lignes:', lines.length);
     
     // Trouver le nom (première ligne en majuscules)
     const name = lines.find(line => line.length > 3 && line.length < 50 && line === line.toUpperCase()) || 'Nom Prénom';
@@ -287,6 +290,8 @@ export class PDFGenerator {
     // Parser les certifications - amélioré pour détecter différentes variantes
     let certifications: string[] = [];
     
+    console.log('🔍 Recherche des certifications dans le texte...');
+    
     // Chercher différentes variantes de section certifications
     const certPatterns = [
       /Certifications?\s*:?\s*([^•\n]+)/i,
@@ -296,13 +301,40 @@ export class PDFGenerator {
       /Formations?\s*certifiantes?\s*:?\s*([^•\n]+)/i
     ];
     
-    for (const pattern of certPatterns) {
+    for (let i = 0; i < certPatterns.length; i++) {
+      const pattern = certPatterns[i];
+      console.log(`🔍 Test pattern ${i + 1}:`, pattern);
       const certMatch = cvText.match(pattern);
       if (certMatch && certMatch[1].trim()) {
+        console.log('✅ Certifications trouvées avec pattern', i + 1, ':', certMatch[1]);
         const certText = certMatch[1].trim();
         // Diviser par virgules, points-virgules, ou retours à la ligne
         certifications = certText.split(/[,;]/).map(c => c.trim()).filter(c => c && c.length > 2);
+        console.log('📋 Certifications parsées:', certifications);
         break;
+      } else {
+        console.log('❌ Pattern', i + 1, 'ne correspond pas');
+      }
+    }
+    
+    // Si aucun pattern ne fonctionne, chercher dans les lignes
+    if (certifications.length === 0) {
+      console.log('🔍 Recherche manuelle dans les lignes...');
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.toLowerCase().includes('certification') || line.toLowerCase().includes('certificat') || line.toLowerCase().includes('qualification')) {
+          console.log('🎯 Ligne avec certification trouvée:', line);
+          // Extraire le contenu après les deux points
+          const colonIndex = line.indexOf(':');
+          if (colonIndex !== -1) {
+            const certText = line.substring(colonIndex + 1).trim();
+            if (certText) {
+              certifications = certText.split(/[,;]/).map(c => c.trim()).filter(c => c && c.length > 2);
+              console.log('📋 Certifications extraites manuellement:', certifications);
+              break;
+            }
+          }
+        }
       }
     }
     
@@ -570,13 +602,18 @@ export class PDFGenerator {
         }
         
         if (parsedCV.certifications && parsedCV.certifications.length > 0) {
+          console.log('🎯 AFFICHAGE CERTIFICATIONS dans PDF:', parsedCV.certifications);
           addText(`• Certifications : `, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
           // Ajouter les certifications en gras
           const certText = parsedCV.certifications.join(', ');
+          console.log('🎯 Texte certifications à afficher:', certText);
           doc.setFont(undefined, 'bold');
           addText(certText, 9.5, false, false, '#000000');
           doc.setFont(undefined, 'normal'); // Remettre en normal
           currentY += 2.5;
+        } else {
+          console.log('❌ AUCUNE certification à afficher dans le PDF');
+          console.log('🔍 parsedCV.certifications:', parsedCV.certifications);
         }
         
         if (parsedCV.additionalInfo) {
