@@ -101,7 +101,7 @@ export class PDFGenerator {
       !line.includes('EXPERIENCE') && !line.includes('FORMATION') && 
       !line.includes('SKILLS') && !line.includes('CERTIFICATIONS')) || 'Résumé professionnel';
     
-    // Parser les expériences
+    // Parser les expériences - AMÉLIORÉ pour préserver TOUT le contenu
     const experience: Array<{company: string; position: string; period: string; description: string[]}> = [];
     const education: Array<{institution: string; degree: string; period: string; description: string}> = [];
     
@@ -112,79 +112,176 @@ export class PDFGenerator {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       
-      if (line.includes('EXPERIENCE') || line.includes('EXPÉRIENCE')) {
+      // Détecter les sections avec plus de variantes
+      if (line.includes('EXPERIENCE') || line.includes('EXPÉRIENCE') || line.includes('EXPERIENCES') || line.includes('PROFESSIONAL EXPERIENCE')) {
         currentSection = 'experience';
         continue;
       }
-      if (line.includes('EDUCATION') || line.includes('FORMATION')) {
+      if (line.includes('EDUCATION') || line.includes('FORMATION') || line.includes('FORMATIONS') || line.includes('ACADEMIC BACKGROUND') || line.includes('ÉTUDES')) {
         currentSection = 'education';
         continue;
       }
       
-      // Parser les expériences (format: Company - Position (Period))
-      if (currentSection === 'experience' && line.includes('-') && line.includes('(') && line.includes(')')) {
-        if (currentExperience) {
-          experience.push(currentExperience);
+      // Parser les expériences - Plus flexible pour capturer Erasmus, stages, etc.
+      if (currentSection === 'experience') {
+        // Format standard: Company - Position (Period)
+        if (line.includes('-') && line.includes('(') && line.includes(')')) {
+          if (currentExperience) {
+            experience.push(currentExperience);
+          }
+          const parts = line.split(' - ');
+          if (parts.length >= 2) {
+            const company = parts[0];
+            const positionPeriod = parts[1];
+            const periodMatch = positionPeriod.match(/\(([^)]+)\)/);
+            const period = periodMatch ? periodMatch[1] : '';
+            const position = positionPeriod.replace(/\([^)]+\)/, '').trim();
+            
+            currentExperience = {
+              company,
+              position,
+              period,
+              description: []
+            };
+          }
         }
-        const parts = line.split(' - ');
-        if (parts.length >= 2) {
-          const company = parts[0];
-          const positionPeriod = parts[1];
-          const periodMatch = positionPeriod.match(/\(([^)]+)\)/);
-          const period = periodMatch ? periodMatch[1] : '';
-          const position = positionPeriod.replace(/\([^)]+\)/, '').trim();
-          
-          currentExperience = {
-            company,
-            position,
-            period,
-            description: []
-          };
+        // Format alternatif pour Erasmus, stages, etc. : Company, Position (Period)
+        else if (line.includes(',') && line.includes('(') && line.includes(')')) {
+          if (currentExperience) {
+            experience.push(currentExperience);
+          }
+          const parts = line.split(',');
+          if (parts.length >= 2) {
+            const company = parts[0];
+            const positionPeriod = parts.slice(1).join(',').trim();
+            const periodMatch = positionPeriod.match(/\(([^)]+)\)/);
+            const period = periodMatch ? periodMatch[1] : '';
+            const position = positionPeriod.replace(/\([^)]+\)/, '').trim();
+            
+            currentExperience = {
+              company,
+              position,
+              period,
+              description: []
+            };
+          }
         }
-      } else if (currentSection === 'experience' && currentExperience && line.startsWith('•')) {
-        currentExperience.description.push(line.replace('•', '').trim());
+        // Lignes de description pour l'expérience courante
+        else if (currentExperience && (line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))) {
+          currentExperience.description.push(line.replace(/^[•\-*]\s*/, '').trim());
+        }
+        // Lignes de description sans puce
+        else if (currentExperience && line.length > 10 && !line.includes('(') && !line.includes('-')) {
+          currentExperience.description.push(line.trim());
+        }
       }
       
-      // Parser les formations (format: Institution - Degree (Period))
-      if (currentSection === 'education' && line.includes('-') && line.includes('(') && line.includes(')')) {
-        if (currentEducation) {
-          education.push(currentEducation);
+      // Parser les formations - Plus flexible pour capturer Erasmus, etc.
+      if (currentSection === 'education') {
+        // Format standard: Institution - Degree (Period)
+        if (line.includes('-') && line.includes('(') && line.includes(')')) {
+          if (currentEducation) {
+            education.push(currentEducation);
+          }
+          const parts = line.split(' - ');
+          if (parts.length >= 2) {
+            const institution = parts[0];
+            const degreePeriod = parts[1];
+            const periodMatch = degreePeriod.match(/\(([^)]+)\)/);
+            const period = periodMatch ? periodMatch[1] : '';
+            const degree = degreePeriod.replace(/\([^)]+\)/, '').trim();
+            
+            currentEducation = {
+              institution,
+              degree,
+              period,
+              description: ''
+            };
+          }
         }
-        const parts = line.split(' - ');
-        if (parts.length >= 2) {
-          const institution = parts[0];
-          const degreePeriod = parts[1];
-          const periodMatch = degreePeriod.match(/\(([^)]+)\)/);
-          const period = periodMatch ? periodMatch[1] : '';
-          const degree = degreePeriod.replace(/\([^)]+\)/, '').trim();
-          
-          currentEducation = {
-            institution,
-            degree,
-            period,
-            description: ''
-          };
+        // Format alternatif: Institution, Degree (Period)
+        else if (line.includes(',') && line.includes('(') && line.includes(')')) {
+          if (currentEducation) {
+            education.push(currentEducation);
+          }
+          const parts = line.split(',');
+          if (parts.length >= 2) {
+            const institution = parts[0];
+            const degreePeriod = parts.slice(1).join(',').trim();
+            const periodMatch = degreePeriod.match(/\(([^)]+)\)/);
+            const period = periodMatch ? periodMatch[1] : '';
+            const degree = degreePeriod.replace(/\([^)]+\)/, '').trim();
+            
+            currentEducation = {
+              institution,
+              degree,
+              period,
+              description: ''
+            };
+          }
         }
-      } else if (currentSection === 'education' && currentEducation && line.startsWith('•')) {
-        currentEducation.description = line.replace('•', '').trim();
+        // Lignes de description pour la formation courante
+        else if (currentEducation && (line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))) {
+          if (currentEducation.description) {
+            currentEducation.description += ' ' + line.replace(/^[•\-*]\s*/, '').trim();
+          } else {
+            currentEducation.description = line.replace(/^[•\-*]\s*/, '').trim();
+          }
+        }
+        // Lignes de description sans puce
+        else if (currentEducation && line.length > 10 && !line.includes('(') && !line.includes('-')) {
+          if (currentEducation.description) {
+            currentEducation.description += ' ' + line.trim();
+          } else {
+            currentEducation.description = line.trim();
+          }
+        }
       }
     }
     
     if (currentExperience) experience.push(currentExperience);
     if (currentEducation) education.push(currentEducation);
     
-    // Parser les compétences techniques
+    // Parser les compétences techniques - AMÉLIORÉ pour capturer toutes les variantes
     let technicalSkills = '';
-    const skillsMatch = cvText.match(/Compétences techniques\s*:?\s*([^•\n]+)/i);
-    if (skillsMatch) {
-      technicalSkills = skillsMatch[1].trim();
+    const technicalSkillsPatterns = [
+      /Compétences techniques\s*:?\s*([^•\n]+)/i,
+      /Technical skills\s*:?\s*([^•\n]+)/i,
+      /Compétences\s*:?\s*([^•\n]+)/i,
+      /Skills\s*:?\s*([^•\n]+)/i,
+      /Technologies\s*:?\s*([^•\n]+)/i,
+      /Programming languages\s*:?\s*([^•\n]+)/i,
+      /Langages de programmation\s*:?\s*([^•\n]+)/i,
+      /Outils\s*:?\s*([^•\n]+)/i,
+      /Tools\s*:?\s*([^•\n]+)/i
+    ];
+    
+    for (const pattern of technicalSkillsPatterns) {
+      const skillsMatch = cvText.match(pattern);
+      if (skillsMatch && skillsMatch[1].trim()) {
+        technicalSkills = skillsMatch[1].trim();
+        break;
+      }
     }
     
-    // Parser les soft skills
+    // Parser les soft skills - AMÉLIORÉ pour capturer toutes les variantes
     let softSkills = '';
-    const softMatch = cvText.match(/Soft skills\s*:?\s*([^•\n]+)/i);
-    if (softMatch) {
-      softSkills = softMatch[1].trim();
+    const softSkillsPatterns = [
+      /Soft skills\s*:?\s*([^•\n]+)/i,
+      /Compétences relationnelles\s*:?\s*([^•\n]+)/i,
+      /Compétences comportementales\s*:?\s*([^•\n]+)/i,
+      /Aptitudes\s*:?\s*([^•\n]+)/i,
+      /Qualités\s*:?\s*([^•\n]+)/i,
+      /Interpersonal skills\s*:?\s*([^•\n]+)/i,
+      /Personal skills\s*:?\s*([^•\n]+)/i
+    ];
+    
+    for (const pattern of softSkillsPatterns) {
+      const softMatch = cvText.match(pattern);
+      if (softMatch && softMatch[1].trim()) {
+        softSkills = softMatch[1].trim();
+        break;
+      }
     }
     
     // Parser les certifications - amélioré pour détecter différentes variantes
@@ -209,14 +306,32 @@ export class PDFGenerator {
       }
     }
     
-    console.log('📊 Données parsées:', {
+    console.log('📊 Données parsées (PRÉSERVATION TOTALE):', {
       experiences: experience.length,
       educations: education.length,
-      technicalSkills: technicalSkills.length,
-      softSkills: softSkills.length,
+      technicalSkills: technicalSkills.length > 0 ? '✅ Présent' : '❌ Vide',
+      softSkills: softSkills.length > 0 ? '✅ Présent' : '❌ Vide',
       certifications: certifications.length,
       certText: certifications.join(', ')
     });
+    
+    // Log détaillé des expériences
+    if (experience.length > 0) {
+      console.log('📋 Expériences détectées:', experience.map(exp => `${exp.company} - ${exp.position} (${exp.period})`));
+    }
+    
+    // Log détaillé des formations
+    if (education.length > 0) {
+      console.log('🎓 Formations détectées:', education.map(edu => `${edu.institution} - ${edu.degree} (${edu.period})`));
+    }
+    
+    // Log des compétences
+    if (technicalSkills) {
+      console.log('💻 Compétences techniques:', technicalSkills.substring(0, 100) + (technicalSkills.length > 100 ? '...' : ''));
+    }
+    if (softSkills) {
+      console.log('🤝 Soft skills:', softSkills.substring(0, 100) + (softSkills.length > 100 ? '...' : ''));
+    }
     
     return {
       name,
@@ -455,7 +570,12 @@ export class PDFGenerator {
         }
         
         if (parsedCV.certifications && parsedCV.certifications.length > 0) {
-          addText(`• Certifications : ${parsedCV.certifications.join(', ')}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+          addText(`• Certifications : `, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+          // Ajouter les certifications en gras
+          const certText = parsedCV.certifications.join(', ');
+          doc.setFont(undefined, 'bold');
+          addText(certText, 9.5, false, false, '#000000');
+          doc.setFont(undefined, 'normal'); // Remettre en normal
           currentY += 2.5;
         }
         
