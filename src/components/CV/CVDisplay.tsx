@@ -1,11 +1,15 @@
 import React from 'react';
+import { PDFGenerator } from '../../services/pdfGenerator';
 
 interface CVDisplayProps {
   cvText: string;
 }
 
 export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText }) => {
-  // Parser le CV de manière simple et directe
+  // Utiliser le même parsing que le PDF pour garantir la cohérence
+  const parsedCV = PDFGenerator.parseCVManually(cvText);
+  
+  // Parser le CV de manière simple et directe (fallback)
   const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
   
   // Fonction pour formater le texte avec les balises <B> et supprimer TOUS les **
@@ -59,6 +63,7 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText }) => {
            line === 'COMPÉTENCES';
   };
 
+  // Utiliser les données parsées pour l'affichage
   return (
     <div style={{
       // Format A4 professionnel pour l'aperçu
@@ -78,127 +83,247 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText }) => {
       maxHeight: '500px',
       position: 'relative'
     }}>
-      {lines.map((line, index) => {
-        // Ignorer les lignes vides
-        if (!line || line.length === 0) return null;
-        
-        // Ignorer les phrases de conclusion
-        if (isConclusionPhrase(line)) return null;
-        
-        // Header (nom en majuscules) - première ligne qui est un nom
-        if (index === 0 && line.length > 3 && line.length < 50 && line === line.toUpperCase() && !line.includes('@') && !isSectionTitle(line)) {
-          return (
-            <div key={index} style={{
-              textAlign: 'center',
-              fontSize: '20px',
-              fontWeight: 'bold',
-              color: '#1a365d',
-              marginBottom: '12px',
-              letterSpacing: '1.2px',
-              borderBottom: '2px solid #667eea',
-              paddingBottom: '8px',
-              position: 'relative'
-            }}>
-              {line}
-            </div>
-          );
-        }
-        
-        // Contact (email, téléphone, etc.)
-        if (line.includes('@') || line.includes('|') || line.includes('LinkedIn') || line.includes('http')) {
-          return (
-            <div key={index} style={{
-              textAlign: 'center',
-              fontSize: '11px',
-              color: '#4a5568',
-              marginBottom: '6px',
-              fontWeight: '500'
-            }}>
-              {formatText(line)}
-            </div>
-          );
-        }
-        
-        // Titre professionnel (ligne après le nom, pas une section)
-        if (index === 1 && !line.includes('@') && !isSectionTitle(line) && !line.includes('PROFESSIONAL') && !line.includes('EXPERIENCE')) {
-          return (
-            <div key={index} style={{
-              textAlign: 'center',
-              fontSize: '15px',
-              fontWeight: '600',
-              color: '#2d3748',
-              marginBottom: '16px',
-              fontStyle: 'italic',
-              letterSpacing: '0.5px'
-            }}>
-              {formatText(line)}
-            </div>
-          );
-        }
-        
-        // Sections principales (en majuscules) - AFFICHER UNE LIGNE DE SÉPARATION
-        if (isSectionTitle(line)) {
-          return (
-            <div key={index} style={{
-              marginTop: '16px',
-              marginBottom: '8px',
-              borderTop: '1px solid #e2e8f0',
-              paddingTop: '8px',
-              position: 'relative'
-            }}>
+      {/* Header - Nom */}
+      <div style={{
+        textAlign: 'center',
+        fontSize: '20px',
+        fontWeight: 'bold',
+        color: '#1a365d',
+        marginBottom: '12px',
+        letterSpacing: '1.2px',
+        borderBottom: '2px solid #667eea',
+        paddingBottom: '8px',
+        position: 'relative'
+      }}>
+        {parsedCV.name}
+      </div>
+
+      {/* Contact */}
+      <div style={{
+        textAlign: 'center',
+        fontSize: '11px',
+        color: '#4a5568',
+        marginBottom: '6px',
+        fontWeight: '500'
+      }}>
+        {formatText(parsedCV.contact)}
+      </div>
+
+      {/* Titre professionnel */}
+      <div style={{
+        textAlign: 'center',
+        fontSize: '15px',
+        fontWeight: '600',
+        color: '#2d3748',
+        marginBottom: '16px',
+        fontStyle: 'italic',
+        letterSpacing: '0.5px'
+      }}>
+        {formatText(parsedCV.title)}
+      </div>
+
+      {/* Résumé */}
+      {parsedCV.summary && (
+        <div style={{
+          marginBottom: '16px',
+          borderTop: '1px solid #e2e8f0',
+          paddingTop: '8px'
+        }}>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: 'bold',
+            color: '#1a365d',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '8px'
+          }}>
+            PROFESSIONAL SUMMARY
+          </div>
+          <div style={{
+            fontSize: '11px',
+            color: '#2d3748',
+            lineHeight: '1.5'
+          }}>
+            {formatText(parsedCV.summary)}
+          </div>
+        </div>
+      )}
+
+      {/* Expériences */}
+      {parsedCV.experience && parsedCV.experience.length > 0 && (
+        <div style={{
+          marginBottom: '16px',
+          borderTop: '1px solid #e2e8f0',
+          paddingTop: '8px'
+        }}>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: 'bold',
+            color: '#1a365d',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '8px'
+          }}>
+            PROFESSIONAL EXPERIENCE
+          </div>
+          {parsedCV.experience.map((exp, index) => (
+            <div key={index} style={{ marginBottom: '12px' }}>
               <div style={{
-                fontSize: '12px',
-                fontWeight: 'bold',
-                color: '#1a365d',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                marginBottom: '8px'
-              }}>
-                {line}
-              </div>
-            </div>
-          );
-        }
-        
-        // Contenu des sections
-        if (line.length > 0) {
-          // Puces
-          if (line.startsWith('•') || line.startsWith('-')) {
-            return (
-              <div key={index} style={{
                 fontSize: '11px',
-                marginLeft: '16px',
-                marginBottom: '4px',
+                fontWeight: 'bold',
                 color: '#2d3748',
-                lineHeight: '1.5',
-                position: 'relative'
+                marginBottom: '4px'
               }}>
-                <span style={{
-                  position: 'absolute',
-                  left: '-12px',
-                  color: '#667eea',
-                  fontWeight: 'bold'
-                }}>•</span>
-                {formatText(line)}
+                {exp.company} - {exp.position} ({exp.period})
               </div>
-            );
-          }
-          
-          // Texte normal
-          return (
-            <div key={index} style={{
-              fontSize: '11px',
-              marginBottom: '4px',
-              color: '#2d3748',
-              lineHeight: '1.5'
-            }}>
-              {formatText(line)}
+              {exp.description && exp.description.map((desc, descIndex) => (
+                <div key={descIndex} style={{
+                  fontSize: '11px',
+                  marginLeft: '16px',
+                  marginBottom: '4px',
+                  color: '#2d3748',
+                  lineHeight: '1.5',
+                  position: 'relative'
+                }}>
+                  <span style={{
+                    position: 'absolute',
+                    left: '-12px',
+                    color: '#667eea',
+                    fontWeight: 'bold'
+                  }}>•</span>
+                  {formatText(desc)}
+                </div>
+              ))}
             </div>
-          );
-        }
-        
-        return null;
-      })}
+          ))}
+        </div>
+      )}
+
+      {/* Formation */}
+      {parsedCV.education && parsedCV.education.length > 0 && (
+        <div style={{
+          marginBottom: '16px',
+          borderTop: '1px solid #e2e8f0',
+          paddingTop: '8px'
+        }}>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: 'bold',
+            color: '#1a365d',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '8px'
+          }}>
+            EDUCATION
+          </div>
+          {parsedCV.education.map((edu, index) => (
+            <div key={index} style={{ marginBottom: '8px' }}>
+              <div style={{
+                fontSize: '11px',
+                fontWeight: 'bold',
+                color: '#2d3748',
+                marginBottom: '4px'
+              }}>
+                {edu.institution} - {edu.degree} ({edu.period})
+              </div>
+              {edu.description && (
+                <div style={{
+                  fontSize: '11px',
+                  color: '#2d3748',
+                  lineHeight: '1.5'
+                }}>
+                  {formatText(edu.description)}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Compétences techniques */}
+      {parsedCV.technicalSkills && (
+        <div style={{
+          marginBottom: '16px',
+          borderTop: '1px solid #e2e8f0',
+          paddingTop: '8px'
+        }}>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: 'bold',
+            color: '#1a365d',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '8px'
+          }}>
+            TECHNICAL SKILLS
+          </div>
+          <div style={{
+            fontSize: '11px',
+            color: '#2d3748',
+            lineHeight: '1.5'
+          }}>
+            {formatText(parsedCV.technicalSkills)}
+          </div>
+        </div>
+      )}
+
+      {/* Soft skills */}
+      {parsedCV.softSkills && (
+        <div style={{
+          marginBottom: '16px',
+          borderTop: '1px solid #e2e8f0',
+          paddingTop: '8px'
+        }}>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: 'bold',
+            color: '#1a365d',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '8px'
+          }}>
+            SOFT SKILLS
+          </div>
+          <div style={{
+            fontSize: '11px',
+            color: '#2d3748',
+            lineHeight: '1.5'
+          }}>
+            {formatText(parsedCV.softSkills)}
+          </div>
+        </div>
+      )}
+
+      {/* Certifications */}
+      {parsedCV.certifications && parsedCV.certifications.length > 0 && (
+        <div style={{
+          marginBottom: '16px',
+          borderTop: '1px solid #e2e8f0',
+          paddingTop: '8px'
+        }}>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: 'bold',
+            color: '#1a365d',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '8px'
+          }}>
+            CERTIFICATIONS & ACHIEVEMENTS
+          </div>
+          <div style={{
+            fontSize: '11px',
+            color: '#2d3748',
+            lineHeight: '1.5'
+          }}>
+            {parsedCV.certifications.map((cert, index) => (
+              <div key={index} style={{ marginBottom: '4px' }}>
+                <strong>{formatText(cert)}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
