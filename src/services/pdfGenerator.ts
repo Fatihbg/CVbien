@@ -704,18 +704,18 @@ export class PDFGenerator {
       // === GÉNÉRATION PDF AVEC DONNÉES STRUCTURÉES ===
       
       // 1. HEADER - Nom, Contact, Titre
-      addText(parsedCV.name, 17.5, true, true, '#000000'); // 17 -> 17.5 (+0.5pt)
+      addText(parsedCV.name, 18.0, true, true, '#000000'); // 17.5 -> 18.0 (+0.5pt)
       currentY += 3;
       
-      addText(parsedCV.contact, 9.5, false, true, '#000000'); // 9 -> 9.5 (+0.5pt)
+      addText(parsedCV.contact, 10.0, false, true, '#000000'); // 9.5 -> 10.0 (+0.5pt)
       currentY += 2; // Augmenté de 1 à 2 pour plus d'espace
       
-      addText(parsedCV.title, 13.5, true, true, '#000000'); // 13 -> 13.5 (+0.5pt)
+      addText(parsedCV.title, 14.0, true, true, '#000000'); // 13.5 -> 14.0 (+0.5pt)
       currentY += 4;
       
       // 2. RÉSUMÉ PROFESSIONNEL
       if (parsedCV.summary && parsedCV.summary.trim()) {
-        addText(parsedCV.summary, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+        addText(parsedCV.summary, 10.0, false, false, '#000000'); // 9.5 -> 10.0 (+0.5pt)
         currentY += 3;
       }
       
@@ -723,18 +723,18 @@ export class PDFGenerator {
       if (parsedCV.experience && parsedCV.experience.length > 0) {
         currentY += 4;
         const titleY = currentY;
-        addText(translateSectionTitle('EXPÉRIENCE PROFESSIONNELLE'), 11.5, true, false, '#000000'); // 11 -> 11.5 (+0.5pt)
+        addText(translateSectionTitle('EXPÉRIENCE PROFESSIONNELLE'), 12.0, true, false, '#000000'); // 11.5 -> 12.0 (+0.5pt)
         addHorizontalLine(titleY);
         
         parsedCV.experience.forEach(exp => {
           // Entreprise et poste sur une ligne
           const companyPosition = `${exp.company} - ${exp.position} (${exp.period})`;
-          addText(companyPosition, 10.5, true, false, '#000000'); // 10 -> 10.5 (+0.5pt)
+          addText(companyPosition, 11.0, true, false, '#000000'); // 10.5 -> 11.0 (+0.5pt)
           currentY += 1;
           
           // Descriptions avec bullet points
           exp.description.forEach(desc => {
-            addText(`• ${desc}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+            addText(`• ${desc}`, 10.0, false, false, '#000000'); // 9.5 -> 10.0 (+0.5pt)
             currentY += 2.5;
           });
           currentY += 1;
@@ -745,18 +745,18 @@ export class PDFGenerator {
       if (parsedCV.education && parsedCV.education.length > 0) {
         currentY += 4;
         const titleY = currentY;
-        addText(translateSectionTitle('FORMATION'), 11.5, true, false, '#000000'); // 11 -> 11.5 (+0.5pt)
+        addText(translateSectionTitle('FORMATION'), 12.0, true, false, '#000000'); // 11.5 -> 12.0 (+0.5pt)
         addHorizontalLine(titleY);
         
         parsedCV.education.forEach(edu => {
           // Institution et diplôme sur une ligne
           const institutionDegree = `${edu.institution} - ${edu.degree} (${edu.period})`;
-          addText(institutionDegree, 10.5, true, false, '#000000'); // 10 -> 10.5 (+0.5pt)
+          addText(institutionDegree, 11.0, true, false, '#000000'); // 10.5 -> 11.0 (+0.5pt)
           currentY += 1;
           
           // Description
           if (edu.description) {
-            addText(`• ${edu.description}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+            addText(`• ${edu.description}`, 10.0, false, false, '#000000'); // 9.5 -> 10.0 (+0.5pt)
             currentY += 2.5;
           }
           currentY += 1;
@@ -769,7 +769,7 @@ export class PDFGenerator {
       if (parsedCV.technicalSkills || parsedCV.softSkills || parsedCV.additionalInfo || parsedCV.certifications.length > 0) {
         currentY += 4;
         const titleY = currentY;
-        addText(translateSectionTitle('INFORMATIONS ADDITIONNELLES'), 11.5, true, false, '#000000'); // 11 -> 11.5 (+0.5pt)
+        addText(translateSectionTitle('INFORMATIONS ADDITIONNELLES'), 12.0, true, false, '#000000'); // 11.5 -> 12.0 (+0.5pt)
         addHorizontalLine(titleY);
         
         if (parsedCV.technicalSkills) {
@@ -777,13 +777,13 @@ export class PDFGenerator {
           const techSkillsLabel = detectedLanguage === 'english' ? 'Technical skills' : 
                                  detectedLanguage === 'dutch' ? 'Technische vaardigheden' : 
                                  'Compétences techniques';
-          addText(`• ${techSkillsLabel} : ${parsedCV.technicalSkills}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+          addText(`• ${techSkillsLabel} : ${parsedCV.technicalSkills}`, 10.0, false, false, '#000000'); // 9.5 -> 10.0 (+0.5pt)
           currentY += 2.5;
         }
         
         if (parsedCV.softSkills) {
           const translatedSoftSkills = translateSoftSkills(parsedCV.softSkills);
-          addText(`• Soft skills : ${translatedSoftSkills}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+          addText(`• Soft skills : ${translatedSoftSkills}`, 10.0, false, false, '#000000'); // 9.5 -> 10.0 (+0.5pt)
           currentY += 2.5;
         }
         
@@ -795,12 +795,12 @@ export class PDFGenerator {
                            detectedLanguage === 'dutch' ? 'Certificeringen' : 
                            'Certifications';
           
-          addText(`• ${certLabel} : `, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+          addText(`• ${certLabel} : `, 10.0, false, false, '#000000'); // 9.5 -> 10.0 (+0.5pt)
           // Ajouter les certifications en gras
           const certText = parsedCV.certifications.join(', ');
           console.log('🎯 Texte certifications à afficher:', certText);
           doc.setFont(undefined, 'bold');
-          addText(certText, 9.5, false, false, '#000000');
+          addText(certText, 10.0, false, false, '#000000'); // 9.5 -> 10.0 (+0.5pt)
           doc.setFont(undefined, 'normal'); // Remettre en normal
           currentY += 2.5;
         } else {
@@ -829,7 +829,7 @@ export class PDFGenerator {
           
           // Afficher les autres informations d'abord
           if (otherInfo.length > 0) {
-            addText(`• ${otherInfo.join(', ')}`, 9.5, false, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+            addText(`• ${otherInfo.join(', ')}`, 10.0, false, false, '#000000'); // 9.5 -> 10.0 (+0.5pt)
             currentY += 2.5;
           }
           
@@ -838,7 +838,7 @@ export class PDFGenerator {
             const cleanLanguages = languages.map(lang => 
               lang.replace(/\*\*/g, '').replace(/langues?\s*:?\s*/gi, '').trim()
             ).join(', ');
-            addText(`• Langues : ${cleanLanguages}`, 9.5, true, false, '#000000'); // 9 -> 9.5 (+0.5pt)
+            addText(`• Langues : ${cleanLanguages}`, 10.0, true, false, '#000000'); // 9.5 -> 10.0 (+0.5pt)
             currentY += 2.5;
           }
         }
