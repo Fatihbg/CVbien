@@ -2,11 +2,268 @@ import React from 'react';
 
 interface CVDisplayProps {
   cvText: string;
+  onDataParsed?: (parsedData: any) => void; // Callback pour exposer les données parsées
 }
 
-export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText }) => {
+export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) => {
   // Parser le CV de manière simple et directe
   const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
+  
+  // Fonction pour détecter si une ligne est un titre de section
+  const isSectionTitle = (line: string) => {
+    return line === 'PROFESSIONAL SUMMARY' || 
+           line === 'EDUCATION' || 
+           line === 'PROFESSIONAL EXPERIENCE' || 
+           line === 'TECHNICAL SKILLS' || 
+           line === 'CERTIFICATIONS & ACHIEVEMENTS' ||
+           line === 'EXPERIENCE PROFESSIONNELLE' ||
+           line === 'FORMATION' ||
+           line === 'COMPETENCES' ||
+           line === 'COMPÉTENCES';
+  };
+  
+  // Parser les données pour les exposer au PDF
+  const parsedData = React.useMemo(() => {
+    // Parser les données de manière structurée
+    const name = lines.find(line => line.length > 3 && line.length < 50 && line === line.toUpperCase() && !line.includes('@') && !isSectionTitle(line)) || 'Nom Prénom';
+    const contact = lines.find(line => line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/)) || 'Contact';
+    const contactIndex = lines.findIndex(line => line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/));
+    const title = contactIndex >= 0 && contactIndex + 1 < lines.length ? lines[contactIndex + 1] : 'Titre Professionnel';
+    const summary = lines.find(line => line.length > 50 && line.length < 300 && 
+      !line.includes('EXPERIENCE') && !line.includes('FORMATION') && 
+      !line.includes('SKILLS') && !line.includes('CERTIFICATIONS')) || 'Résumé professionnel';
+    
+    // Parser les expériences
+    const experience: Array<{company: string; position: string; period: string; description: string[]}> = [];
+    const education: Array<{institution: string; degree: string; period: string; description: string}> = [];
+    
+    let currentSection = '';
+    let currentExperience: any = null;
+    let currentEducation: any = null;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Détecter les sections
+      if (line.includes('EXPERIENCE') || line.includes('EXPÉRIENCE') || line.includes('EXPERIENCES') || line.includes('PROFESSIONAL EXPERIENCE')) {
+        currentSection = 'experience';
+        continue;
+      }
+      if (line.includes('EDUCATION') || line.includes('FORMATION') || line.includes('FORMATIONS') || line.includes('ACADEMIC BACKGROUND') || line.includes('ÉTUDES')) {
+        currentSection = 'education';
+        continue;
+      }
+      
+      // Parser les expériences
+      if (currentSection === 'experience') {
+        if (line.includes('-') && line.includes('(') && line.includes(')')) {
+          if (currentExperience) {
+            experience.push(currentExperience);
+          }
+          const parts = line.split(' - ');
+          if (parts.length >= 2) {
+            const company = parts[0];
+            const positionPeriod = parts[1];
+            const periodMatch = positionPeriod.match(/\(([^)]+)\)/);
+            const period = periodMatch ? periodMatch[1] : '';
+            const position = positionPeriod.replace(/\([^)]+\)/, '').trim();
+            
+            currentExperience = {
+              company,
+              position,
+              period,
+              description: []
+            };
+          }
+        }
+        else if (line.includes(',') && line.includes('(') && line.includes(')')) {
+          if (currentExperience) {
+            experience.push(currentExperience);
+          }
+          const parts = line.split(',');
+          if (parts.length >= 2) {
+            const company = parts[0];
+            const positionPeriod = parts.slice(1).join(',').trim();
+            const periodMatch = positionPeriod.match(/\(([^)]+)\)/);
+            const period = periodMatch ? periodMatch[1] : '';
+            const position = positionPeriod.replace(/\([^)]+\)/, '').trim();
+            
+            currentExperience = {
+              company,
+              position,
+              period,
+              description: []
+            };
+          }
+        }
+        else if (currentExperience && (line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))) {
+          currentExperience.description.push(line.replace(/^[•\-*]\s*/, '').trim());
+        }
+        else if (currentExperience && line.length > 10 && !line.includes('(') && !line.includes('-')) {
+          currentExperience.description.push(line.trim());
+        }
+      }
+      
+      // Parser les formations
+      if (currentSection === 'education') {
+        if (line.includes('-') && line.includes('(') && line.includes(')')) {
+          if (currentEducation) {
+            education.push(currentEducation);
+          }
+          const parts = line.split(' - ');
+          if (parts.length >= 2) {
+            const institution = parts[0];
+            const degreePeriod = parts[1];
+            const periodMatch = degreePeriod.match(/\(([^)]+)\)/);
+            const period = periodMatch ? periodMatch[1] : '';
+            const degree = degreePeriod.replace(/\([^)]+\)/, '').trim();
+            
+            currentEducation = {
+              institution,
+              degree,
+              period,
+              description: ''
+            };
+          }
+        }
+        else if (line.includes(',') && line.includes('(') && line.includes(')')) {
+          if (currentEducation) {
+            education.push(currentEducation);
+          }
+          const parts = line.split(',');
+          if (parts.length >= 2) {
+            const institution = parts[0];
+            const degreePeriod = parts.slice(1).join(',').trim();
+            const periodMatch = degreePeriod.match(/\(([^)]+)\)/);
+            const period = periodMatch ? periodMatch[1] : '';
+            const degree = degreePeriod.replace(/\([^)]+\)/, '').trim();
+            
+            currentEducation = {
+              institution,
+              degree,
+              period,
+              description: ''
+            };
+          }
+        }
+        else if (currentEducation && (line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))) {
+          if (currentEducation.description) {
+            currentEducation.description += ' ' + line.replace(/^[•\-*]\s*/, '').trim();
+          } else {
+            currentEducation.description = line.replace(/^[•\-*]\s*/, '').trim();
+          }
+        }
+        else if (currentEducation && line.length > 10 && !line.includes('(') && !line.includes('-')) {
+          if (currentEducation.description) {
+            currentEducation.description += ' ' + line.trim();
+          } else {
+            currentEducation.description = line.trim();
+          }
+        }
+      }
+    }
+    
+    if (currentExperience) experience.push(currentExperience);
+    if (currentEducation) education.push(currentEducation);
+    
+    // Parser les compétences techniques
+    let technicalSkills = '';
+    const technicalSkillsPatterns = [
+      /Compétences techniques\s*:?\s*([^•\n]+)/i,
+      /Technical skills\s*:?\s*([^•\n]+)/i,
+      /Compétences\s*:?\s*([^•\n]+)/i,
+      /Skills\s*:?\s*([^•\n]+)/i,
+      /Technologies\s*:?\s*([^•\n]+)/i,
+      /Programming languages\s*:?\s*([^•\n]+)/i,
+      /Langages de programmation\s*:?\s*([^•\n]+)/i,
+      /Outils\s*:?\s*([^•\n]+)/i,
+      /Tools\s*:?\s*([^•\n]+)/i
+    ];
+    
+    for (const pattern of technicalSkillsPatterns) {
+      const skillsMatch = cvText.match(pattern);
+      if (skillsMatch && skillsMatch[1].trim()) {
+        technicalSkills = skillsMatch[1].trim();
+        break;
+      }
+    }
+    
+    // Parser les soft skills
+    let softSkills = '';
+    const softSkillsPatterns = [
+      /Soft skills\s*:?\s*([^•\n]+)/i,
+      /Compétences relationnelles\s*:?\s*([^•\n]+)/i,
+      /Compétences comportementales\s*:?\s*([^•\n]+)/i,
+      /Aptitudes\s*:?\s*([^•\n]+)/i,
+      /Qualités\s*:?\s*([^•\n]+)/i,
+      /Interpersonal skills\s*:?\s*([^•\n]+)/i,
+      /Personal skills\s*:?\s*([^•\n]+)/i
+    ];
+    
+    for (const pattern of softSkillsPatterns) {
+      const softMatch = cvText.match(pattern);
+      if (softMatch && softMatch[1].trim()) {
+        softSkills = softMatch[1].trim();
+        break;
+      }
+    }
+    
+    // Parser les certifications
+    let certifications: string[] = [];
+    const certPatterns = [
+      /Certifications?\s*:?\s*([^•\n]+)/i,
+      /Certificats?\s*:?\s*([^•\n]+)/i,
+      /Certificat\s*:?\s*([^•\n]+)/i,
+      /Qualifications?\s*:?\s*([^•\n]+)/i,
+      /Formations?\s*certifiantes?\s*:?\s*([^•\n]+)/i
+    ];
+    
+    for (const pattern of certPatterns) {
+      const certMatch = cvText.match(pattern);
+      if (certMatch && certMatch[1].trim()) {
+        const certText = certMatch[1].trim();
+        certifications = certText.split(/[,;]/).map(c => c.trim()).filter(c => c && c.length > 2);
+        break;
+      }
+    }
+    
+    // Si aucun pattern ne fonctionne, chercher dans les lignes
+    if (certifications.length === 0) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.toLowerCase().includes('certification') || line.toLowerCase().includes('certificat') || line.toLowerCase().includes('qualification')) {
+          const colonIndex = line.indexOf(':');
+          if (colonIndex !== -1) {
+            const certText = line.substring(colonIndex + 1).trim();
+            if (certText) {
+              certifications = certText.split(/[,;]/).map(c => c.trim()).filter(c => c && c.length > 2);
+              break;
+            }
+          }
+        }
+      }
+    }
+    
+    return {
+      name,
+      contact,
+      title,
+      summary,
+      experience,
+      education,
+      technicalSkills,
+      softSkills,
+      certifications,
+      additionalInfo: ''
+    };
+  }, [cvText, lines]);
+  
+  // Exposer les données parsées via le callback
+  React.useEffect(() => {
+    if (onDataParsed) {
+      onDataParsed(parsedData);
+    }
+  }, [parsedData, onDataParsed]);
   
   // Fonction pour formater le texte avec les balises <B> et supprimer TOUS les **
   const formatText = (text: string) => {

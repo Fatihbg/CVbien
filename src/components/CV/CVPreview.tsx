@@ -11,6 +11,7 @@ export const CVPreview: React.FC = () => {
   const [editingValue, setEditingValue] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [parsedCVData, setParsedCVData] = useState<any>(null); // Stocker les données parsées
   const { t } = useTranslation();
   // const [isEditing, setIsEditing] = useState(false);
 
@@ -54,11 +55,10 @@ export const CVPreview: React.FC = () => {
   const handleDownload = async () => {
     console.log('🚀 handleDownload appelé');
     console.log('📄 generatedCV:', generatedCV);
-    console.log('📄 generatedCV type:', typeof generatedCV);
-    console.log('📄 generatedCV length:', generatedCV?.length);
+    console.log('📄 parsedCVData:', parsedCVData);
     
-    if (!generatedCV) {
-      console.log('❌ Aucun CV généré');
+    if (!generatedCV || !parsedCVData) {
+      console.log('❌ Aucun CV généré ou données parsées manquantes');
       return;
     }
     
@@ -84,8 +84,9 @@ export const CVPreview: React.FC = () => {
       // Attendre un peu à 90% pour simuler la génération PDF
       setTimeout(async () => {
         try {
-          console.log('🎯 Génération PDF démarrée');
-          await PDFGenerator.generateCVPDF(generatedCV, jobDescription);
+          console.log('🎯 Génération PDF démarrée avec données parsées');
+          // Utiliser les données parsées au lieu de l'IA
+          await PDFGenerator.generateCVPDFFromParsedData(parsedCVData, jobDescription);
           console.log('✅ PDF généré avec succès');
           
           // Finaliser la progression
@@ -224,7 +225,10 @@ export const CVPreview: React.FC = () => {
           padding: '12px',
           minHeight: '400px'
         }}>
-          <CVDisplay cvText={generatedCV} />
+          <CVDisplay 
+            cvText={generatedCV} 
+            onDataParsed={setParsedCVData}
+          />
         </div>
       </div>
     </div>

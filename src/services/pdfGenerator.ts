@@ -467,6 +467,236 @@ export class PDFGenerator {
     };
   }
 
+  // Nouvelle fonction qui utilise les données parsées de l'aperçu
+  static async generateCVPDFFromParsedData(parsedData: any, jobDescription: string = '', filename?: string): Promise<void> {
+    try {
+      console.log('=== GÉNÉRATION PDF AVEC DONNÉES PARSÉES ===');
+      console.log('Parsed Data:', parsedData);
+      console.log('Job Description length:', jobDescription.length);
+      
+      // Générer un nom de fichier dynamique si non fourni
+      let finalFilename = filename;
+      if (!finalFilename) {
+        const name = parsedData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        
+        // Utiliser localStorage pour compter les téléchargements
+        const storageKey = `cv-download-count-${name}`;
+        const currentCount = parseInt(localStorage.getItem(storageKey) || '0') + 1;
+        localStorage.setItem(storageKey, currentCount.toString());
+        
+        finalFilename = `${name}-cv-${currentCount}.pdf`;
+      }
+      
+      const { default: jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      // Utiliser les données parsées directement - copier la logique de generateCVPDF
+      // Configuration
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 15;
+      const maxWidth = pageWidth - (2 * margin);
+      let currentY = margin;
+
+      // Fonction pour ajouter du texte
+      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
+        if (currentY > pageHeight - 20) return;
+        
+        doc.setFontSize(fontSize);
+        if (isBold) {
+          doc.setFont('calibri', 'bold');
+        } else {
+          doc.setFont('calibri', 'normal');
+        }
+        doc.setTextColor(color);
+        
+        const lines = doc.splitTextToSize(text, maxWidth);
+        
+        lines.forEach((line: string) => {
+          if (currentY > pageHeight - 20) return;
+          let xPos = margin;
+          let align: any = 'left';
+          
+          if (isCenter) {
+            xPos = pageWidth / 2;
+            align = 'center';
+          }
+          
+          doc.text(line, xPos, currentY, { align });
+          currentY += fontSize * 0.4;
+        });
+      };
+
+      // Fonction pour ajouter une ligne horizontale
+      const addHorizontalLine = (titleY: number) => {
+        if (currentY > pageHeight - 20) return;
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.3);
+        doc.line(margin, titleY + 0.5, pageWidth - margin, titleY + 0.5);
+        currentY = titleY + 7;
+      };
+
+      // Fonction pour détecter la langue
+      const detectJobDescriptionLanguage = (jobDesc: string): string => {
+        const frenchKeywords = ['recherche', 'poste', 'entreprise', 'expérience', 'compétences', 'mission', 'profil', 'candidat', 'équipe', 'développement'];
+        const englishKeywords = ['looking for', 'position', 'company', 'experience', 'skills', 'mission', 'profile', 'candidate', 'team', 'development'];
+        const dutchKeywords = ['zoeken', 'functie', 'bedrijf', 'ervaring', 'vaardigheden', 'missie', 'profiel', 'kandidaat', 'team', 'ontwikkeling'];
+        
+        const lowerJobDesc = jobDesc.toLowerCase();
+        
+        const frenchCount = frenchKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
+        const englishCount = englishKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
+        const dutchCount = dutchKeywords.filter(keyword => lowerJobDesc.includes(keyword)).length;
+        
+        if (dutchCount > frenchCount && dutchCount > englishCount) {
+          return 'dutch';
+        } else if (englishCount > frenchCount && englishCount > dutchCount) {
+          return 'english';
+        } else {
+          return 'french';
+        }
+      };
+
+      // Détecter la langue
+      let detectedLanguage = 'french';
+      if (jobDescription) {
+        let jobDescText = '';
+        if (typeof jobDescription === 'string') {
+          jobDescText = jobDescription;
+        } else if (jobDescription && typeof jobDescription === 'object') {
+          jobDescText = (jobDescription as any).description || (jobDescription as any).title || JSON.stringify(jobDescription);
+        }
+        detectedLanguage = detectJobDescriptionLanguage(jobDescText);
+      }
+
+      // Fonction pour traduire les titres
+      const translateSectionTitle = (title: string): string => {
+        const translations: any = {
+          'EXPÉRIENCE PROFESSIONNELLE': {
+            'french': 'EXPÉRIENCE PROFESSIONNELLE',
+            'english': 'PROFESSIONAL EXPERIENCE',
+            'dutch': 'WERKERVARING'
+          },
+          'FORMATION': {
+            'french': 'FORMATION',
+            'english': 'EDUCATION',
+            'dutch': 'OPLEIDING'
+          },
+          'COMPÉTENCES TECHNIQUES': {
+            'french': 'COMPÉTENCES TECHNIQUES',
+            'english': 'TECHNICAL SKILLS',
+            'dutch': 'TECHNISCHE VAARDIGHEDEN'
+          },
+          'CERTIFICATIONS': {
+            'french': 'CERTIFICATIONS',
+            'english': 'CERTIFICATIONS',
+            'dutch': 'CERTIFICERINGEN'
+          }
+        };
+        
+        return translations[title]?.[detectedLanguage] || title;
+      };
+
+      // Générer le PDF avec les données parsées
+      // Header - Nom
+      addText(parsedData.name, 18.3, true, true, '#1a365d');
+      currentY += 5;
+      
+      // Contact
+      addText(parsedData.contact, 10.3, false, true, '#4a5568');
+      currentY += 3;
+      
+      // Titre professionnel
+      addText(parsedData.title, 12.3, false, true, '#2d3748');
+      currentY += 8;
+      
+      // Résumé
+      if (parsedData.summary) {
+        const summaryTitle = translateSectionTitle('PROFESSIONAL SUMMARY');
+        addText(summaryTitle, 12.3, true, false, '#1a365d');
+        addHorizontalLine(currentY - 2);
+        addText(parsedData.summary, 10.3, false, false, '#2d3748');
+        currentY += 5;
+      }
+      
+      // Expériences
+      if (parsedData.experience && parsedData.experience.length > 0) {
+        const expTitle = translateSectionTitle('EXPÉRIENCE PROFESSIONNELLE');
+        addText(expTitle, 12.3, true, false, '#1a365d');
+        addHorizontalLine(currentY - 2);
+        
+        parsedData.experience.forEach((exp: any) => {
+          addText(`${exp.company} - ${exp.position} (${exp.period})`, 10.3, true, false, '#2d3748');
+          currentY += 2;
+          
+          exp.description.forEach((desc: string) => {
+            addText(`• ${desc}`, 10.3, false, false, '#2d3748');
+            currentY += 1;
+          });
+          currentY += 3;
+        });
+      }
+      
+      // Formation
+      if (parsedData.education && parsedData.education.length > 0) {
+        const eduTitle = translateSectionTitle('FORMATION');
+        addText(eduTitle, 12.3, true, false, '#1a365d');
+        addHorizontalLine(currentY - 2);
+        
+        parsedData.education.forEach((edu: any) => {
+          addText(`${edu.institution} - ${edu.degree} (${edu.period})`, 10.3, true, false, '#2d3748');
+          currentY += 2;
+          
+          if (edu.description) {
+            addText(edu.description, 10.3, false, false, '#2d3748');
+            currentY += 1;
+          }
+          currentY += 3;
+        });
+      }
+      
+      // Compétences techniques
+      if (parsedData.technicalSkills) {
+        const techTitle = translateSectionTitle('COMPÉTENCES TECHNIQUES');
+        addText(techTitle, 12.3, true, false, '#1a365d');
+        addHorizontalLine(currentY - 2);
+        addText(parsedData.technicalSkills, 10.3, false, false, '#2d3748');
+        currentY += 5;
+      }
+      
+      // Soft skills
+      if (parsedData.softSkills) {
+        const softTitle = detectedLanguage === 'english' ? 'SOFT SKILLS' : 
+                         detectedLanguage === 'dutch' ? 'ZACHTE VAARDIGHEDEN' : 'COMPÉTENCES COMPORTEMENTALES';
+        addText(softTitle, 12.3, true, false, '#1a365d');
+        addHorizontalLine(currentY - 2);
+        addText(parsedData.softSkills, 10.3, false, false, '#2d3748');
+        currentY += 5;
+      }
+      
+      // Certifications
+      if (parsedData.certifications && parsedData.certifications.length > 0) {
+        const certTitle = translateSectionTitle('CERTIFICATIONS');
+        addText(certTitle, 12.3, true, false, '#1a365d');
+        addHorizontalLine(currentY - 2);
+        
+        parsedData.certifications.forEach((cert: string) => {
+          doc.setFont('calibri', 'bold');
+          addText(cert, 10.3, true, false, '#2d3748');
+          currentY += 1;
+        });
+      }
+      
+      // Sauvegarder le PDF
+      doc.save(finalFilename);
+      
+      console.log('✅ PDF généré avec succès avec données parsées');
+    } catch (error) {
+      console.error('❌ Erreur génération PDF avec données parsées:', error);
+      throw new Error('Impossible de générer le PDF');
+    }
+  }
+
   static async generateCVPDF(cvText: string, jobDescription: string = '', filename?: string): Promise<void> {
     try {
       console.log('=== GÉNÉRATION PDF AVEC IA ===');
