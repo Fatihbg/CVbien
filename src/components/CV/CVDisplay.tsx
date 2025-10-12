@@ -304,19 +304,6 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
     return conclusionKeywords.some(keyword => lowerLine.includes(keyword));
   };
 
-  // Fonction pour détecter si une ligne est un titre de section
-  const isSectionTitle = (line: string) => {
-    return line === 'PROFESSIONAL SUMMARY' || 
-           line === 'EDUCATION' || 
-           line === 'PROFESSIONAL EXPERIENCE' || 
-           line === 'TECHNICAL SKILLS' || 
-           line === 'CERTIFICATIONS & ACHIEVEMENTS' ||
-           line === 'EXPERIENCE PROFESSIONNELLE' ||
-           line === 'FORMATION' ||
-           line === 'COMPETENCES' ||
-           line === 'COMPÉTENCES';
-  };
-
   // Utiliser les données parsées pour l'affichage
   return (
     <div style={{
@@ -349,7 +336,7 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
         paddingBottom: '8px',
         position: 'relative'
       }}>
-        {parsedCV.name}
+        {parsedData.name}
       </div>
 
       {/* Contact */}
@@ -360,7 +347,7 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
         marginBottom: '6px',
         fontWeight: '500'
       }}>
-        {formatText(parsedCV.contact)}
+        {formatText(parsedData.contact)}
       </div>
 
       {/* Titre professionnel */}
@@ -373,11 +360,11 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
         fontStyle: 'italic',
         letterSpacing: '0.5px'
       }}>
-        {formatText(parsedCV.title)}
+        {formatText(parsedData.title)}
       </div>
 
       {/* Résumé */}
-      {parsedCV.summary && (
+      {parsedData.summary && (
         <div style={{
           marginBottom: '16px',
           borderTop: '1px solid #e2e8f0',
@@ -398,13 +385,13 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
             color: '#2d3748',
             lineHeight: '1.5'
           }}>
-            {formatText(parsedCV.summary)}
+            {formatText(parsedData.summary)}
           </div>
         </div>
       )}
 
       {/* Expériences */}
-      {parsedCV.experience && parsedCV.experience.length > 0 && (
+      {parsedData.experience && parsedData.experience.length > 0 && (
         <div style={{
           marginBottom: '16px',
           borderTop: '1px solid #e2e8f0',
@@ -420,7 +407,7 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
           }}>
             PROFESSIONAL EXPERIENCE
           </div>
-          {parsedCV.experience.map((exp, index) => (
+          {parsedData.experience.map((exp, index) => (
             <div key={index} style={{ marginBottom: '12px' }}>
               <div style={{
                 fontSize: '11px',
@@ -454,7 +441,7 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
       )}
 
       {/* Formation */}
-      {parsedCV.education && parsedCV.education.length > 0 && (
+      {parsedData.education && parsedData.education.length > 0 && (
         <div style={{
           marginBottom: '16px',
           borderTop: '1px solid #e2e8f0',
@@ -470,7 +457,7 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
           }}>
             EDUCATION
           </div>
-          {parsedCV.education.map((edu, index) => (
+          {parsedData.education.map((edu, index) => (
             <div key={index} style={{ marginBottom: '8px' }}>
               <div style={{
                 fontSize: '11px',
@@ -495,7 +482,7 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
       )}
 
       {/* Compétences techniques */}
-      {parsedCV.technicalSkills && (
+      {parsedData.technicalSkills && (
         <div style={{
           marginBottom: '16px',
           borderTop: '1px solid #e2e8f0',
@@ -516,13 +503,13 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
             color: '#2d3748',
             lineHeight: '1.5'
           }}>
-            {formatText(parsedCV.technicalSkills)}
+            {formatText(parsedData.technicalSkills)}
           </div>
         </div>
       )}
 
       {/* Soft skills */}
-      {parsedCV.softSkills && (
+      {parsedData.softSkills && (
         <div style={{
           marginBottom: '16px',
           borderTop: '1px solid #e2e8f0',
@@ -543,13 +530,13 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
             color: '#2d3748',
             lineHeight: '1.5'
           }}>
-            {formatText(parsedCV.softSkills)}
+            {formatText(parsedData.softSkills)}
           </div>
         </div>
       )}
 
       {/* Certifications */}
-      {parsedCV.certifications && parsedCV.certifications.length > 0 && (
+      {parsedData.certifications && parsedData.certifications.length > 0 && (
         <div style={{
           marginBottom: '16px',
           borderTop: '1px solid #e2e8f0',
@@ -570,7 +557,7 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
             color: '#2d3748',
             lineHeight: '1.5'
           }}>
-            {parsedCV.certifications.map((cert, index) => (
+            {parsedData.certifications.map((cert, index) => (
               <div key={index} style={{ marginBottom: '4px' }}>
                 <strong>{formatText(cert)}</strong>
               </div>
