@@ -706,7 +706,27 @@ export class PDFGenerator {
 
   static async generateCVPDF(cvText: string, jobDescription: string = '', filename?: string): Promise<void> {
     try {
-      console.log('=== GÉNÉRATION PDF AVEC IA ===');
+      console.log('=== GÉNÉRATION PDF DIRECTE (SANS IA) ===');
+      console.log('CV Text length:', cvText.length);
+      console.log('Job Description length:', jobDescription.length);
+      
+      // Parser le CV directement sans IA - utiliser le texte brut de la partie Éditer
+      const parsedCV = this.parseCVManually(cvText);
+      
+      // Utiliser la même logique que generateCVPDFFromParsedData qui fonctionne bien
+      await this.generateCVPDFFromParsedData(parsedCV, jobDescription, filename);
+      
+      console.log('✅ PDF généré avec succès - données directes de la partie Éditer (sans IA)');
+    } catch (error) {
+      console.error('❌ Erreur génération PDF directe:', error);
+      throw new Error('Impossible de générer le PDF');
+    }
+  }
+
+  // Ancienne fonction generateCVPDF complexe - gardée pour référence mais plus utilisée
+  static async generateCVPDF_OLD(cvText: string, jobDescription: string = '', filename?: string): Promise<void> {
+    try {
+      console.log('=== GÉNÉRATION PDF AVEC IA (ANCIENNE VERSION) ===');
       console.log('CV Text length:', cvText.length);
       console.log('Job Description length:', jobDescription.length);
       
@@ -1082,10 +1102,10 @@ export class PDFGenerator {
       }
 
       doc.save(finalFilename);
-      console.log('✅ PDF généré avec succès:', finalFilename);
+      console.log('✅ PDF généré avec succès (ancienne version):', finalFilename);
       
     } catch (error) {
-      console.error('❌ Erreur génération PDF:', error);
+      console.error('❌ Erreur génération PDF (ancienne version):', error);
       throw new Error('Impossible de générer le PDF');
     }
   }
