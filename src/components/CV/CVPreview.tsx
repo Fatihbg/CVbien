@@ -85,9 +85,11 @@ export const CVPreview: React.FC = () => {
       setTimeout(async () => {
         try {
           console.log('🎯 Génération PDF démarrée avec données de la partie Éditer');
-          // Utiliser directement le texte brut generatedCV (même source que la partie Éditer)
+          // IMPORTANT: PDF utilise UNIQUEMENT les données de la partie "Éditer" (droite)
+          // Aucun lien avec l'aperçu (gauche) qui peut avoir des problèmes de parsing
+          // generateCVPDF utilise parseCVWithAI qui fait un parsing complet et correct
           await PDFGenerator.generateCVPDF(generatedCV, jobDescription);
-          console.log('✅ PDF généré avec succès');
+          console.log('✅ PDF généré avec succès - données provenant de la partie Éditer uniquement');
           
           // Finaliser la progression
           setDownloadProgress(100);
