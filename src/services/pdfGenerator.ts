@@ -194,10 +194,36 @@ export class PDFGenerator {
     const contactIndex = lines.findIndex(line => line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/));
     const title = contactIndex >= 0 && contactIndex + 1 < lines.length ? lines[contactIndex + 1] : 'Titre Professionnel';
     
-    // Trouver le résumé (paragraphe long avant les sections)
-    const summary = lines.find(line => line.length > 50 && line.length < 300 && 
-      !line.includes('EXPERIENCE') && !line.includes('FORMATION') && 
-      !line.includes('SKILLS') && !line.includes('CERTIFICATIONS')) || 'Résumé professionnel';
+    // Trouver le résumé - chercher après le titre mais avant les sections
+    let summary = '';
+    let summaryStartIndex = Math.max(contactIndex + 2, 0);
+    
+    // Chercher un paragraphe long qui n'est pas une section
+    for (let i = summaryStartIndex; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Arrêter si on trouve une section
+      if (line.includes('**') && (
+        line.includes('EXPERIENCE') || line.includes('FORMATION') || 
+        line.includes('SKILLS') || line.includes('CERTIFICATIONS') ||
+        line.includes('EDUCATION') || line.includes('COMPETENCES')
+      )) {
+        break;
+      }
+      
+      // Si c'est un paragraphe long et cohérent, c'est probablement le résumé
+      if (line.length > 50 && line.length < 500 && 
+          !line.includes('•') && !line.includes('-') && 
+          !line.includes('(') && !line.includes(')') &&
+          line.includes(' ') && line.includes('.')) {
+        summary = line;
+        break;
+      }
+    }
+    
+    if (!summary) {
+      summary = 'Résumé professionnel';
+    }
     
     // Parser les expériences - AMÉLIORÉ pour préserver TOUT le contenu
     const experience: Array<{company: string; position: string; period: string; description: string[]}> = [];
@@ -210,20 +236,51 @@ export class PDFGenerator {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       
-      // Détecter les sections avec plus de variantes
-      if (line.includes('EXPERIENCE') || line.includes('EXPÉRIENCE') || line.includes('EXPERIENCES') || line.includes('PROFESSIONAL EXPERIENCE')) {
+      // Détecter les sections avec plus de variantes (avec ou sans **)
+      const cleanLine = line.replace(/\*\*/g, '').trim();
+      
+      if (cleanLine.includes('EXPERIENCE') || cleanLine.includes('EXPÉRIENCE') || cleanLine.includes('EXPERIENCES') || cleanLine.includes('PROFESSIONAL EXPERIENCE')) {
         currentSection = 'experience';
         continue;
       }
-      if (line.includes('EDUCATION') || line.includes('FORMATION') || line.includes('FORMATIONS') || line.includes('ACADEMIC BACKGROUND') || line.includes('ÉTUDES')) {
+      if (cleanLine.includes('EDUCATION') || cleanLine.includes('FORMATION') || cleanLine.includes('FORMATIONS') || cleanLine.includes('ACADEMIC BACKGROUND') || cleanLine.includes('ÉTUDES')) {
         currentSection = 'education';
         continue;
       }
+      if (cleanLine.includes('SKILLS') || cleanLine.includes('COMPETENCES') || cleanLine.includes('COMPÉTENCES') || cleanLine.includes('TECHNICAL SKILLS')) {
+        currentSection = 'skills';
+        continue;
+      }
+      if (cleanLine.includes('CERTIFICATIONS') || cleanLine.includes('ACHIEVEMENTS') || cleanLine.includes('CERTIFICATS')) {
+        currentSection = 'certifications';
+        continue;
+      }
       
-      // Parser les expériences - Plus flexible pour capturer Erasmus, stages, etc.
+      // Parser les expériences - Gérer le format **Position** et **Company (Period)**
       if (currentSection === 'experience') {
+        // Format avec **Position** (ligne avec double astérisques)
+        if (line.includes('**') && line.match(/\*\*[^*]+\*\*/)) {
+          if (currentExperience) {
+            experience.push(currentExperience);
+          }
+          const position = line.replace(/\*\*/g, '').trim();
+          currentExperience = {
+            company: '',
+            position,
+            period: '',
+            description: []
+          };
+        }
+        // Format avec **Company (Period)** - ligne suivante après **Position**
+        else if (currentExperience && currentExperience.position && !currentExperience.company && line.includes('(') && line.includes(')')) {
+          const periodMatch = line.match(/\(([^)]+)\)/);
+          const period = periodMatch ? periodMatch[1] : '';
+          const company = line.replace(/\([^)]+\)/, '').trim().replace(/\*\*/g, '').trim();
+          currentExperience.company = company;
+          currentExperience.period = period;
+        }
         // Format standard: Company - Position (Period)
-        if (line.includes('-') && line.includes('(') && line.includes(')')) {
+        else if (line.includes('-') && line.includes('(') && line.includes(')')) {
           if (currentExperience) {
             experience.push(currentExperience);
           }
@@ -269,7 +326,7 @@ export class PDFGenerator {
           currentExperience.description.push(line.replace(/^[•\-*]\s*/, '').trim());
         }
         // Lignes de description sans puce
-        else if (currentExperience && line.length > 10 && !line.includes('(') && !line.includes('-')) {
+        else if (currentExperience && line.length > 10 && !line.includes('(') && !line.includes('-') && !line.includes('**')) {
           currentExperience.description.push(line.trim());
         }
       }
