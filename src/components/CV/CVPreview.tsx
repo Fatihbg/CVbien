@@ -57,8 +57,8 @@ export const CVPreview: React.FC = () => {
     console.log('📄 generatedCV:', generatedCV);
     console.log('📄 parsedCVData:', parsedCVData);
     
-    if (!generatedCV || !parsedCVData) {
-      console.log('❌ Aucun CV généré ou données parsées manquantes');
+    if (!generatedCV) {
+      console.log('❌ Aucun CV généré');
       return;
     }
     
@@ -84,9 +84,9 @@ export const CVPreview: React.FC = () => {
       // Attendre un peu à 90% pour simuler la génération PDF
       setTimeout(async () => {
         try {
-          console.log('🎯 Génération PDF démarrée avec données parsées');
-          // Utiliser les données parsées au lieu de l'IA
-          await PDFGenerator.generateCVPDFFromParsedData(parsedCVData, jobDescription);
+          console.log('🎯 Génération PDF démarrée avec données de la partie Éditer');
+          // Utiliser directement le texte brut generatedCV (même source que la partie Éditer)
+          await PDFGenerator.generateCVPDF(generatedCV, jobDescription);
           console.log('✅ PDF généré avec succès');
           
           // Finaliser la progression
