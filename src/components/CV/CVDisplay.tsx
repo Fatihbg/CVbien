@@ -12,15 +12,17 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
   
   // Fonction pour détecter si une ligne est un titre de section
   const isSectionTitle = (line: string) => {
-    return line === 'PROFESSIONAL SUMMARY' || 
-           line === 'EDUCATION' || 
-           line === 'PROFESSIONAL EXPERIENCE' || 
-           line === 'TECHNICAL SKILLS' || 
-           line === 'CERTIFICATIONS & ACHIEVEMENTS' ||
-           line === 'EXPERIENCE PROFESSIONNELLE' ||
-           line === 'FORMATION' ||
-           line === 'COMPETENCES' ||
-           line === 'COMPÉTENCES';
+    const cleanLine = line.replace(/\*\*/g, '').trim();
+    return cleanLine === 'PROFESSIONAL SUMMARY' || 
+           cleanLine === 'EDUCATION' || 
+           cleanLine === 'PROFESSIONAL EXPERIENCE' || 
+           cleanLine === 'TECHNICAL SKILLS' || 
+           cleanLine === 'CERTIFICATIONS & ACHIEVEMENTS' ||
+           cleanLine === 'EXPERIENCE PROFESSIONNELLE' ||
+           cleanLine === 'FORMATION' ||
+           cleanLine === 'COMPETENCES' ||
+           cleanLine === 'COMPÉTENCES' ||
+           cleanLine.includes('EXPÉRIENCE PROFESSIONNELLE');
   };
   
   // Parser les données pour les exposer au PDF
@@ -61,20 +63,46 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       
-      // Détecter les sections
-      if (line.includes('EXPERIENCE') || line.includes('EXPÉRIENCE') || line.includes('EXPERIENCES') || line.includes('PROFESSIONAL EXPERIENCE')) {
+      // Détecter les sections (inclure les variantes en gras)
+      const cleanLine = line.replace(/\*\*/g, '').trim();
+      if (cleanLine.includes('EXPERIENCE') || cleanLine.includes('EXPÉRIENCE') || cleanLine.includes('EXPERIENCES') || cleanLine.includes('PROFESSIONAL EXPERIENCE')) {
         currentSection = 'experience';
         continue;
       }
-      if (line.includes('EDUCATION') || line.includes('FORMATION') || line.includes('FORMATIONS') || line.includes('ACADEMIC BACKGROUND') || line.includes('ÉTUDES')) {
+      if (cleanLine.includes('EDUCATION') || cleanLine.includes('FORMATION') || cleanLine.includes('FORMATIONS') || cleanLine.includes('ACADEMIC BACKGROUND') || cleanLine.includes('ÉTUDES')) {
         currentSection = 'education';
         continue;
       }
       
-      // Parser les expériences - AMÉLIORÉ
+      // Parser les expériences - AMÉLIORÉ pour format CV optimisé
       if (currentSection === 'experience') {
-        // Format: Company - Position (Period) ou Company, Position (Period)
-        if ((line.includes('-') || line.includes(',')) && line.includes('(') && line.includes(')')) {
+        // Format 1: **Position** (ligne en gras)
+        if (line.startsWith('**') && line.endsWith('**')) {
+          if (currentExperience) {
+            experience.push(currentExperience);
+          }
+          const position = line.replace(/\*\*/g, '').trim();
+          currentExperience = {
+            company: '',
+            position: position,
+            period: '',
+            description: []
+          };
+        }
+        // Format 2: **Company (Period)** (ligne avec entreprise et dates)
+        else if (line.startsWith('**') && line.includes('(') && line.includes(')')) {
+          if (currentExperience) {
+            const fullLine = line.replace(/\*\*/g, '').trim();
+            const periodMatch = fullLine.match(/\(([^)]+)\)/);
+            const period = periodMatch ? periodMatch[1].trim() : '';
+            const company = fullLine.replace(/\([^)]+\)/, '').trim();
+            
+            currentExperience.company = company;
+            currentExperience.period = period;
+          }
+        }
+        // Format 3: Company - Position (Period) (format classique)
+        else if ((line.includes('-') || line.includes(',')) && line.includes('(') && line.includes(')')) {
           if (currentExperience) {
             experience.push(currentExperience);
           }
