@@ -30,9 +30,25 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
     const contact = lines.find(line => line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/)) || 'Contact';
     const contactIndex = lines.findIndex(line => line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/));
     const title = contactIndex >= 0 && contactIndex + 1 < lines.length ? lines[contactIndex + 1] : 'Titre Professionnel';
-    const summary = lines.find(line => line.length > 50 && line.length < 300 && 
-      !line.includes('EXPERIENCE') && !line.includes('FORMATION') && 
-      !line.includes('SKILLS') && !line.includes('CERTIFICATIONS')) || 'Résumé professionnel';
+    
+    // Améliorer la détection du résumé - chercher après le nom/titre mais avant les sections
+    let summary = '';
+    let summaryStartIndex = Math.max(contactIndex + 2, 0);
+    for (let i = summaryStartIndex; i < lines.length; i++) {
+      const line = lines[i];
+      if (isSectionTitle(line)) break;
+      if (line.length > 50 && line.length < 500 && 
+          !line.includes('This CV has been designed') && 
+          !line.includes('CV has been designed') &&
+          !line.includes('highlight competencies') &&
+          !line.includes('relevant to the position') &&
+          !line.includes('Sopra Steria') &&
+          !line.includes('alignment with the qualifications')) {
+        summary = line;
+        break;
+      }
+    }
+    if (!summary) summary = 'Résumé professionnel';
     
     // Parser les expériences
     const experience: Array<{company: string; position: string; period: string; description: string[]}> = [];
@@ -55,44 +71,45 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
         continue;
       }
       
-      // Parser les expériences
+      // Parser les expériences - AMÉLIORÉ
       if (currentSection === 'experience') {
-        if (line.includes('-') && line.includes('(') && line.includes(')')) {
+        // Format: Company - Position (Period) ou Company, Position (Period)
+        if ((line.includes('-') || line.includes(',')) && line.includes('(') && line.includes(')')) {
           if (currentExperience) {
             experience.push(currentExperience);
           }
-          const parts = line.split(' - ');
-          if (parts.length >= 2) {
-            const company = parts[0];
-            const positionPeriod = parts[1];
-            const periodMatch = positionPeriod.match(/\(([^)]+)\)/);
-            const period = periodMatch ? periodMatch[1] : '';
-            const position = positionPeriod.replace(/\([^)]+\)/, '').trim();
-            
-            currentExperience = {
-              company,
-              position,
-              period,
-              description: []
-            };
+          
+          let company = '', position = '', period = '';
+          
+          // Essayer d'abord le format avec tiret
+          if (line.includes(' - ')) {
+            const parts = line.split(' - ');
+            if (parts.length >= 2) {
+              company = parts[0].trim();
+              const positionPeriod = parts[1].trim();
+              const periodMatch = positionPeriod.match(/\(([^)]+)\)/);
+              period = periodMatch ? periodMatch[1].trim() : '';
+              position = positionPeriod.replace(/\([^)]+\)/, '').trim();
+            }
           }
-        }
-        else if (line.includes(',') && line.includes('(') && line.includes(')')) {
-          if (currentExperience) {
-            experience.push(currentExperience);
+          // Sinon essayer le format avec virgule
+          else if (line.includes(',')) {
+            const parts = line.split(',');
+            if (parts.length >= 2) {
+              company = parts[0].trim();
+              const positionPeriod = parts.slice(1).join(',').trim();
+              const periodMatch = positionPeriod.match(/\(([^)]+)\)/);
+              period = periodMatch ? periodMatch[1].trim() : '';
+              position = positionPeriod.replace(/\([^)]+\)/, '').trim();
+            }
           }
-          const parts = line.split(',');
-          if (parts.length >= 2) {
-            const company = parts[0];
-            const positionPeriod = parts.slice(1).join(',').trim();
-            const periodMatch = positionPeriod.match(/\(([^)]+)\)/);
-            const period = periodMatch ? periodMatch[1] : '';
-            const position = positionPeriod.replace(/\([^)]+\)/, '').trim();
-            
+          
+          // Nettoyer les valeurs vides et créer l'expérience
+          if (company && position && period) {
             currentExperience = {
-              company,
-              position,
-              period,
+              company: company,
+              position: position,
+              period: period,
               description: []
             };
           }
@@ -167,49 +184,7 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
     if (currentExperience) experience.push(currentExperience);
     if (currentEducation) education.push(currentEducation);
     
-    // Parser les compétences techniques
-    let technicalSkills = '';
-    const technicalSkillsPatterns = [
-      /Compétences techniques\s*:?\s*([^•\n]+)/i,
-      /Technical skills\s*:?\s*([^•\n]+)/i,
-      /Compétences\s*:?\s*([^•\n]+)/i,
-      /Skills\s*:?\s*([^•\n]+)/i,
-      /Technologies\s*:?\s*([^•\n]+)/i,
-      /Programming languages\s*:?\s*([^•\n]+)/i,
-      /Langages de programmation\s*:?\s*([^•\n]+)/i,
-      /Outils\s*:?\s*([^•\n]+)/i,
-      /Tools\s*:?\s*([^•\n]+)/i
-    ];
-    
-    for (const pattern of technicalSkillsPatterns) {
-      const skillsMatch = cvText.match(pattern);
-      if (skillsMatch && skillsMatch[1].trim()) {
-        technicalSkills = skillsMatch[1].trim();
-        break;
-      }
-    }
-    
-    // Parser les soft skills
-    let softSkills = '';
-    const softSkillsPatterns = [
-      /Soft skills\s*:?\s*([^•\n]+)/i,
-      /Compétences relationnelles\s*:?\s*([^•\n]+)/i,
-      /Compétences comportementales\s*:?\s*([^•\n]+)/i,
-      /Aptitudes\s*:?\s*([^•\n]+)/i,
-      /Qualités\s*:?\s*([^•\n]+)/i,
-      /Interpersonal skills\s*:?\s*([^•\n]+)/i,
-      /Personal skills\s*:?\s*([^•\n]+)/i
-    ];
-    
-    for (const pattern of softSkillsPatterns) {
-      const softMatch = cvText.match(pattern);
-      if (softMatch && softMatch[1].trim()) {
-        softSkills = softMatch[1].trim();
-        break;
-      }
-    }
-    
-    // Parser les certifications
+    // Parser les certifications - AMÉLIORÉ
     let certifications: string[] = [];
     const certPatterns = [
       /Certifications?\s*:?\s*([^•\n]+)/i,
@@ -245,6 +220,69 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
       }
     }
     
+    // Parser les langues - à mettre en bas
+    let languages = '';
+    const languagePatterns = [
+      /Langues?\s*:?\s*([^•\n]+)/i,
+      /Languages?\s*:?\s*([^•\n]+)/i,
+      /Talen\s*:?\s*([^•\n]+)/i
+    ];
+    
+    for (const pattern of languagePatterns) {
+      const langMatch = cvText.match(pattern);
+      if (langMatch && langMatch[1].trim()) {
+        languages = langMatch[1].trim();
+        break;
+      }
+    }
+    
+    // Parser les compétences techniques et soft skills pour les mettre dans infos additionnelles
+    let additionalSkills = '';
+    let technicalSkills = '';
+    let softSkills = '';
+    
+    // Chercher les sections de compétences
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // Compétences techniques
+      if (line.toLowerCase().includes('compétences techniques') || line.toLowerCase().includes('technical skills')) {
+        let skillsText = '';
+        for (let j = i + 1; j < lines.length; j++) {
+          const nextLine = lines[j];
+          if (isSectionTitle(nextLine)) break;
+          if (nextLine.trim() && !nextLine.includes(':')) {
+            skillsText += (skillsText ? ', ' : '') + nextLine.trim();
+          }
+        }
+        if (skillsText) {
+          technicalSkills = skillsText;
+          additionalSkills += (additionalSkills ? ' | ' : '') + 'Compétences techniques: ' + skillsText;
+        }
+      }
+      
+      // Soft skills
+      if (line.toLowerCase().includes('soft skills') || line.toLowerCase().includes('compétences relationnelles')) {
+        let skillsText = '';
+        for (let j = i + 1; j < lines.length; j++) {
+          const nextLine = lines[j];
+          if (isSectionTitle(nextLine)) break;
+          if (nextLine.trim() && !nextLine.includes(':')) {
+            skillsText += (skillsText ? ', ' : '') + nextLine.trim();
+          }
+        }
+        if (skillsText) {
+          softSkills = skillsText;
+          additionalSkills += (additionalSkills ? ' | ' : '') + 'Soft skills: ' + skillsText;
+        }
+      }
+    }
+    
+    // Ajouter les langues en bas si elles existent
+    if (languages) {
+      additionalSkills += (additionalSkills ? ' | ' : '') + 'Langues: ' + languages;
+    }
+    
     return {
       name,
       contact,
@@ -255,14 +293,17 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
       technicalSkills,
       softSkills,
       certifications,
-      additionalInfo: ''
+      additionalInfo: additionalSkills
     };
   }, [cvText, lines]);
   
   // Exposer les données parsées via le callback
   React.useEffect(() => {
-    if (onDataParsed) {
-      onDataParsed(parsedData);
+    if (onDataParsed && parsedData) {
+      // Vérifier que les données parsées sont valides
+      if (parsedData.name && parsedData.name !== 'Nom Prénom') {
+        onDataParsed(parsedData);
+      }
     }
   }, [parsedData, onDataParsed]);
   
@@ -275,6 +316,19 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
       .replace(/\*([^*]*)\*/g, '$1') // Supprime *texte* même vide
       .replace(/\*+/g, '') // Supprime toute séquence de *
       .trim();
+    
+    // Supprimer les phrases d'adaptation du CV
+    cleanText = cleanText
+      .replace(/This CV has been designed to highlight competencies and experiences relevant to the position at Sopra Steria, ensuring alignment with the qualifications and skills sought in the job description\.?/gi, '')
+      .replace(/CV has been designed to highlight competencies and experiences relevant to the position\.?/gi, '')
+      .replace(/This CV highlights competencies and experiences relevant to the position\.?/gi, '')
+      .replace(/highlighting competencies and experiences relevant to the position\.?/gi, '')
+      .replace(/relevant to the position at Sopra Steria\.?/gi, '')
+      .replace(/alignment with the qualifications and skills sought in the job description\.?/gi, '')
+      .trim();
+    
+    // Enlever les parenthèses vides
+    cleanText = cleanText.replace(/\(\s*\)/g, '').trim();
     
     return cleanText.split('<B>').map((part, index) => {
       if (index === 0) return part;
@@ -297,7 +351,9 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
       'n\'hésitez pas', 'don\'t hesitate', 'contactez-moi', 'contact me',
       'ce cv est optimisé', 'this cv is optimized', 'optimisé pour tenir', 'optimized to fit',
       'reflète mes compétences', 'reflects my skills', 'pertinentes pour le poste', 'relevant for the position',
-      'chez sopra steria', 'at sopra steria', 'sopra steria', 'compétences et expériences', 'skills and experiences'
+      'chez sopra steria', 'at sopra steria', 'sopra steria', 'compétences et expériences', 'skills and experiences',
+      'this cv has been designed', 'cv has been designed', 'highlight competencies', 'relevant to the position',
+      'alignment with the qualifications', 'sought in the job description'
     ];
     
     const lowerLine = line.toLowerCase();
@@ -562,6 +618,33 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
                 <strong>{formatText(cert)}</strong>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Informations additionnelles */}
+      {parsedData.additionalInfo && (
+        <div style={{
+          marginBottom: '16px',
+          borderTop: '1px solid #e2e8f0',
+          paddingTop: '8px'
+        }}>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: 'bold',
+            color: '#1a365d',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            marginBottom: '8px'
+          }}>
+            INFORMATIONS ADDITIONNELLES
+          </div>
+          <div style={{
+            fontSize: '11px',
+            color: '#2d3748',
+            lineHeight: '1.5'
+          }}>
+            {formatText(parsedData.additionalInfo)}
           </div>
         </div>
       )}
