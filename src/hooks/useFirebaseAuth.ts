@@ -97,3 +97,5 @@ export const useFirebaseAuth = () => {
     isAuthenticated: !!user
   };
 };
+
+

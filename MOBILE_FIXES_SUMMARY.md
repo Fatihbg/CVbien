@@ -90,3 +90,5 @@ button {
 4. Tester l'ouverture des modales
 5. Tester les formulaires de connexion/inscription
 6. Vérifier qu'il n'y a plus de scroll horizontal
+
+

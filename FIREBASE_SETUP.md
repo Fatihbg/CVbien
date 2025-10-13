@@ -94,3 +94,5 @@ Une fois configuré, teste :
 - **Ne commite JAMAIS** tes vraies clés Firebase dans Git
 - Utilise des variables d'environnement pour la production
 - Configure les règles Firestore pour la sécurité
+
+

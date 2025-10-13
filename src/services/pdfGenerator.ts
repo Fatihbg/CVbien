@@ -124,11 +124,11 @@ export class PDFGenerator {
       
       if (firstWords.includes('the ') || firstWords.includes('and ') || firstWords.includes('of ') || firstWords.includes('in ')) {
         console.log('🇺🇸 FALLBACK: ANGLAIS détecté');
-        return 'english';
+      return 'english';
       } else if (firstWords.includes('de ') || firstWords.includes('het ') || firstWords.includes('en ') || firstWords.includes('van ')) {
         console.log('🇳🇱 FALLBACK: NÉERLANDAIS détecté');
         return 'dutch';
-      } else {
+    } else {
         console.log('🇫🇷 FALLBACK: FRANÇAIS (par défaut)');
         return 'french';
       }
@@ -220,14 +220,17 @@ export class PDFGenerator {
       cleanedText = cleanedText.replace(phrase, '');
     });
     
-    // Supprimer les liens LinkedIn, Portfolio, Agency Website du texte (ils seront dans le contact)
+    // Supprimer les liens dupliqués du texte (garder seulement l'URL dans les parenthèses)
     const linkPatterns = [
       /\*\*LinkedIn:\*\*\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi,
       /\*\*Portfolio:\*\*\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi,
       /\*\*Agency Website:\*\*\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi,
       /LinkedIn:\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi,
       /Portfolio:\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi,
-      /Agency Website:\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi
+      /Agency Website:\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi,
+      /Website:\s*\[[^\]]+\]\([^)]+\)\s*/gi,
+      /\[cvbien\.dev\]\(https:\/\/cvbien\.dev\)/gi,
+      /\[dagence\.be\]\(https:\/\/dagence\.be\)/gi
     ];
     
     linkPatterns.forEach(pattern => {
@@ -1128,39 +1131,21 @@ export class PDFGenerator {
         return translations[title]?.[detectedLanguage] || title;
       };
 
-      // Générer le PDF avec les données parsées
-      // Header - Nom
+      // Générer le PDF avec les données parsées - ORDRE EXACT
+      // 1. PRENOM NOM
       addText(parsedData.name, 18.3, true, true, '#1a365d');
       currentY += 5;
       
-      // Contact avec les liens
+      // 2. CONTACT (avec liens uniques)
       let contactText = parsedData.contact;
-      
-      // Ajouter les liens des entreprises si disponibles
-      const links: string[] = [];
-      if (parsedData.experience) {
-        parsedData.experience.forEach((exp: any) => {
-          if (exp.company.toLowerCase().includes('cvbien')) {
-            links.push('[https://cvbien.dev]');
-          }
-          if (exp.company.toLowerCase().includes('dagence')) {
-            links.push('[https://dagence.be]');
-          }
-        });
-      }
-      
-      if (links.length > 0) {
-        contactText += ' | ' + links.join(' | ');
-      }
-      
       addText(contactText, 10.3, false, true, '#4a5568');
       currentY += 3;
       
-      // Titre professionnel
+      // 3. POSTE
       addText(parsedData.title, 12.3, false, true, '#2d3748');
       currentY += 8;
       
-      // Résumé
+      // 4. RÉSUMÉ PROFESSIONNEL
       if (parsedData.summary) {
         const summaryTitle = translateSectionTitle('PROFESSIONAL SUMMARY');
         addText(summaryTitle, 12.3, true, false, '#1a365d');
@@ -1169,7 +1154,7 @@ export class PDFGenerator {
         currentY += 5;
       }
       
-      // Expériences
+      // 5. EXPÉRIENCES PROFESSIONNELLES
       if (parsedData.experience && parsedData.experience.length > 0) {
         const expTitle = translateSectionTitle('EXPÉRIENCE PROFESSIONNELLE');
         addText(expTitle, 12.3, true, false, '#1a365d');
@@ -1190,7 +1175,7 @@ export class PDFGenerator {
         });
       }
       
-      // Formation
+      // 6. FORMATION
       if (parsedData.education && parsedData.education.length > 0) {
         const eduTitle = translateSectionTitle('FORMATION');
         addText(eduTitle, 12.3, true, false, '#1a365d');
@@ -1232,7 +1217,7 @@ export class PDFGenerator {
         });
       }
       
-      // INFORMATIONS ADDITIONNELLES (Skills, Soft Skills, Certifications, Langues)
+      // 7. INFORMATIONS ADDITIONNELLES (Skills, Soft Skills, Certifications, Langues)
       if (parsedData.technicalSkills || parsedData.softSkills || (parsedData.certifications && parsedData.certifications.length > 0)) {
         const addInfoTitle = translateSectionTitle('INFORMATIONS ADDITIONNELLES');
         addText(addInfoTitle, 12.3, true, false, '#1a365d');
