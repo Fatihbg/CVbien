@@ -199,7 +199,13 @@ export class PDFGenerator {
       /This CV aligns with the qualifications sought by Sopra Steria[^.]*\./gi,
       /Ce CV correspond aux qualifications recherchées par Sopra Steria[^.]*\./gi,
       /showcasing my relevant skills and experiences[^.]*\./gi,
-      /mettant en valeur mes compétences et expériences pertinentes[^.]*\./gi
+      /mettant en valeur mes compétences et expériences pertinentes[^.]*\./gi,
+      /This CV showcases my qualifications and readiness for a role in consulting[^.]*\./gi,
+      /Ce CV met en valeur mes qualifications et ma préparation pour un rôle de consultant[^.]*\./gi,
+      /aligning with the expectations outlined in the job description[^.]*\./gi,
+      /en alignement avec les attentes décrites dans la description du poste[^.]*\./gi,
+      /provided by Sopra Steria[^.]*\./gi,
+      /fournie par Sopra Steria[^.]*\./gi
     ];
     
     adaptationPhrases.forEach(phrase => {
@@ -546,6 +552,9 @@ export class PDFGenerator {
             // Supprimer les phrases d'adaptation des descriptions académiques
             academicDesc = academicDesc.replace(/This CV aligns with the qualifications[^.]*\./gi, '');
             academicDesc = academicDesc.replace(/showcasing my relevant skills[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/This CV showcases my qualifications and readiness[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/aligning with the expectations outlined[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/provided by Sopra Steria[^.]*\./gi, '');
             
             if (academicDesc.trim()) {
               if (currentEducation.description) {
@@ -579,6 +588,9 @@ export class PDFGenerator {
             // Supprimer les phrases d'adaptation des descriptions académiques
             academicDesc = academicDesc.replace(/This CV aligns with the qualifications[^.]*\./gi, '');
             academicDesc = academicDesc.replace(/showcasing my relevant skills[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/This CV showcases my qualifications and readiness[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/aligning with the expectations outlined[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/provided by Sopra Steria[^.]*\./gi, '');
             
             if (academicDesc.trim()) {
               if (currentEducation.description) {
@@ -694,6 +706,9 @@ export class PDFGenerator {
       technicalSkills = technicalSkills.replace(/tout en sortant de ma zone de confort[^.]*\./gi, '');
       technicalSkills = technicalSkills.replace(/Je combine rigueur analytique[^.]*\./gi, '');
       technicalSkills = technicalSkills.replace(/Mon expérience en tant que Business Analyst[^.]*\./gi, '');
+      technicalSkills = technicalSkills.replace(/This CV showcases my qualifications and readiness[^.]*\./gi, '');
+      technicalSkills = technicalSkills.replace(/aligning with the expectations outlined[^.]*\./gi, '');
+      technicalSkills = technicalSkills.replace(/provided by Sopra Steria[^.]*\./gi, '');
       
       // Séparer les langues des compétences techniques si elles sont mélangées
       if (technicalSkills.includes('Langues:') || technicalSkills.includes('Languages:')) {
@@ -1154,6 +1169,9 @@ export class PDFGenerator {
             cleanDescription = cleanDescription.replace(/\s*Engagé dans l'apprentissage[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*This CV aligns with the qualifications[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*showcasing my relevant skills[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*This CV showcases my qualifications and readiness[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*aligning with the expectations outlined[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*provided by Sopra Steria[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.trim();
             
             if (cleanDescription) {
