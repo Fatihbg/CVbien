@@ -195,7 +195,11 @@ export class PDFGenerator {
       /focusing on relevant skills and experiences that match the requirements[^.]*\./gi,
       /en me concentrant sur les compétences et expériences pertinentes[^.]*\./gi,
       /Committed to continuous learning and professional development[^.]*\./gi,
-      /Engagé dans l'apprentissage continu et le développement professionnel[^.]*\./gi
+      /Engagé dans l'apprentissage continu et le développement professionnel[^.]*\./gi,
+      /This CV aligns with the qualifications sought by Sopra Steria[^.]*\./gi,
+      /Ce CV correspond aux qualifications recherchées par Sopra Steria[^.]*\./gi,
+      /showcasing my relevant skills and experiences[^.]*\./gi,
+      /mettant en valeur mes compétences et expériences pertinentes[^.]*\./gi
     ];
     
     adaptationPhrases.forEach(phrase => {
@@ -249,9 +253,15 @@ export class PDFGenerator {
       }
     });
     
-    // Ajouter les liens au contact s'ils existent
+    // Ajouter les liens au contact s'ils existent (éviter la duplication)
     if (extractedLinks.length > 0) {
-      contact += ' | ' + extractedLinks.join(' | ');
+      // Vérifier si les liens ne sont pas déjà présents dans le contact
+      const existingLinks = extractedLinks.filter(link => contact.includes(link.replace(/\[|\]/g, '')));
+      const newLinks = extractedLinks.filter(link => !contact.includes(link.replace(/\[|\]/g, '')));
+      
+      if (newLinks.length > 0) {
+        contact += ' | ' + newLinks.join(' | ');
+      }
     }
     
     // Trouver le titre (ligne après le contact)
@@ -501,13 +511,20 @@ export class PDFGenerator {
               currentSkills = cleanLine;
               hasSkillsInEducation = true;
             }
-            // NE PAS ajouter aux descriptions académiques
+            // NE PAS ajouter aux descriptions académiques - IGNORER complètement
           } else {
-            // C'est une vraie description académique
-            if (currentEducation.description) {
-              currentEducation.description += ' ' + cleanLine;
-            } else {
-              currentEducation.description = cleanLine;
+            // C'est une vraie description académique - nettoyer avant d'ajouter
+            let academicDesc = cleanLine;
+            // Supprimer les phrases d'adaptation des descriptions académiques
+            academicDesc = academicDesc.replace(/This CV aligns with the qualifications[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/showcasing my relevant skills[^.]*\./gi, '');
+            
+            if (academicDesc.trim()) {
+              if (currentEducation.description) {
+                currentEducation.description += ' ' + academicDesc;
+              } else {
+                currentEducation.description = academicDesc;
+              }
             }
           }
         }
@@ -525,13 +542,20 @@ export class PDFGenerator {
               currentSkills = line.trim();
               hasSkillsInEducation = true;
             }
-            // NE PAS ajouter aux descriptions académiques
+            // NE PAS ajouter aux descriptions académiques - IGNORER complètement
           } else {
-            // C'est une vraie description académique
-            if (currentEducation.description) {
-              currentEducation.description += ' ' + line.trim();
-            } else {
-              currentEducation.description = line.trim();
+            // C'est une vraie description académique - nettoyer avant d'ajouter
+            let academicDesc = line.trim();
+            // Supprimer les phrases d'adaptation des descriptions académiques
+            academicDesc = academicDesc.replace(/This CV aligns with the qualifications[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/showcasing my relevant skills[^.]*\./gi, '');
+            
+            if (academicDesc.trim()) {
+              if (currentEducation.description) {
+                currentEducation.description += ' ' + academicDesc;
+              } else {
+                currentEducation.description = academicDesc;
+              }
             }
           }
         }
@@ -918,6 +942,35 @@ export class PDFGenerator {
         doc.line(margin, titleY + 0.5, pageWidth - margin, titleY + 0.5);
         currentY = titleY + 7;
       };
+      
+      // Fonction pour ajouter du texte sans ligne horizontale automatique
+      const addTextNoLine = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
+        if (currentY > pageHeight - 20) return;
+        
+        doc.setFontSize(fontSize);
+        if (isBold) {
+          doc.setFont('calibri', 'bold');
+        } else {
+          doc.setFont('calibri', 'normal');
+        }
+        doc.setTextColor(color);
+        
+        const lines = doc.splitTextToSize(text, maxWidth);
+        
+        lines.forEach((line: string) => {
+          if (currentY > pageHeight - 20) return;
+          let xPos = margin;
+          let align: any = 'left';
+          
+          if (isCenter) {
+            xPos = pageWidth / 2;
+            align = 'center';
+          }
+          
+          doc.text(line, xPos, currentY, { align });
+          currentY += fontSize * 0.4;
+        });
+      };
 
       // Fonction pour détecter la langue
       const detectJobDescriptionLanguage = (jobDesc: string): string => {
@@ -1064,10 +1117,12 @@ export class PDFGenerator {
             cleanDescription = cleanDescription.replace(/\s*Strong interest[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Committed to continuous learning[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Engagé dans l'apprentissage[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*This CV aligns with the qualifications[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*showcasing my relevant skills[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.trim();
             
             if (cleanDescription) {
-              addText(cleanDescription, 10.3, false, false, '#2d3748');
+              addTextNoLine(cleanDescription, 10.3, false, false, '#2d3748');
               currentY += 1;
             }
           }
@@ -1109,7 +1164,7 @@ export class PDFGenerator {
           const certLabel = detectedLanguage === 'english' ? 'Certifications:' : 
                            detectedLanguage === 'dutch' ? 'Certificeringen:' : 'Certifications:';
           const certText = parsedData.certifications.join(', ');
-          addText(`${certLabel} ${certText}`, 10.3, false, false, '#2d3748');
+          addTextNoLine(`${certLabel} ${certText}`, 10.3, false, false, '#2d3748');
           currentY += 3;
         }
         
