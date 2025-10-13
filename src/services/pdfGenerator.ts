@@ -267,11 +267,10 @@ export class PDFGenerator {
     // Nettoyer les liens dupliqués dans le contact
     const linkRegex = /\[([^\]]+)\]\([^)]+\)/g;
     const links = contact.match(linkRegex) || [];
-    const uniqueLinks = [...new Set(links)]; // Supprimer les doublons
     
     // Reconstruire le contact sans doublons
     let cleanContact = contact;
-    links.forEach(link => {
+    links.forEach((link: string) => {
       const linkText = link.replace(/\[|\]/g, '').replace(/\([^)]+\)/g, '');
       const linkCount = (contact.match(new RegExp(linkText, 'g')) || []).length;
       if (linkCount > 1) {
