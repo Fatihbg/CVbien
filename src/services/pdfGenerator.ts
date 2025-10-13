@@ -283,8 +283,8 @@ export class PDFGenerator {
     const allLinks = contact.match(linkRegex) || [];
     
     // Extraire les URLs uniques (pas les liens complets)
-    const uniqueUrls = new Set();
-    allLinks.forEach(link => {
+    const uniqueUrls = new Set<string>();
+    allLinks.forEach((link: string) => {
       const urlMatch = link.match(/\(([^)]+)\)/);
       if (urlMatch) {
         uniqueUrls.add(urlMatch[1]);
