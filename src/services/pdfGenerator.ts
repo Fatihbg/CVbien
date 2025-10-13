@@ -205,7 +205,11 @@ export class PDFGenerator {
       /aligning with the expectations outlined in the job description[^.]*\./gi,
       /en alignement avec les attentes décrites dans la description du poste[^.]*\./gi,
       /provided by Sopra Steria[^.]*\./gi,
-      /fournie par Sopra Steria[^.]*\./gi
+      /fournie par Sopra Steria[^.]*\./gi,
+      /This CV is tailored to highlight qualifications and experiences relevant to the position at Sopra Steria[^.]*\./gi,
+      /Ce CV est conçu pour mettre en valeur les qualifications et expériences pertinentes pour le poste chez Sopra Steria[^.]*\./gi,
+      /ensuring alignment with the job's requirements[^.]*\./gi,
+      /en assurant l'alignement avec les exigences du poste[^.]*\./gi
     ];
     
     adaptationPhrases.forEach(phrase => {
@@ -270,27 +274,24 @@ export class PDFGenerator {
       }
     }
     
-    // Nettoyer les liens dupliqués dans le contact
+    // Nettoyer les liens dupliqués dans le contact - AMÉLIORÉ
     const linkRegex = /\[([^\]]+)\]\([^)]+\)/g;
     const links = contact.match(linkRegex) || [];
     
-    // Reconstruire le contact sans doublons
+    // Créer une liste unique des liens
+    const uniqueLinks = [...new Set(links)];
+    
+    // Reconstruire le contact avec seulement les liens uniques
     let cleanContact = contact;
-    links.forEach((link: string) => {
-      const linkText = link.replace(/\[|\]/g, '').replace(/\([^)]+\)/g, '');
-      const linkCount = (contact.match(new RegExp(linkText, 'g')) || []).length;
-      if (linkCount > 1) {
-        // Supprimer les occurrences supplémentaires
-        let firstOccurrence = true;
-        cleanContact = cleanContact.replace(new RegExp(linkText, 'g'), (match) => {
-          if (firstOccurrence) {
-            firstOccurrence = false;
-            return match;
-          }
-          return '';
-        });
-      }
-    });
+    
+    // Supprimer tous les liens d'abord
+    cleanContact = cleanContact.replace(/\[([^\]]+)\]\([^)]+\)/g, '');
+    
+    // Ajouter les liens uniques à la fin
+    if (uniqueLinks.length > 0) {
+      const baseContact = cleanContact.replace(/\|\s*$/, '').trim();
+      cleanContact = baseContact + ' | ' + uniqueLinks.join(' | ');
+    }
     
     // Nettoyer les espaces et séparateurs multiples
     cleanContact = cleanContact.replace(/\|\s*\|/g, '|').replace(/\s+/g, ' ').trim();
@@ -555,6 +556,8 @@ export class PDFGenerator {
             academicDesc = academicDesc.replace(/This CV showcases my qualifications and readiness[^.]*\./gi, '');
             academicDesc = academicDesc.replace(/aligning with the expectations outlined[^.]*\./gi, '');
             academicDesc = academicDesc.replace(/provided by Sopra Steria[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/This CV is tailored to highlight qualifications[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/ensuring alignment with the job's requirements[^.]*\./gi, '');
             
             if (academicDesc.trim()) {
               if (currentEducation.description) {
@@ -591,6 +594,8 @@ export class PDFGenerator {
             academicDesc = academicDesc.replace(/This CV showcases my qualifications and readiness[^.]*\./gi, '');
             academicDesc = academicDesc.replace(/aligning with the expectations outlined[^.]*\./gi, '');
             academicDesc = academicDesc.replace(/provided by Sopra Steria[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/This CV is tailored to highlight qualifications[^.]*\./gi, '');
+            academicDesc = academicDesc.replace(/ensuring alignment with the job's requirements[^.]*\./gi, '');
             
             if (academicDesc.trim()) {
               if (currentEducation.description) {
@@ -709,6 +714,8 @@ export class PDFGenerator {
       technicalSkills = technicalSkills.replace(/This CV showcases my qualifications and readiness[^.]*\./gi, '');
       technicalSkills = technicalSkills.replace(/aligning with the expectations outlined[^.]*\./gi, '');
       technicalSkills = technicalSkills.replace(/provided by Sopra Steria[^.]*\./gi, '');
+      technicalSkills = technicalSkills.replace(/This CV is tailored to highlight qualifications[^.]*\./gi, '');
+      technicalSkills = technicalSkills.replace(/ensuring alignment with the job's requirements[^.]*\./gi, '');
       
       // Séparer les langues des compétences techniques si elles sont mélangées
       if (technicalSkills.includes('Langues:') || technicalSkills.includes('Languages:')) {
@@ -1172,6 +1179,8 @@ export class PDFGenerator {
             cleanDescription = cleanDescription.replace(/\s*This CV showcases my qualifications and readiness[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*aligning with the expectations outlined[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*provided by Sopra Steria[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*This CV is tailored to highlight qualifications[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*ensuring alignment with the job's requirements[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.trim();
             
             if (cleanDescription) {
