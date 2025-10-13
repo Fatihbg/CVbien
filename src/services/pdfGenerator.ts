@@ -232,6 +232,8 @@ export class PDFGenerator {
     let currentSection = '';
     let currentExperience: any = null;
     let currentEducation: any = null;
+    let currentSkills = '';
+    let currentCertifications: string[] = [];
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -331,10 +333,31 @@ export class PDFGenerator {
         }
       }
       
-      // Parser les formations - Plus flexible pour capturer Erasmus, etc.
+      // Parser les formations - Gérer le format **Degree** et **Institution (Period)**
       if (currentSection === 'education') {
+        // Format avec **Degree** (ligne avec double astérisques)
+        if (line.includes('**') && line.match(/\*\*[^*]+\*\*/)) {
+          if (currentEducation) {
+            education.push(currentEducation);
+          }
+          const degree = line.replace(/\*\*/g, '').trim();
+          currentEducation = {
+            institution: '',
+            degree,
+            period: '',
+            description: ''
+          };
+        }
+        // Format avec **Institution (Period)** - ligne suivante après **Degree**
+        else if (currentEducation && currentEducation.degree && !currentEducation.institution && line.includes('(') && line.includes(')')) {
+          const periodMatch = line.match(/\(([^)]+)\)/);
+          const period = periodMatch ? periodMatch[1] : '';
+          const institution = line.replace(/\([^)]+\)/, '').trim().replace(/\*\*/g, '').trim();
+          currentEducation.institution = institution;
+          currentEducation.period = period;
+        }
         // Format standard: Institution - Degree (Period)
-        if (line.includes('-') && line.includes('(') && line.includes(')')) {
+        else if (line.includes('-') && line.includes('(') && line.includes(')')) {
           if (currentEducation) {
             education.push(currentEducation);
           }
@@ -392,34 +415,67 @@ export class PDFGenerator {
           }
         }
       }
+      
+      // Parser les compétences techniques dans la section skills
+      if (currentSection === 'skills') {
+        // Ignorer les lignes vides et les titres de section
+        if (line.trim() && !line.includes('**') && !line.includes('SKILLS')) {
+          if (currentSkills) {
+            currentSkills += ' ' + line.trim();
+          } else {
+            currentSkills = line.trim();
+          }
+        }
+      }
+      
+      // Parser les certifications dans la section certifications
+      if (currentSection === 'certifications') {
+        // Ignorer les lignes vides et les titres de section
+        if (line.trim() && !line.includes('**') && !line.includes('CERTIFICATIONS') && !line.includes('ACHIEVEMENTS')) {
+          // Si c'est une ligne avec des puces, extraire chaque certification
+          if (line.includes('•') || line.includes('-') || line.includes('*')) {
+            const cert = line.replace(/^[•\-*]\s*/, '').trim();
+            if (cert) {
+              currentCertifications.push(cert);
+            }
+          } else if (line.length > 5) {
+            // Si c'est une ligne de texte, l'ajouter comme certification
+            currentCertifications.push(line.trim());
+          }
+        }
+      }
     }
     
     if (currentExperience) experience.push(currentExperience);
     if (currentEducation) education.push(currentEducation);
     
-    // Parser les compétences techniques - AMÉLIORÉ pour capturer toutes les variantes
-    let technicalSkills = '';
-    const technicalSkillsPatterns = [
-      /Compétences techniques\s*:?\s*([^•\n]+)/i,
-      /Technical skills\s*:?\s*([^•\n]+)/i,
-      /Compétences\s*:?\s*([^•\n]+)/i,
-      /Skills\s*:?\s*([^•\n]+)/i,
-      /Technologies\s*:?\s*([^•\n]+)/i,
-      /Programming languages\s*:?\s*([^•\n]+)/i,
-      /Langages de programmation\s*:?\s*([^•\n]+)/i,
-      /Outils\s*:?\s*([^•\n]+)/i,
-      /Tools\s*:?\s*([^•\n]+)/i
-    ];
+    // Utiliser les compétences collectées dans la boucle ou fallback sur regex
+    let technicalSkills = currentSkills || '';
     
-    for (const pattern of technicalSkillsPatterns) {
-      const skillsMatch = cvText.match(pattern);
-      if (skillsMatch && skillsMatch[1].trim()) {
-        technicalSkills = skillsMatch[1].trim();
-        break;
+    // Si pas de compétences dans la section skills, essayer les regex comme fallback
+    if (!technicalSkills) {
+      const technicalSkillsPatterns = [
+        /Compétences techniques\s*:?\s*([^•\n]+)/i,
+        /Technical skills\s*:?\s*([^•\n]+)/i,
+        /Compétences\s*:?\s*([^•\n]+)/i,
+        /Skills\s*:?\s*([^•\n]+)/i,
+        /Technologies\s*:?\s*([^•\n]+)/i,
+        /Programming languages\s*:?\s*([^•\n]+)/i,
+        /Langages de programmation\s*:?\s*([^•\n]+)/i,
+        /Outils\s*:?\s*([^•\n]+)/i,
+        /Tools\s*:?\s*([^•\n]+)/i
+      ];
+      
+      for (const pattern of technicalSkillsPatterns) {
+        const skillsMatch = cvText.match(pattern);
+        if (skillsMatch && skillsMatch[1].trim()) {
+          technicalSkills = skillsMatch[1].trim();
+          break;
+        }
       }
     }
     
-    // Parser les soft skills - AMÉLIORÉ pour capturer toutes les variantes
+    // Soft skills - utiliser regex pour l'instant
     let softSkills = '';
     const softSkillsPatterns = [
       /Soft skills\s*:?\s*([^•\n]+)/i,
@@ -439,51 +495,57 @@ export class PDFGenerator {
       }
     }
     
-    // Parser les certifications - amélioré pour détecter différentes variantes
-    let certifications: string[] = [];
+    // Utiliser les certifications collectées dans la boucle ou fallback sur regex
+    let certifications: string[] = currentCertifications || [];
     
     console.log('🔍 Recherche des certifications dans le texte...');
+    console.log('📋 Certifications collectées dans la boucle:', certifications);
     
-    // Chercher différentes variantes de section certifications
-    const certPatterns = [
-      /Certifications?\s*:?\s*([^•\n]+)/i,
-      /Certificats?\s*:?\s*([^•\n]+)/i,
-      /Certificat\s*:?\s*([^•\n]+)/i,
-      /Qualifications?\s*:?\s*([^•\n]+)/i,
-      /Formations?\s*certifiantes?\s*:?\s*([^•\n]+)/i
-    ];
-    
-    for (let i = 0; i < certPatterns.length; i++) {
-      const pattern = certPatterns[i];
-      console.log(`🔍 Test pattern ${i + 1}:`, pattern);
-      const certMatch = cvText.match(pattern);
-      if (certMatch && certMatch[1].trim()) {
-        console.log('✅ Certifications trouvées avec pattern', i + 1, ':', certMatch[1]);
-        const certText = certMatch[1].trim();
-        // Diviser par virgules, points-virgules, ou retours à la ligne
-        certifications = certText.split(/[,;]/).map(c => c.trim()).filter(c => c && c.length > 2);
-        console.log('📋 Certifications parsées:', certifications);
-        break;
-      } else {
-        console.log('❌ Pattern', i + 1, 'ne correspond pas');
-      }
-    }
-    
-    // Si aucun pattern ne fonctionne, chercher dans les lignes
+    // Si pas de certifications dans la section certifications, essayer les regex comme fallback
     if (certifications.length === 0) {
-      console.log('🔍 Recherche manuelle dans les lignes...');
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (line.toLowerCase().includes('certification') || line.toLowerCase().includes('certificat') || line.toLowerCase().includes('qualification')) {
-          console.log('🎯 Ligne avec certification trouvée:', line);
-          // Extraire le contenu après les deux points
-          const colonIndex = line.indexOf(':');
-          if (colonIndex !== -1) {
-            const certText = line.substring(colonIndex + 1).trim();
-            if (certText) {
-              certifications = certText.split(/[,;]/).map(c => c.trim()).filter(c => c && c.length > 2);
-              console.log('📋 Certifications extraites manuellement:', certifications);
-              break;
+      console.log('🔍 Fallback sur regex pour les certifications...');
+      
+      // Chercher différentes variantes de section certifications
+      const certPatterns = [
+        /Certifications?\s*:?\s*([^•\n]+)/i,
+        /Certificats?\s*:?\s*([^•\n]+)/i,
+        /Certificat\s*:?\s*([^•\n]+)/i,
+        /Qualifications?\s*:?\s*([^•\n]+)/i,
+        /Formations?\s*certifiantes?\s*:?\s*([^•\n]+)/i
+      ];
+      
+      for (let i = 0; i < certPatterns.length; i++) {
+        const pattern = certPatterns[i];
+        console.log(`🔍 Test pattern ${i + 1}:`, pattern);
+        const certMatch = cvText.match(pattern);
+        if (certMatch && certMatch[1].trim()) {
+          console.log('✅ Certifications trouvées avec pattern', i + 1, ':', certMatch[1]);
+          const certText = certMatch[1].trim();
+          // Diviser par virgules, points-virgules, ou retours à la ligne
+          certifications = certText.split(/[,;]/).map(c => c.trim()).filter(c => c && c.length > 2);
+          console.log('📋 Certifications parsées:', certifications);
+          break;
+        } else {
+          console.log('❌ Pattern', i + 1, 'ne correspond pas');
+        }
+      }
+      
+      // Si aucun pattern ne fonctionne, chercher dans les lignes
+      if (certifications.length === 0) {
+        console.log('🔍 Recherche manuelle dans les lignes...');
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.toLowerCase().includes('certification') || line.toLowerCase().includes('certificat') || line.toLowerCase().includes('qualification')) {
+            console.log('🎯 Ligne avec certification trouvée:', line);
+            // Extraire le contenu après les deux points
+            const colonIndex = line.indexOf(':');
+            if (colonIndex !== -1) {
+              const certText = line.substring(colonIndex + 1).trim();
+              if (certText) {
+                certifications = certText.split(/[,;]/).map(c => c.trim()).filter(c => c && c.length > 2);
+                console.log('📋 Certifications extraites manuellement:', certifications);
+                break;
+              }
             }
           }
         }
