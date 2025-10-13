@@ -431,17 +431,19 @@ export class PDFGenerator {
         else if (currentEducation && (line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))) {
           const cleanLine = line.replace(/^[•\-*]\s*/, '').trim();
           
-          // Séparer les skills/langues de la description académique
+          // Séparer les skills/langues de la description académique - IGNORER complètement
           if (cleanLine.toLowerCase().includes('languages:') || cleanLine.toLowerCase().includes('langues:')) {
             if (!hasLanguagesInEducation) {
               currentLanguages = cleanLine;
               hasLanguagesInEducation = true;
             }
+            // NE PAS ajouter aux descriptions académiques
           } else if (cleanLine.toLowerCase().includes('skills:') || cleanLine.toLowerCase().includes('compétences:')) {
             if (!hasSkillsInEducation) {
               currentSkills = cleanLine;
               hasSkillsInEducation = true;
             }
+            // NE PAS ajouter aux descriptions académiques
           } else {
             // C'est une vraie description académique
             if (currentEducation.description) {
@@ -453,17 +455,19 @@ export class PDFGenerator {
         }
         // Lignes de description sans puce
         else if (currentEducation && line.length > 10 && !line.includes('(') && !line.includes('-')) {
-          // Séparer les skills/langues de la description académique
+          // Séparer les skills/langues de la description académique - IGNORER complètement
           if (line.toLowerCase().includes('languages:') || line.toLowerCase().includes('langues:')) {
             if (!hasLanguagesInEducation) {
               currentLanguages = line.trim();
               hasLanguagesInEducation = true;
             }
+            // NE PAS ajouter aux descriptions académiques
           } else if (line.toLowerCase().includes('skills:') || line.toLowerCase().includes('compétences:')) {
             if (!hasSkillsInEducation) {
               currentSkills = line.trim();
               hasSkillsInEducation = true;
             }
+            // NE PAS ajouter aux descriptions académiques
           } else {
             // C'est une vraie description académique
             if (currentEducation.description) {
@@ -966,7 +970,10 @@ export class PDFGenerator {
         addHorizontalLine(currentY - 2);
         
         parsedData.experience.forEach((exp: any) => {
-          addText(`${exp.company} - ${exp.position} (${exp.period})`, 10.3, true, false, '#2d3748');
+          // Nettoyer le nom de l'entreprise pour enlever les liens
+          const cleanCompany = exp.company.replace(/\[https?:\/\/[^\]]+\]\s*/, '').replace(/\s*\(https?:\/\/[^)]+\)/, '').trim();
+          const cleanPeriod = exp.period.replace(/\(\)/, '').trim();
+          addText(`${cleanCompany} - ${exp.position} (${cleanPeriod})`, 10.3, true, false, '#2d3748');
           currentY += 2;
           
           exp.description.forEach((desc: string) => {
@@ -984,12 +991,25 @@ export class PDFGenerator {
         addHorizontalLine(currentY - 2);
         
         parsedData.education.forEach((edu: any) => {
-          addText(`${edu.institution} - ${edu.degree} (${edu.period})`, 10.3, true, false, '#2d3748');
+          // Nettoyer la période pour enlever les parenthèses vides
+          const cleanPeriod = edu.period.replace(/\(\)/, '').trim();
+          addText(`${edu.institution} - ${edu.degree} (${cleanPeriod})`, 10.3, true, false, '#2d3748');
           currentY += 2;
           
           if (edu.description) {
-            addText(edu.description, 10.3, false, false, '#2d3748');
-            currentY += 1;
+            let cleanDescription = edu.description;
+            // Supprimer les skills/langues de la description académique
+            cleanDescription = cleanDescription.replace(/\s*Languages?:[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*Langues?:[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*Skills?:[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*Compétences?:[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*Strong interest[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.trim();
+            
+            if (cleanDescription) {
+              addText(cleanDescription, 10.3, false, false, '#2d3748');
+              currentY += 1;
+            }
           }
           currentY += 3;
         });
@@ -1010,6 +1030,8 @@ export class PDFGenerator {
           if (cleanSkills.includes('Strong interest')) {
             cleanSkills = cleanSkills.split('Strong interest')[0].trim();
           }
+          // Supprimer les labels dupliqués au début
+          cleanSkills = cleanSkills.replace(/^(Skills?|Compétences?|Vaardigheden?):\s*/i, '').trim();
           addText(`${techLabel} ${cleanSkills}`, 10.3, false, false, '#2d3748');
           currentY += 3;
         }
