@@ -183,7 +183,7 @@ export class PDFGenerator {
     console.log('📄 Texte CV reçu (premiers 500 caractères):', cvText.substring(0, 500));
     console.log('📄 Texte CV reçu (derniers 500 caractères):', cvText.substring(Math.max(0, cvText.length - 500)));
     
-    // Nettoyer le texte en supprimant les phrases d'adaptation
+    // Nettoyer le texte en supprimant les phrases d'adaptation et éléments indésirables
     let cleanedText = cvText;
     
     // Supprimer les phrases d'adaptation courantes
@@ -193,12 +193,35 @@ export class PDFGenerator {
       /This CV has been designed to align[^.]*\./gi,
       /Ce CV a été conçu pour correspondre[^.]*\./gi,
       /focusing on relevant skills and experiences that match the requirements[^.]*\./gi,
-      /en me concentrant sur les compétences et expériences pertinentes[^.]*\./gi
+      /en me concentrant sur les compétences et expériences pertinentes[^.]*\./gi,
+      /Committed to continuous learning and professional development[^.]*\./gi,
+      /Engagé dans l'apprentissage continu et le développement professionnel[^.]*\./gi
     ];
     
     adaptationPhrases.forEach(phrase => {
       cleanedText = cleanedText.replace(phrase, '');
     });
+    
+    // Supprimer les liens LinkedIn, Portfolio, Agency Website du texte (ils seront dans le contact)
+    const linkPatterns = [
+      /\*\*LinkedIn:\*\*\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi,
+      /\*\*Portfolio:\*\*\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi,
+      /\*\*Agency Website:\*\*\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi,
+      /LinkedIn:\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi,
+      /Portfolio:\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi,
+      /Agency Website:\s*\[[^\]]+\]\([^)]+\)\s*\(\)?\s*/gi
+    ];
+    
+    linkPatterns.forEach(pattern => {
+      cleanedText = cleanedText.replace(pattern, '');
+    });
+    
+    // Supprimer les lignes bizarres avec des % et des ()
+    cleanedText = cleanedText.replace(/[%]+\s*\(\)?\s*/g, '');
+    cleanedText = cleanedText.replace(/[%]+\s*/g, '');
+    
+    // Supprimer les parenthèses vides
+    cleanedText = cleanedText.replace(/\(\s*\)/g, '');
     
     const lines = cleanedText.split('\n').map(line => line.trim()).filter(line => line);
     console.log('📝 Nombre de lignes après nettoyage:', lines.length);
@@ -207,7 +230,29 @@ export class PDFGenerator {
     const name = lines.find(line => line.length > 3 && line.length < 50 && line === line.toUpperCase()) || 'Nom Prénom';
     
     // Trouver le contact (ligne avec @ ou téléphone)
-    const contact = lines.find(line => line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/)) || 'Contact';
+    let contact = lines.find(line => line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/)) || 'Contact';
+    
+    // Extraire les liens du texte original pour les ajouter au contact
+    const extractedLinks: string[] = [];
+    
+    // Chercher les liens LinkedIn, Portfolio, Agency Website dans le texte original
+    const linkMatches = [
+      { pattern: /\[([^\]]+)\]\(https:\/\/www\.linkedin\.com\/in\/[^)]+\)/gi, prefix: '[LinkedIn]' },
+      { pattern: /\[([^\]]+)\]\(https:\/\/cvbien\.dev\)/gi, prefix: '[https://cvbien.dev]' },
+      { pattern: /\[([^\]]+)\]\(https:\/\/dagence\.be\)/gi, prefix: '[https://dagence.be]' }
+    ];
+    
+    linkMatches.forEach(({ pattern, prefix }) => {
+      const matches = cvText.match(pattern);
+      if (matches) {
+        extractedLinks.push(prefix);
+      }
+    });
+    
+    // Ajouter les liens au contact s'ils existent
+    if (extractedLinks.length > 0) {
+      contact += ' | ' + extractedLinks.join(' | ');
+    }
     
     // Trouver le titre (ligne après le contact)
     const contactIndex = lines.findIndex(line => line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/));
@@ -354,11 +399,24 @@ export class PDFGenerator {
         }
         // Lignes de description pour l'expérience courante
         else if (currentExperience && (line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))) {
-          currentExperience.description.push(line.replace(/^[•\-*]\s*/, '').trim());
+          const cleanDesc = line.replace(/^[•\-*]\s*/, '').trim();
+          // Éviter d'ajouter les langues/skills dans les descriptions d'expérience
+          if (!cleanDesc.toLowerCase().includes('languages:') && 
+              !cleanDesc.toLowerCase().includes('langues:') &&
+              !cleanDesc.toLowerCase().includes('skills:') &&
+              !cleanDesc.toLowerCase().includes('compétences:')) {
+            currentExperience.description.push(cleanDesc);
+          }
         }
         // Lignes de description sans puce
         else if (currentExperience && line.length > 10 && !line.includes('(') && !line.includes('-') && !line.includes('**')) {
-          currentExperience.description.push(line.trim());
+          // Éviter d'ajouter les langues/skills dans les descriptions d'expérience
+          if (!line.toLowerCase().includes('languages:') && 
+              !line.toLowerCase().includes('langues:') &&
+              !line.toLowerCase().includes('skills:') &&
+              !line.toLowerCase().includes('compétences:')) {
+            currentExperience.description.push(line.trim());
+          }
         }
       }
       
@@ -1004,6 +1062,8 @@ export class PDFGenerator {
             cleanDescription = cleanDescription.replace(/\s*Skills?:[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Compétences?:[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Strong interest[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*Committed to continuous learning[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*Engagé dans l'apprentissage[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.trim();
             
             if (cleanDescription) {
@@ -1053,12 +1113,15 @@ export class PDFGenerator {
           currentY += 3;
         }
         
-        // Langues (séparées des compétences techniques)
-        if (parsedData.languages) {
+        // Langues (séparées des compétences techniques) - UNIQUEMENT si elles existent
+        if (parsedData.languages && parsedData.languages.trim()) {
           const langLabel = detectedLanguage === 'english' ? 'Languages:' : 
                            detectedLanguage === 'dutch' ? 'Talen:' : 'Langues:';
-          addText(`${langLabel} ${parsedData.languages.replace(/^Langues?\s*:?\s*/i, '')}`, 10.3, false, false, '#2d3748');
-          currentY += 3;
+          const cleanLanguages = parsedData.languages.replace(/^Langues?\s*:?\s*/i, '').replace(/^Languages?\s*:?\s*/i, '').trim();
+          if (cleanLanguages) {
+            addText(`${langLabel} ${cleanLanguages}`, 10.3, false, false, '#2d3748');
+            currentY += 3;
+          }
         }
         
         currentY += 5;
