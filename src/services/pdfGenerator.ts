@@ -257,6 +257,10 @@ export class PDFGenerator {
         currentSection = 'certifications';
         continue;
       }
+      if (cleanLine.includes('INFORMATIONS ADDITIONNELLES') || cleanLine.includes('ADDITIONAL INFORMATION') || cleanLine.includes('INFORMATIONS COMPLÉMENTAIRES')) {
+        currentSection = 'additional';
+        continue;
+      }
       
       // Parser les expériences - Gérer le format **Position** et **Company (Period)**
       if (currentSection === 'experience') {
@@ -444,6 +448,56 @@ export class PDFGenerator {
           }
         }
       }
+      
+      // Parser les informations additionnelles (compétences, langues, intérêts)
+      if (currentSection === 'additional') {
+        // Ignorer les lignes vides et les titres de section
+        if (line.trim() && !line.includes('**') && !line.includes('INFORMATIONS ADDITIONNELLES')) {
+          // Si c'est une ligne avec des puces, extraire le contenu
+          if (line.includes('•') || line.includes('-') || line.includes('*')) {
+            const content = line.replace(/^[•\-*]\s*/, '').trim();
+            if (content) {
+              // Détecter le type de contenu
+              if (content.toLowerCase().includes('compétences') || content.toLowerCase().includes('skills')) {
+                // Extraire les compétences après les deux points
+                const colonIndex = content.indexOf(':');
+                if (colonIndex !== -1) {
+                  const skillsText = content.substring(colonIndex + 1).trim();
+                  if (skillsText && !currentSkills) {
+                    currentSkills = skillsText;
+                  }
+                }
+              } else if (content.toLowerCase().includes('langues') || content.toLowerCase().includes('languages')) {
+                // Extraire les langues après les deux points
+                const colonIndex = content.indexOf(':');
+                if (colonIndex !== -1) {
+                  const languagesText = content.substring(colonIndex + 1).trim();
+                  if (languagesText) {
+                    // Stocker les langues dans une variable séparée
+                    if (!currentSkills.includes('Langues:')) {
+                      currentSkills += (currentSkills ? ' | ' : '') + `Langues: ${languagesText}`;
+                    }
+                  }
+                }
+              } else if (content.toLowerCase().includes('intérêt') || content.toLowerCase().includes('interest')) {
+                // Extraire les intérêts après les deux points
+                const colonIndex = content.indexOf(':');
+                if (colonIndex !== -1) {
+                  const interestText = content.substring(colonIndex + 1).trim();
+                  if (interestText && !currentSkills.includes('Intérêts:')) {
+                    currentSkills += (currentSkills ? ' | ' : '') + `Intérêts: ${interestText}`;
+                  }
+                }
+              } else {
+                // Contenu général, l'ajouter aux compétences
+                if (!currentSkills.includes(content)) {
+                  currentSkills += (currentSkills ? ' ' : '') + content;
+                }
+              }
+            }
+          }
+        }
+      }
     }
     
     if (currentExperience) experience.push(currentExperience);
@@ -556,10 +610,15 @@ export class PDFGenerator {
       experiences: experience.length,
       educations: education.length,
       technicalSkills: technicalSkills.length > 0 ? '✅ Présent' : '❌ Vide',
+      technicalSkillsContent: technicalSkills.substring(0, 100) + (technicalSkills.length > 100 ? '...' : ''),
       softSkills: softSkills.length > 0 ? '✅ Présent' : '❌ Vide',
       certifications: certifications.length,
       certText: certifications.join(', ')
     });
+    
+    console.log('🔍 INFORMATIONS ADDITIONNELLES parsées:');
+    console.log('  - Compétences techniques collectées:', currentSkills ? '✅' : '❌');
+    console.log('  - Contenu:', currentSkills);
     
     // Log détaillé des expériences
     if (experience.length > 0) {
