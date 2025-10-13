@@ -20,6 +20,7 @@ interface CVParsedData {
   technicalSkills: string;
   softSkills: string;
   certifications: string[];
+  languages: string;
   additionalInfo: string;
 }
 
@@ -181,8 +182,26 @@ export class PDFGenerator {
     console.log('🔍 Parsing manuel du CV...');
     console.log('📄 Texte CV reçu (premiers 500 caractères):', cvText.substring(0, 500));
     console.log('📄 Texte CV reçu (derniers 500 caractères):', cvText.substring(Math.max(0, cvText.length - 500)));
-    const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
-    console.log('📝 Nombre de lignes:', lines.length);
+    
+    // Nettoyer le texte en supprimant les phrases d'adaptation
+    let cleanedText = cvText;
+    
+    // Supprimer les phrases d'adaptation courantes
+    const adaptationPhrases = [
+      /This CV is structured to align with the job description provided[^.]*\./gi,
+      /Ce CV a été structuré pour correspondre à la description du poste[^.]*\./gi,
+      /This CV has been designed to align[^.]*\./gi,
+      /Ce CV a été conçu pour correspondre[^.]*\./gi,
+      /focusing on relevant skills and experiences that match the requirements[^.]*\./gi,
+      /en me concentrant sur les compétences et expériences pertinentes[^.]*\./gi
+    ];
+    
+    adaptationPhrases.forEach(phrase => {
+      cleanedText = cleanedText.replace(phrase, '');
+    });
+    
+    const lines = cleanedText.split('\n').map(line => line.trim()).filter(line => line);
+    console.log('📝 Nombre de lignes après nettoyage:', lines.length);
     
     // Trouver le nom (première ligne en majuscules)
     const name = lines.find(line => line.length > 3 && line.length < 50 && line === line.toUpperCase()) || 'Nom Prénom';
@@ -234,6 +253,12 @@ export class PDFGenerator {
     let currentEducation: any = null;
     let currentSkills = '';
     let currentCertifications: string[] = [];
+    let currentLanguages = '';
+    let currentSoftSkills = '';
+    
+    // Variables pour éviter les duplications
+    let hasSkillsInEducation = false;
+    let hasLanguagesInEducation = false;
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -404,18 +429,48 @@ export class PDFGenerator {
         }
         // Lignes de description pour la formation courante
         else if (currentEducation && (line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))) {
-          if (currentEducation.description) {
-            currentEducation.description += ' ' + line.replace(/^[•\-*]\s*/, '').trim();
+          const cleanLine = line.replace(/^[•\-*]\s*/, '').trim();
+          
+          // Séparer les skills/langues de la description académique
+          if (cleanLine.toLowerCase().includes('languages:') || cleanLine.toLowerCase().includes('langues:')) {
+            if (!hasLanguagesInEducation) {
+              currentLanguages = cleanLine;
+              hasLanguagesInEducation = true;
+            }
+          } else if (cleanLine.toLowerCase().includes('skills:') || cleanLine.toLowerCase().includes('compétences:')) {
+            if (!hasSkillsInEducation) {
+              currentSkills = cleanLine;
+              hasSkillsInEducation = true;
+            }
           } else {
-            currentEducation.description = line.replace(/^[•\-*]\s*/, '').trim();
+            // C'est une vraie description académique
+            if (currentEducation.description) {
+              currentEducation.description += ' ' + cleanLine;
+            } else {
+              currentEducation.description = cleanLine;
+            }
           }
         }
         // Lignes de description sans puce
         else if (currentEducation && line.length > 10 && !line.includes('(') && !line.includes('-')) {
-          if (currentEducation.description) {
-            currentEducation.description += ' ' + line.trim();
+          // Séparer les skills/langues de la description académique
+          if (line.toLowerCase().includes('languages:') || line.toLowerCase().includes('langues:')) {
+            if (!hasLanguagesInEducation) {
+              currentLanguages = line.trim();
+              hasLanguagesInEducation = true;
+            }
+          } else if (line.toLowerCase().includes('skills:') || line.toLowerCase().includes('compétences:')) {
+            if (!hasSkillsInEducation) {
+              currentSkills = line.trim();
+              hasSkillsInEducation = true;
+            }
           } else {
-            currentEducation.description = line.trim();
+            // C'est une vraie description académique
+            if (currentEducation.description) {
+              currentEducation.description += ' ' + line.trim();
+            } else {
+              currentEducation.description = line.trim();
+            }
           }
         }
       }
@@ -472,11 +527,17 @@ export class PDFGenerator {
                 const colonIndex = content.indexOf(':');
                 if (colonIndex !== -1) {
                   const languagesText = content.substring(colonIndex + 1).trim();
-                  if (languagesText) {
-                    // Stocker les langues dans une variable séparée
-                    if (!currentSkills.includes('Langues:')) {
-                      currentSkills += (currentSkills ? ' | ' : '') + `Langues: ${languagesText}`;
-                    }
+                  if (languagesText && !currentLanguages) {
+                    currentLanguages = `Langues: ${languagesText}`;
+                  }
+                }
+              } else if (content.toLowerCase().includes('soft skills') || content.toLowerCase().includes('compétences comportementales') || content.toLowerCase().includes('aptitudes')) {
+                // Extraire les soft skills après les deux points
+                const colonIndex = content.indexOf(':');
+                if (colonIndex !== -1) {
+                  const softSkillsText = content.substring(colonIndex + 1).trim();
+                  if (softSkillsText && !currentSoftSkills) {
+                    currentSoftSkills = softSkillsText;
                   }
                 }
               } else if (content.toLowerCase().includes('intérêt') || content.toLowerCase().includes('interest')) {
@@ -489,7 +550,7 @@ export class PDFGenerator {
                   }
                 }
               } else {
-                // Contenu général, l'ajouter aux compétences
+                // Contenu général, l'ajouter aux compétences techniques
                 if (!currentSkills.includes(content)) {
                   currentSkills += (currentSkills ? ' ' : '') + content;
                 }
@@ -503,8 +564,30 @@ export class PDFGenerator {
     if (currentExperience) experience.push(currentExperience);
     if (currentEducation) education.push(currentEducation);
     
-    // Utiliser les compétences collectées dans la boucle ou fallback sur regex
+    // Nettoyer et organiser les compétences
     let technicalSkills = currentSkills || '';
+    
+    // Nettoyer les compétences techniques pour éviter les duplications
+    if (technicalSkills) {
+      // Supprimer les phrases d'adaptation
+      technicalSkills = technicalSkills.replace(/This CV is structured to align[^.]*\./gi, '');
+      technicalSkills = technicalSkills.replace(/focusing on relevant skills[^.]*\./gi, '');
+      technicalSkills = technicalSkills.replace(/Strong interest in AI[^.]*\./gi, '');
+      
+      // Séparer les langues des compétences techniques si elles sont mélangées
+      if (technicalSkills.includes('Langues:') || technicalSkills.includes('Languages:')) {
+        const langMatch = technicalSkills.match(/(.*?)(Langues?|Languages?):\s*([^|]+)/i);
+        if (langMatch) {
+          technicalSkills = langMatch[1].trim();
+          if (!currentLanguages) {
+            currentLanguages = `Langues: ${langMatch[3].trim()}`;
+          }
+        }
+      }
+      
+      // Nettoyer les espaces et virgules multiples
+      technicalSkills = technicalSkills.replace(/\s+/g, ' ').replace(/,\s*,/g, ',').trim();
+    }
     
     // Si pas de compétences dans la section skills, essayer les regex comme fallback
     if (!technicalSkills) {
@@ -521,7 +604,7 @@ export class PDFGenerator {
       ];
       
       for (const pattern of technicalSkillsPatterns) {
-        const skillsMatch = cvText.match(pattern);
+        const skillsMatch = cleanedText.match(pattern);
         if (skillsMatch && skillsMatch[1].trim()) {
           technicalSkills = skillsMatch[1].trim();
           break;
@@ -529,43 +612,72 @@ export class PDFGenerator {
       }
     }
     
-    // Soft skills - détecter les soft skills courants dans le texte
-    let softSkills = '';
+    // Soft skills - utiliser les données collectées ou détecter
+    let softSkills = currentSoftSkills || '';
     
-    // Mots-clés de soft skills à rechercher
-    const softSkillsKeywords = [
-      'analytical rigor', 'rigueur analytique', 'entrepreneurial spirit', 'esprit entrepreneurial',
-      'technological curiosity', 'curiosité technologique', 'teamwork', 'travail en équipe',
-      'communication', 'leadership', 'problem solving', 'résolution de problèmes',
-      'adaptability', 'adaptabilité', 'creativity', 'créativité', 'innovation'
-    ];
-    
-    // Chercher les soft skills dans le texte
-    const foundSoftSkills = softSkillsKeywords.filter(keyword => 
-      cvText.toLowerCase().includes(keyword.toLowerCase())
-    );
-    
-    if (foundSoftSkills.length > 0) {
-      softSkills = foundSoftSkills.join(', ');
-    } else {
-      // Fallback sur regex si pas trouvé
-      const softSkillsPatterns = [
-        /Soft skills\s*:?\s*([^•\n]+)/i,
-        /Compétences relationnelles\s*:?\s*([^•\n]+)/i,
-        /Compétences comportementales\s*:?\s*([^•\n]+)/i,
-        /Aptitudes\s*:?\s*([^•\n]+)/i,
-        /Qualités\s*:?\s*([^•\n]+)/i,
-        /Interpersonal skills\s*:?\s*([^•\n]+)/i,
-        /Personal skills\s*:?\s*([^•\n]+)/i
+    // Si pas de soft skills collectés, détecter dans le texte
+    if (!softSkills) {
+      // Mots-clés de soft skills à rechercher
+      const softSkillsKeywords = [
+        'analytical rigor', 'rigueur analytique', 'entrepreneurial spirit', 'esprit entrepreneurial',
+        'technological curiosity', 'curiosité technologique', 'teamwork', 'travail en équipe',
+        'communication', 'leadership', 'problem solving', 'résolution de problèmes',
+        'adaptability', 'adaptabilité', 'creativity', 'créativité', 'innovation'
       ];
       
-      for (const pattern of softSkillsPatterns) {
-        const softMatch = cvText.match(pattern);
-        if (softMatch && softMatch[1].trim()) {
-          softSkills = softMatch[1].trim();
+      // Chercher les soft skills dans le texte
+      const foundSoftSkills = softSkillsKeywords.filter(keyword => 
+        cleanedText.toLowerCase().includes(keyword.toLowerCase())
+      );
+      
+      if (foundSoftSkills.length > 0) {
+        softSkills = foundSoftSkills.join(', ');
+      } else {
+        // Fallback sur regex si pas trouvé
+        const softSkillsPatterns = [
+          /Soft skills\s*:?\s*([^•\n]+)/i,
+          /Compétences relationnelles\s*:?\s*([^•\n]+)/i,
+          /Compétences comportementales\s*:?\s*([^•\n]+)/i,
+          /Aptitudes\s*:?\s*([^•\n]+)/i,
+          /Qualités\s*:?\s*([^•\n]+)/i,
+          /Interpersonal skills\s*:?\s*([^•\n]+)/i,
+          /Personal skills\s*:?\s*([^•\n]+)/i
+        ];
+        
+        for (const pattern of softSkillsPatterns) {
+          const softMatch = cleanedText.match(pattern);
+          if (softMatch && softMatch[1].trim()) {
+            softSkills = softMatch[1].trim();
+            break;
+          }
+        }
+      }
+    }
+    
+    // Organiser les langues - utiliser les données collectées ou détecter
+    let languages = currentLanguages || '';
+    
+    // Si pas de langues collectées, détecter dans le texte
+    if (!languages) {
+      const languagePatterns = [
+        /Langues?\s*:?\s*([^•\n]+)/i,
+        /Languages?\s*:?\s*([^•\n]+)/i,
+        /Talen?\s*:?\s*([^•\n]+)/i
+      ];
+      
+      for (const pattern of languagePatterns) {
+        const langMatch = cleanedText.match(pattern);
+        if (langMatch && langMatch[1].trim()) {
+          languages = `Langues: ${langMatch[1].trim()}`;
           break;
         }
       }
+    }
+    
+    // Nettoyer les langues
+    if (languages) {
+      languages = languages.replace(/Langues?\s*:?\s*/i, 'Langues: ');
+      languages = languages.replace(/Languages?\s*:?\s*/i, 'Langues: ');
     }
     
     // Utiliser les certifications collectées dans la boucle ou fallback sur regex
@@ -671,6 +783,7 @@ export class PDFGenerator {
       technicalSkills,
       softSkills,
       certifications,
+      languages,
       additionalInfo: ''
     };
   }
@@ -918,15 +1031,12 @@ export class PDFGenerator {
           currentY += 3;
         }
         
-        // Langues (si disponibles dans les compétences techniques)
-        if (parsedData.technicalSkills && parsedData.technicalSkills.includes('Langues:')) {
+        // Langues (séparées des compétences techniques)
+        if (parsedData.languages) {
           const langLabel = detectedLanguage === 'english' ? 'Languages:' : 
                            detectedLanguage === 'dutch' ? 'Talen:' : 'Langues:';
-          const langMatch = parsedData.technicalSkills.match(/Langues:\s*([^|]+)/);
-          if (langMatch) {
-            addText(`${langLabel} ${langMatch[1].trim()}`, 10.3, false, false, '#2d3748');
-            currentY += 3;
-          }
+          addText(`${langLabel} ${parsedData.languages.replace(/^Langues?\s*:?\s*/i, '')}`, 10.3, false, false, '#2d3748');
+          currentY += 3;
         }
         
         currentY += 5;
