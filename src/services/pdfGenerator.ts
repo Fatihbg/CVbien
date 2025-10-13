@@ -840,36 +840,49 @@ export class PDFGenerator {
         });
       }
       
-      // Compétences techniques
-      if (parsedData.technicalSkills) {
-        const techTitle = translateSectionTitle('COMPÉTENCES TECHNIQUES');
-        addText(techTitle, 12.3, true, false, '#1a365d');
-        addHorizontalLine(currentY - 2);
-        addText(parsedData.technicalSkills, 10.3, false, false, '#2d3748');
-        currentY += 5;
-      }
-      
-      // Soft skills
-      if (parsedData.softSkills) {
-        const softTitle = detectedLanguage === 'english' ? 'SOFT SKILLS' : 
-                         detectedLanguage === 'dutch' ? 'ZACHTE VAARDIGHEDEN' : 'COMPÉTENCES COMPORTEMENTALES';
-        addText(softTitle, 12.3, true, false, '#1a365d');
-        addHorizontalLine(currentY - 2);
-        addText(parsedData.softSkills, 10.3, false, false, '#2d3748');
-        currentY += 5;
-      }
-      
-      // Certifications
-      if (parsedData.certifications && parsedData.certifications.length > 0) {
-        const certTitle = translateSectionTitle('CERTIFICATIONS');
-        addText(certTitle, 12.3, true, false, '#1a365d');
+      // INFORMATIONS ADDITIONNELLES (Skills, Soft Skills, Certifications, Langues)
+      if (parsedData.technicalSkills || parsedData.softSkills || (parsedData.certifications && parsedData.certifications.length > 0)) {
+        const addInfoTitle = translateSectionTitle('INFORMATIONS ADDITIONNELLES');
+        addText(addInfoTitle, 12.3, true, false, '#1a365d');
         addHorizontalLine(currentY - 2);
         
-        parsedData.certifications.forEach((cert: string) => {
-          doc.setFont('calibri', 'bold');
-          addText(cert, 10.3, true, false, '#2d3748');
-          currentY += 1;
-        });
+        // Compétences techniques
+        if (parsedData.technicalSkills) {
+          const techLabel = detectedLanguage === 'english' ? 'Skills:' : 
+                           detectedLanguage === 'dutch' ? 'Vaardigheden:' : 'Compétences:';
+          addText(`${techLabel} ${parsedData.technicalSkills}`, 10.3, false, false, '#2d3748');
+          currentY += 3;
+        }
+        
+        // Soft skills
+        if (parsedData.softSkills) {
+          const softLabel = detectedLanguage === 'english' ? 'Soft Skills:' : 
+                           detectedLanguage === 'dutch' ? 'Zachte Vaardigheden:' : 'Compétences comportementales:';
+          addText(`${softLabel} ${parsedData.softSkills}`, 10.3, false, false, '#2d3748');
+          currentY += 3;
+        }
+        
+        // Certifications
+        if (parsedData.certifications && parsedData.certifications.length > 0) {
+          const certLabel = detectedLanguage === 'english' ? 'Certifications:' : 
+                           detectedLanguage === 'dutch' ? 'Certificeringen:' : 'Certifications:';
+          const certText = parsedData.certifications.join(', ');
+          addText(`${certLabel} ${certText}`, 10.3, false, false, '#2d3748');
+          currentY += 3;
+        }
+        
+        // Langues (si disponibles dans les compétences techniques)
+        if (parsedData.technicalSkills && parsedData.technicalSkills.includes('Langues:')) {
+          const langLabel = detectedLanguage === 'english' ? 'Languages:' : 
+                           detectedLanguage === 'dutch' ? 'Talen:' : 'Langues:';
+          const langMatch = parsedData.technicalSkills.match(/Langues:\s*([^|]+)/);
+          if (langMatch) {
+            addText(`${langLabel} ${langMatch[1].trim()}`, 10.3, false, false, '#2d3748');
+            currentY += 3;
+          }
+        }
+        
+        currentY += 5;
       }
       
       // Sauvegarder le PDF
