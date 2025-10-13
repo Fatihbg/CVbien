@@ -810,8 +810,27 @@ export class PDFGenerator {
       addText(parsedData.name, 18.3, true, true, '#1a365d');
       currentY += 5;
       
-      // Contact
-      addText(parsedData.contact, 10.3, false, true, '#4a5568');
+      // Contact avec les liens
+      let contactText = parsedData.contact;
+      
+      // Ajouter les liens des entreprises si disponibles
+      const links: string[] = [];
+      if (parsedData.experience) {
+        parsedData.experience.forEach((exp: any) => {
+          if (exp.company.toLowerCase().includes('cvbien')) {
+            links.push('[https://cvbien.dev]');
+          }
+          if (exp.company.toLowerCase().includes('dagence')) {
+            links.push('[https://dagence.be]');
+          }
+        });
+      }
+      
+      if (links.length > 0) {
+        contactText += ' | ' + links.join(' | ');
+      }
+      
+      addText(contactText, 10.3, false, true, '#4a5568');
       currentY += 3;
       
       // Titre professionnel
@@ -869,11 +888,16 @@ export class PDFGenerator {
         addText(addInfoTitle, 12.3, true, false, '#1a365d');
         addHorizontalLine(currentY - 2);
         
-        // Compétences techniques
-        if (parsedData.technicalSkills) {
+        // Compétences techniques (éviter la duplication)
+        if (parsedData.technicalSkills && !parsedData.technicalSkills.includes('Langues:') && !parsedData.technicalSkills.includes('Languages:')) {
           const techLabel = detectedLanguage === 'english' ? 'Skills:' : 
                            detectedLanguage === 'dutch' ? 'Vaardigheden:' : 'Compétences:';
-          addText(`${techLabel} ${parsedData.technicalSkills}`, 10.3, false, false, '#2d3748');
+          // Nettoyer le contenu pour éviter les duplications
+          let cleanSkills = parsedData.technicalSkills;
+          if (cleanSkills.includes('Strong interest')) {
+            cleanSkills = cleanSkills.split('Strong interest')[0].trim();
+          }
+          addText(`${techLabel} ${cleanSkills}`, 10.3, false, false, '#2d3748');
           currentY += 3;
         }
         
@@ -1178,7 +1202,27 @@ export class PDFGenerator {
       addText(parsedCV.name, 18.3, true, true, '#000000'); // 18.0 -> 18.3 (+0.3pt)
       currentY += 3;
       
-      addText(parsedCV.contact, 10.3, false, true, '#000000'); // 10.0 -> 10.3 (+0.3pt)
+      // Contact avec les liens
+      let contactText = parsedCV.contact;
+      
+      // Ajouter les liens des entreprises si disponibles
+      const links: string[] = [];
+      if (parsedCV.experience) {
+        parsedCV.experience.forEach((exp: any) => {
+          if (exp.company.toLowerCase().includes('cvbien')) {
+            links.push('[https://cvbien.dev]');
+          }
+          if (exp.company.toLowerCase().includes('dagence')) {
+            links.push('[https://dagence.be]');
+          }
+        });
+      }
+      
+      if (links.length > 0) {
+        contactText += ' | ' + links.join(' | ');
+      }
+      
+      addText(contactText, 10.3, false, true, '#000000'); // 10.0 -> 10.3 (+0.3pt)
       currentY += 2; // Augmenté de 1 à 2 pour plus d'espace
       
       addText(parsedCV.title, 14.3, true, true, '#000000'); // 14.0 -> 14.3 (+0.3pt)
