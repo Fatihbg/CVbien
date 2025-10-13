@@ -249,7 +249,7 @@ export class PDFGenerator {
         currentSection = 'education';
         continue;
       }
-      if (cleanLine.includes('SKILLS') || cleanLine.includes('COMPETENCES') || cleanLine.includes('COMPÉTENCES') || cleanLine.includes('TECHNICAL SKILLS')) {
+      if (cleanLine.includes('SKILLS') || cleanLine.includes('COMPETENCES') || cleanLine.includes('COMPÉTENCES') || cleanLine.includes('TECHNICAL SKILLS') || cleanLine.includes('SOFT SKILLS')) {
         currentSection = 'skills';
         continue;
       }
@@ -529,23 +529,42 @@ export class PDFGenerator {
       }
     }
     
-    // Soft skills - utiliser regex pour l'instant
+    // Soft skills - détecter les soft skills courants dans le texte
     let softSkills = '';
-    const softSkillsPatterns = [
-      /Soft skills\s*:?\s*([^•\n]+)/i,
-      /Compétences relationnelles\s*:?\s*([^•\n]+)/i,
-      /Compétences comportementales\s*:?\s*([^•\n]+)/i,
-      /Aptitudes\s*:?\s*([^•\n]+)/i,
-      /Qualités\s*:?\s*([^•\n]+)/i,
-      /Interpersonal skills\s*:?\s*([^•\n]+)/i,
-      /Personal skills\s*:?\s*([^•\n]+)/i
+    
+    // Mots-clés de soft skills à rechercher
+    const softSkillsKeywords = [
+      'analytical rigor', 'rigueur analytique', 'entrepreneurial spirit', 'esprit entrepreneurial',
+      'technological curiosity', 'curiosité technologique', 'teamwork', 'travail en équipe',
+      'communication', 'leadership', 'problem solving', 'résolution de problèmes',
+      'adaptability', 'adaptabilité', 'creativity', 'créativité', 'innovation'
     ];
     
-    for (const pattern of softSkillsPatterns) {
-      const softMatch = cvText.match(pattern);
-      if (softMatch && softMatch[1].trim()) {
-        softSkills = softMatch[1].trim();
-        break;
+    // Chercher les soft skills dans le texte
+    const foundSoftSkills = softSkillsKeywords.filter(keyword => 
+      cvText.toLowerCase().includes(keyword.toLowerCase())
+    );
+    
+    if (foundSoftSkills.length > 0) {
+      softSkills = foundSoftSkills.join(', ');
+    } else {
+      // Fallback sur regex si pas trouvé
+      const softSkillsPatterns = [
+        /Soft skills\s*:?\s*([^•\n]+)/i,
+        /Compétences relationnelles\s*:?\s*([^•\n]+)/i,
+        /Compétences comportementales\s*:?\s*([^•\n]+)/i,
+        /Aptitudes\s*:?\s*([^•\n]+)/i,
+        /Qualités\s*:?\s*([^•\n]+)/i,
+        /Interpersonal skills\s*:?\s*([^•\n]+)/i,
+        /Personal skills\s*:?\s*([^•\n]+)/i
+      ];
+      
+      for (const pattern of softSkillsPatterns) {
+        const softMatch = cvText.match(pattern);
+        if (softMatch && softMatch[1].trim()) {
+          softSkills = softMatch[1].trim();
+          break;
+        }
       }
     }
     
@@ -619,6 +638,10 @@ export class PDFGenerator {
     console.log('🔍 INFORMATIONS ADDITIONNELLES parsées:');
     console.log('  - Compétences techniques collectées:', currentSkills ? '✅' : '❌');
     console.log('  - Contenu:', currentSkills);
+    console.log('  - Soft skills détectés:', softSkills ? '✅' : '❌');
+    console.log('  - Soft skills contenu:', softSkills);
+    console.log('  - Certifications collectées:', certifications.length);
+    console.log('  - Certifications contenu:', certifications);
     
     // Log détaillé des expériences
     if (experience.length > 0) {
