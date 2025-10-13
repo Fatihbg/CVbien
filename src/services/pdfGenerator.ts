@@ -264,6 +264,33 @@ export class PDFGenerator {
       }
     }
     
+    // Nettoyer les liens dupliqués dans le contact
+    const linkRegex = /\[([^\]]+)\]\([^)]+\)/g;
+    const links = contact.match(linkRegex) || [];
+    const uniqueLinks = [...new Set(links)]; // Supprimer les doublons
+    
+    // Reconstruire le contact sans doublons
+    let cleanContact = contact;
+    links.forEach(link => {
+      const linkText = link.replace(/\[|\]/g, '').replace(/\([^)]+\)/g, '');
+      const linkCount = (contact.match(new RegExp(linkText, 'g')) || []).length;
+      if (linkCount > 1) {
+        // Supprimer les occurrences supplémentaires
+        let firstOccurrence = true;
+        cleanContact = cleanContact.replace(new RegExp(linkText, 'g'), (match) => {
+          if (firstOccurrence) {
+            firstOccurrence = false;
+            return match;
+          }
+          return '';
+        });
+      }
+    });
+    
+    // Nettoyer les espaces et séparateurs multiples
+    cleanContact = cleanContact.replace(/\|\s*\|/g, '|').replace(/\s+/g, ' ').trim();
+    contact = cleanContact;
+    
     // Trouver le titre (ligne après le contact)
     const contactIndex = lines.findIndex(line => line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/));
     const title = contactIndex >= 0 && contactIndex + 1 < lines.length ? lines[contactIndex + 1] : 'Titre Professionnel';
@@ -505,13 +532,15 @@ export class PDFGenerator {
               currentLanguages = cleanLine;
               hasLanguagesInEducation = true;
             }
-            // NE PAS ajouter aux descriptions académiques
+            // NE PAS ajouter aux descriptions académiques - IGNORER complètement
+            continue; // Passer à l'itération suivante
           } else if (cleanLine.toLowerCase().includes('skills:') || cleanLine.toLowerCase().includes('compétences:')) {
             if (!hasSkillsInEducation) {
               currentSkills = cleanLine;
               hasSkillsInEducation = true;
             }
             // NE PAS ajouter aux descriptions académiques - IGNORER complètement
+            continue; // Passer à l'itération suivante
           } else {
             // C'est une vraie description académique - nettoyer avant d'ajouter
             let academicDesc = cleanLine;
@@ -536,13 +565,15 @@ export class PDFGenerator {
               currentLanguages = line.trim();
               hasLanguagesInEducation = true;
             }
-            // NE PAS ajouter aux descriptions académiques
+            // NE PAS ajouter aux descriptions académiques - IGNORER complètement
+            continue; // Passer à l'itération suivante
           } else if (line.toLowerCase().includes('skills:') || line.toLowerCase().includes('compétences:')) {
             if (!hasSkillsInEducation) {
               currentSkills = line.trim();
               hasSkillsInEducation = true;
             }
             // NE PAS ajouter aux descriptions académiques - IGNORER complètement
+            continue; // Passer à l'itération suivante
           } else {
             // C'est une vraie description académique - nettoyer avant d'ajouter
             let academicDesc = line.trim();
@@ -659,6 +690,11 @@ export class PDFGenerator {
       technicalSkills = technicalSkills.replace(/This CV is structured to align[^.]*\./gi, '');
       technicalSkills = technicalSkills.replace(/focusing on relevant skills[^.]*\./gi, '');
       technicalSkills = technicalSkills.replace(/Strong interest in AI[^.]*\./gi, '');
+      
+      // Supprimer le contenu du résumé professionnel qui pourrait être mélangé
+      technicalSkills = technicalSkills.replace(/tout en sortant de ma zone de confort[^.]*\./gi, '');
+      technicalSkills = technicalSkills.replace(/Je combine rigueur analytique[^.]*\./gi, '');
+      technicalSkills = technicalSkills.replace(/Mon expérience en tant que Business Analyst[^.]*\./gi, '');
       
       // Séparer les langues des compétences techniques si elles sont mélangées
       if (technicalSkills.includes('Langues:') || technicalSkills.includes('Languages:')) {
