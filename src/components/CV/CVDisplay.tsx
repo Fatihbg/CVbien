@@ -239,9 +239,33 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
     
     // Si aucun pattern ne fonctionne, chercher dans les lignes
     if (certifications.length === 0) {
+      let inCertSection = false;
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if (line.toLowerCase().includes('certification') || line.toLowerCase().includes('certificat') || line.toLowerCase().includes('qualification')) {
+        const cleanLine = line.replace(/\*\*/g, '').trim();
+        
+        // Détecter le début de la section certifications
+        if (cleanLine.includes('CERTIFICATIONS') || cleanLine.includes('ACHIEVEMENTS') || cleanLine.includes('CERTIFICATS')) {
+          inCertSection = true;
+          continue;
+        }
+        
+        // Sortir de la section si on trouve un autre titre
+        if (inCertSection && isSectionTitle(line)) {
+          break;
+        }
+        
+        // Collecter les certifications dans la section
+        if (inCertSection && line.trim()) {
+          // Gérer les puces (•) et les lignes normales
+          const cert = line.replace(/^[•\-*]\s*/, '').trim();
+          if (cert && cert.length > 5 && !cert.includes('---')) {
+            certifications.push(cert);
+          }
+        }
+        
+        // Fallback: ligne avec "certification" dans le texte
+        if (!inCertSection && (line.toLowerCase().includes('certification') || line.toLowerCase().includes('certificat') || line.toLowerCase().includes('qualification'))) {
           const colonIndex = line.indexOf(':');
           if (colonIndex !== -1) {
             const certText = line.substring(colonIndex + 1).trim();
@@ -317,16 +341,19 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
         }
       }
       
-      // Détecter les soft skills dans le résumé professionnel ou autres sections
+      // Détecter les soft skills dans le résumé professionnel, ADDITIONAL INFORMATION ou autres sections
       if (!softSkills && (line.toLowerCase().includes('collaboration') || 
                          line.toLowerCase().includes('communication') ||
                          line.toLowerCase().includes('leadership') ||
                          line.toLowerCase().includes('teamwork') ||
                          line.toLowerCase().includes('problem solving') ||
                          line.toLowerCase().includes('analytical') ||
-                         line.toLowerCase().includes('proactive'))) {
+                         line.toLowerCase().includes('proactive') ||
+                         line.toLowerCase().includes('team collaboration') ||
+                         line.toLowerCase().includes('leadership development') ||
+                         line.toLowerCase().includes('strong interest in'))) {
         // Extraire les soft skills du contexte
-        const softSkillsKeywords = ['collaboration', 'communication', 'leadership', 'teamwork', 'problem solving', 'analytical', 'proactive', 'resilient', 'adaptable', 'creative'];
+        const softSkillsKeywords = ['collaboration', 'communication', 'leadership', 'teamwork', 'team collaboration', 'problem solving', 'analytical', 'proactive', 'resilient', 'adaptable', 'creative', 'leadership development'];
         const detectedSoftSkills = softSkillsKeywords.filter(skill => line.toLowerCase().includes(skill));
         if (detectedSoftSkills.length > 0) {
           softSkills = detectedSoftSkills.join(', ');
