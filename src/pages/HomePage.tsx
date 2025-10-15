@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useCVGenerationStore } from '../store/cvGenerationStore';
 import { useAuthStore } from '../store/authStore';
 import { PDFGenerator } from '../services/pdfGenerator';
-import { CVDisplay } from '../components/CV/CVDisplay';
 import { AuthModal } from '../components/Auth/AuthModal';
 import { UserProfile } from '../components/User/UserProfile';
 import { PaymentModal } from '../components/Payment/PaymentModal';
@@ -1554,39 +1553,6 @@ export const HomePage: React.FC = () => {
           }}>
             {generatedCV ? (
               <div style={{ display: 'flex', gap: '16px', height: '100%' }}>
-                {/* CV Display */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ 
-                    fontSize: '12px', 
-                    fontWeight: '600', 
-                    color: 'var(--text-secondary)', 
-                    marginBottom: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}>
-                    <div style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-                    }} />
-                    APERÇU DU CV
-                  </div>
-                  <div style={{ 
-                    flex: 1,
-                    overflow: 'auto',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '12px',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    backdropFilter: 'blur(10px)',
-                    padding: '12px',
-                    minHeight: '400px'
-                  }}>
-                    <CVDisplay cvText={generatedCV} />
-                  </div>
-                </div>
-                
                 {/* Edit Area */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <div style={{ 
