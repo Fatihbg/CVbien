@@ -7,6 +7,11 @@ import { CVDisplay } from './CVDisplay';
 
 export const CVPreview: React.FC = () => {
   const { generatedCV, atsScore, jobDescription } = useCVGenerationStore();
+  
+  // Debug logs
+  console.log('CVPreview render - generatedCV:', generatedCV ? 'EXISTS' : 'NULL');
+  console.log('CVPreview render - atsScore:', atsScore);
+  console.log('CVPreview render - jobDescription length:', jobDescription?.length || 0);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);

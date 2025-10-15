@@ -1009,9 +1009,9 @@ export class PDFGenerator {
         
         doc.setFontSize(fontSize);
         if (isBold) {
-          doc.setFont('calibri', 'bold');
+          doc.setFont('helvetica', 'bold');
         } else {
-          doc.setFont('calibri', 'normal');
+          doc.setFont('helvetica', 'normal');
         }
         doc.setTextColor(color);
         
@@ -1047,9 +1047,9 @@ export class PDFGenerator {
         
         doc.setFontSize(fontSize);
         if (isBold) {
-          doc.setFont('calibri', 'bold');
+          doc.setFont('helvetica', 'bold');
         } else {
-          doc.setFont('calibri', 'normal');
+          doc.setFont('helvetica', 'normal');
         }
         doc.setTextColor(color);
         
@@ -1346,9 +1346,9 @@ export class PDFGenerator {
         
         doc.setFontSize(fontSize);
         if (isBold) {
-          doc.setFont('calibri', 'bold');
+          doc.setFont('helvetica', 'bold');
         } else {
-          doc.setFont('calibri', 'normal');
+          doc.setFont('helvetica', 'normal');
         }
         doc.setTextColor(color);
         
