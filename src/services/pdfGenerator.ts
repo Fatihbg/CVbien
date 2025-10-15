@@ -1332,9 +1332,6 @@ export class PDFGenerator {
         unit: 'mm',
         format: 'a4'
       });
-      
-      // Autoriser les pages supplémentaires (2 pages max)
-      doc.setAutoPageBreak(true, 20);
 
       // Configuration
       const pageWidth = 210;
