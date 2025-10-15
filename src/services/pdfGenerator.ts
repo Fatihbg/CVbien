@@ -1890,4 +1890,3 @@ export class PDFGenerator {
     }
   }
 }
-}
