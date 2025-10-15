@@ -1385,7 +1385,7 @@ export class PDFGenerator {
           currentY += 5;
         }
         // Titres de sections
-        else if (line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('ADDITIONAL')) {
+        else if (line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('ADDITIONAL') || line.includes('SOFT SKILLS')) {
           addHorizontalLine(currentY + 3);
           currentY += 8;
           addText(line, 12, true, false, '#1a365d');
@@ -1423,7 +1423,7 @@ export class PDFGenerator {
         }
         
         // Espacement entre les sections
-        if (line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS')) {
+        if (line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('SOFT SKILLS')) {
           currentY += 3;
         }
       }
