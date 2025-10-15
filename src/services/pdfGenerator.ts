@@ -1364,67 +1364,84 @@ export class PDFGenerator {
       // Parser le CV ligne par ligne
       const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
       
+      // Variables pour gérer l'état du parsing
+      let currentSection = '';
+      let inExperience = false;
+      let inEducation = false;
+      
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         
-        // Nom en gras et centré
+        // Nom en gras et centré (grande taille)
         if (line.startsWith('**') && line.endsWith('**') && i < 3) {
           const name = line.replace(/\*\*/g, '').trim();
-          addText(name, 16, true, true, '#1a365d');
-          currentY += 5;
+          currentY += 10; // Espace avant le nom
+          addText(name.toUpperCase(), 18, true, true, '#000000');
+          currentY += 8; // Espace après le nom
         }
-        // Contact
+        // Contact centré
         else if (line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/)) {
-          addText(line, 10, false, true, '#2d3748');
-          currentY += 3;
+          addText(line, 10, false, true, '#000000');
+          currentY += 6; // Espace après contact
         }
-        // Titre professionnel
-        else if (line.startsWith('**') && line.endsWith('**') && i > 2) {
+        // Titre professionnel centré et en gras
+        else if (line.startsWith('**') && line.endsWith('**') && i > 2 && !line.includes('EXPERIENCE') && !line.includes('EDUCATION')) {
           const title = line.replace(/\*\*/g, '').trim();
-          addText(title, 12, true, true, '#2d3748');
-          currentY += 5;
+          addText(title.toUpperCase(), 12, true, true, '#000000');
+          currentY += 12; // Espace avant les sections
         }
-        // Titres de sections
-        else if (line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('ADDITIONAL') || line.includes('SOFT SKILLS')) {
-          addHorizontalLine(currentY + 3);
-          currentY += 8;
-          addText(line, 12, true, false, '#1a365d');
-          addHorizontalLine(currentY + 3);
-          currentY += 5;
+        // Titres de sections principales (centrés, en gras, en majuscules)
+        else if (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('ADDITIONAL') || line.includes('SOFT SKILLS')) {
+          currentY += 8; // Espace avant section
+          addText(line.toUpperCase(), 12, true, true, '#000000');
+          addHorizontalLine(currentY + 2);
+          currentY += 8; // Espace après titre
+          currentSection = line.toUpperCase();
         }
-        // Lignes de séparation
+        // Résumé professionnel (paragraphe centré)
+        else if (currentSection.includes('PROFESSIONAL SUMMARY') && line.length > 50 && !line.startsWith('**') && !line.startsWith('•')) {
+          addText(line, 10, false, true, '#000000');
+          currentY += 6;
+        }
+        // Lignes de séparation (ignorer)
         else if (line.includes('---')) {
-          addHorizontalLine(currentY);
-          currentY += 3;
+          // Ignorer les lignes de séparation
         }
-        // Positions en gras
-        else if (line.startsWith('**') && line.endsWith('**')) {
+        // Positions/titres d'emploi (centrés, en gras)
+        else if (line.startsWith('**') && line.endsWith('**') && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
           const position = line.replace(/\*\*/g, '').trim();
-          addText(position, 11, true, false, '#2d3748');
+          addText(position.toUpperCase(), 11, true, true, '#000000');
+          currentY += 4;
+        }
+        // Entreprises/institutions avec dates (centrés)
+        else if (line.includes('(') && line.includes(')') && !line.includes('•') && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
+          addText(line, 10, false, true, '#000000');
           currentY += 2;
         }
-        // Entreprises avec dates
-        else if (line.includes('(') && line.includes(')') && !line.includes('•')) {
-          addText(line, 10, false, false, '#2d3748');
-          currentY += 2;
-        }
-        // Points avec puces
+        // Points avec puces (alignés à gauche)
         else if (line.startsWith('•')) {
           const content = line.replace(/^•\s*/, '').trim();
           // Corriger les pourcentages manquants
           const correctedContent = content.replace(/(\d+)(?!\s*%)(?=\s*(through|increase|improvement|growth|reduction|by))/gi, '$1%');
-          addText(`• ${correctedContent}`, 10, false, false, '#2d3748');
-          currentY += 1;
+          addText(`• ${correctedContent}`, 10, false, false, '#000000');
+          currentY += 4; // Espacement entre les points
+        }
+        // Sous-sections dans INFORMATIONS ADDITIONNELLES
+        else if (currentSection.includes('ADDITIONAL') && line.includes(':')) {
+          const parts = line.split(':');
+          if (parts.length >= 2) {
+            const label = parts[0].trim();
+            const content = parts[1].trim();
+            addText(`${label}:`, 10, true, false, '#000000');
+            currentY += 2;
+            addText(content, 10, false, false, '#000000');
+            currentY += 4;
+          }
         }
         // Texte normal
-        else if (line.length > 0) {
-          addText(line, 10, false, false, '#2d3748');
-          currentY += 1;
-        }
-        
-        // Espacement entre les sections
-        if (line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('SOFT SKILLS')) {
-          currentY += 3;
+        else if (line.length > 0 && !line.includes('---')) {
+          addText(line, 10, false, false, '#000000');
+          currentY += 2;
         }
       }
       
@@ -1872,4 +1889,5 @@ export class PDFGenerator {
       throw new Error('Impossible de générer le PDF');
     }
   }
+}
 }
