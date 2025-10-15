@@ -1308,11 +1308,142 @@ export class PDFGenerator {
       console.log('CV Text length:', cvText.length);
       console.log('Job Description length:', jobDescription.length);
       
-      // Parser le CV directement sans IA - utiliser le texte brut de la partie Éditer
-      const parsedCV = this.parseCVManually(cvText);
+      // Créer le PDF directement avec le texte du CV (format simplifié)
+      const doc = new (window as any).jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 20;
+      const maxWidth = pageWidth - (margin * 2);
       
-      // Utiliser la même logique que generateCVPDFFromParsedData qui fonctionne bien
-      await this.generateCVPDFFromParsedData(parsedCV, jobDescription, filename);
+      let currentY = margin;
+      
+      // Fonction pour ajouter du texte avec gestion des pages multiples
+      const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
+        // Gérer les pages multiples
+        if (currentY > pageHeight - 20) {
+          doc.addPage();
+          currentY = margin;
+        }
+        
+        doc.setFontSize(fontSize);
+        if (isBold) {
+          doc.setFont('helvetica', 'bold');
+        } else {
+          doc.setFont('helvetica', 'normal');
+        }
+        doc.setTextColor(color);
+        
+        const lines = doc.splitTextToSize(text, maxWidth);
+        
+        lines.forEach((line: string) => {
+          if (currentY > pageHeight - 20) {
+            doc.addPage();
+            currentY = margin;
+          }
+          let xPos = margin;
+          let align: any = 'left';
+          
+          if (isCenter) {
+            xPos = pageWidth / 2;
+            align = 'center';
+          }
+          
+          doc.text(line, xPos, currentY, { align });
+          currentY += fontSize * 0.4;
+        });
+      };
+      
+      // Fonction pour ajouter une ligne horizontale
+      const addHorizontalLine = (y: number) => {
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.3);
+        doc.line(margin, y, pageWidth - margin, y);
+      };
+      
+      // Parser le CV ligne par ligne
+      const lines = cvText.split('\n').map(line => line.trim()).filter(line => line);
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Nom en gras et centré
+        if (line.startsWith('**') && line.endsWith('**') && i < 3) {
+          const name = line.replace(/\*\*/g, '').trim();
+          addText(name, 16, true, true, '#1a365d');
+          currentY += 5;
+        }
+        // Contact
+        else if (line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/)) {
+          addText(line, 10, false, true, '#2d3748');
+          currentY += 3;
+        }
+        // Titre professionnel
+        else if (line.startsWith('**') && line.endsWith('**') && i > 2) {
+          const title = line.replace(/\*\*/g, '').trim();
+          addText(title, 12, true, true, '#2d3748');
+          currentY += 5;
+        }
+        // Titres de sections
+        else if (line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('ADDITIONAL')) {
+          addHorizontalLine(currentY + 3);
+          currentY += 8;
+          addText(line, 12, true, false, '#1a365d');
+          addHorizontalLine(currentY + 3);
+          currentY += 5;
+        }
+        // Lignes de séparation
+        else if (line.includes('---')) {
+          addHorizontalLine(currentY);
+          currentY += 3;
+        }
+        // Positions en gras
+        else if (line.startsWith('**') && line.endsWith('**')) {
+          const position = line.replace(/\*\*/g, '').trim();
+          addText(position, 11, true, false, '#2d3748');
+          currentY += 2;
+        }
+        // Entreprises avec dates
+        else if (line.includes('(') && line.includes(')') && !line.includes('•')) {
+          addText(line, 10, false, false, '#2d3748');
+          currentY += 2;
+        }
+        // Points avec puces
+        else if (line.startsWith('•')) {
+          const content = line.replace(/^•\s*/, '').trim();
+          // Corriger les pourcentages manquants
+          const correctedContent = content.replace(/(\d+)(?!\s*%)(?=\s*(through|increase|improvement|growth|reduction|by))/gi, '$1%');
+          addText(`• ${correctedContent}`, 10, false, false, '#2d3748');
+          currentY += 1;
+        }
+        // Texte normal
+        else if (line.length > 0) {
+          addText(line, 10, false, false, '#2d3748');
+          currentY += 1;
+        }
+        
+        // Espacement entre les sections
+        if (line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS')) {
+          currentY += 3;
+        }
+      }
+      
+      // Générer un nom de fichier dynamique si non fourni
+      let finalFilename = filename;
+      if (!finalFilename) {
+        const nameMatch = cvText.match(/^\*\*([^*]+)\*\*/);
+        const name = nameMatch ? nameMatch[1].toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : 'cv';
+        
+        // Utiliser localStorage pour compter les téléchargements
+        const storageKey = `cv-download-count-${name}`;
+        const currentCount = parseInt(localStorage.getItem(storageKey) || '0') + 1;
+        localStorage.setItem(storageKey, currentCount.toString());
+        
+        const timestamp = new Date().toISOString().split('T')[0];
+        finalFilename = `${name}-cv-optimized-${timestamp}-v${currentCount}.pdf`;
+      }
+      
+      // Sauvegarder le PDF
+      doc.save(finalFilename);
       
       console.log('✅ PDF généré avec succès - données directes de la partie Éditer (sans IA)');
     } catch (error) {
