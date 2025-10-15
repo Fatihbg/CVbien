@@ -273,8 +273,11 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       
-      // Compétences techniques
-      if (line.toLowerCase().includes('compétences techniques') || line.toLowerCase().includes('technical skills')) {
+      // Compétences techniques - détection améliorée
+      if (line.toLowerCase().includes('compétences techniques') || 
+          line.toLowerCase().includes('technical skills') ||
+          line.toLowerCase().includes('hard skills') ||
+          line.toLowerCase().includes('skills')) {
         let skillsText = '';
         for (let j = i + 1; j < lines.length; j++) {
           const nextLine = lines[j];
@@ -289,8 +292,11 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
         }
       }
       
-      // Soft skills
-      if (line.toLowerCase().includes('soft skills') || line.toLowerCase().includes('compétences relationnelles')) {
+      // Soft skills - détection améliorée
+      if (line.toLowerCase().includes('soft skills') || 
+          line.toLowerCase().includes('compétences relationnelles') ||
+          line.toLowerCase().includes('compétences comportementales') ||
+          line.toLowerCase().includes('compétences humaines')) {
         let skillsText = '';
         for (let j = i + 1; j < lines.length; j++) {
           const nextLine = lines[j];
@@ -302,6 +308,22 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
         if (skillsText) {
           softSkills = skillsText;
           additionalSkills += (additionalSkills ? ' | ' : '') + 'Soft skills: ' + skillsText;
+        }
+      }
+      
+      // Détecter les soft skills dans le résumé professionnel ou autres sections
+      if (!softSkills && (line.toLowerCase().includes('collaboration') || 
+                         line.toLowerCase().includes('communication') ||
+                         line.toLowerCase().includes('leadership') ||
+                         line.toLowerCase().includes('teamwork') ||
+                         line.toLowerCase().includes('problem solving') ||
+                         line.toLowerCase().includes('analytical') ||
+                         line.toLowerCase().includes('proactive'))) {
+        // Extraire les soft skills du contexte
+        const softSkillsKeywords = ['collaboration', 'communication', 'leadership', 'teamwork', 'problem solving', 'analytical', 'proactive', 'resilient', 'adaptable', 'creative'];
+        const detectedSoftSkills = softSkillsKeywords.filter(skill => line.toLowerCase().includes(skill));
+        if (detectedSoftSkills.length > 0) {
+          softSkills = detectedSoftSkills.join(', ');
         }
       }
     }
