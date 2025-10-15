@@ -1354,7 +1354,7 @@ export class PDFGenerator {
         });
       };
       
-      // Fonction pour ajouter une ligne horizontale
+      // Fonction pour ajouter une ligne horizontale simple (sans astérisques)
       const addHorizontalLine = (y: number) => {
         doc.setDrawColor(0, 0, 0);
         doc.setLineWidth(0.3);
@@ -1395,7 +1395,7 @@ export class PDFGenerator {
           currentY += 4; // Espace avant section réduit
           addText(line.toUpperCase(), 12, true, false, '#000000');
           addHorizontalLine(currentY + 1);
-          currentY += 3; // Espace après titre réduit
+          currentY += 2; // Espace après titre réduit (quasi collé)
           currentSection = line.toUpperCase();
         }
         // Résumé professionnel (paragraphe centré)
@@ -1407,7 +1407,7 @@ export class PDFGenerator {
         else if (line.includes('---')) {
           // Ignorer les lignes de séparation
         }
-        // Positions/titres d'emploi et entreprises/institutions sur la même ligne
+        // Positions/titres d'emploi et entreprises/institutions sur la même ligne (alignés à gauche)
         else if (line.startsWith('**') && line.endsWith('**') && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
           const position = line.replace(/\*\*/g, '').trim();
           // Chercher la ligne suivante avec l'entreprise/institution
@@ -1417,15 +1417,15 @@ export class PDFGenerator {
               // Combiner position et entreprise/institution sur la même ligne
               const combined = `${position.toUpperCase()} - ${nextLine}`;
               addText(combined, 10, true, false, '#000000');
-              currentY += 2; // Espacement réduit
+              currentY += 1; // Espacement très réduit (quasi collé)
               i++; // Passer la ligne suivante
             } else {
               addText(position.toUpperCase(), 10, true, false, '#000000');
-              currentY += 2;
+              currentY += 1;
             }
           } else {
             addText(position.toUpperCase(), 10, true, false, '#000000');
-            currentY += 2;
+            currentY += 1;
           }
         }
         // Entreprises/institutions avec dates (alignés à gauche, ignorer car déjà traitées)
@@ -1438,7 +1438,7 @@ export class PDFGenerator {
           // Corriger les pourcentages manquants
           const correctedContent = content.replace(/(\d+)(?!\s*%)(?=\s*(through|increase|improvement|growth|reduction|by))/gi, '$1%');
           addText(`• ${correctedContent}`, 10, false, false, '#000000');
-          currentY += 2; // Espacement entre les points réduit
+          currentY += 1; // Espacement entre les points très réduit
         }
         // Sous-sections dans INFORMATIONS ADDITIONNELLES
         else if (currentSection.includes('ADDITIONAL') && line.includes(':')) {
