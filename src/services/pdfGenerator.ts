@@ -1016,9 +1016,9 @@ export class PDFGenerator {
         
         doc.setFontSize(fontSize);
         if (isBold) {
-          doc.setFont('helvetica', 'bold');
+          doc.setFont('calibri', 'bold');
         } else {
-          doc.setFont('helvetica', 'normal');
+          doc.setFont('calibri', 'normal');
         }
         doc.setTextColor(color);
         
@@ -1057,9 +1057,9 @@ export class PDFGenerator {
         
         doc.setFontSize(fontSize);
         if (isBold) {
-          doc.setFont('helvetica', 'bold');
+          doc.setFont('calibri', 'bold');
         } else {
-          doc.setFont('helvetica', 'normal');
+          doc.setFont('calibri', 'normal');
         }
         doc.setTextColor(color);
         
@@ -1328,9 +1328,9 @@ export class PDFGenerator {
         
         doc.setFontSize(fontSize);
         if (isBold) {
-          doc.setFont('helvetica', 'bold');
+          doc.setFont('calibri', 'bold');
         } else {
-          doc.setFont('helvetica', 'normal');
+          doc.setFont('calibri', 'normal');
         }
         doc.setTextColor(color);
         
@@ -1375,48 +1375,62 @@ export class PDFGenerator {
         // Nom en gras et centré (grande taille)
         if (line.startsWith('**') && line.endsWith('**') && i < 3) {
           const name = line.replace(/\*\*/g, '').trim();
-          currentY += 10; // Espace avant le nom
+          currentY += 5; // Espace avant le nom réduit
           addText(name.toUpperCase(), 18, true, true, '#000000');
-          currentY += 8; // Espace après le nom
+          currentY += 3; // Espace après le nom réduit
         }
         // Contact centré
         else if (line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/)) {
           addText(line, 10, false, true, '#000000');
-          currentY += 6; // Espace après contact
+          currentY += 2; // Espace après contact réduit
         }
         // Titre professionnel centré et en gras
         else if (line.startsWith('**') && line.endsWith('**') && i > 2 && !line.includes('EXPERIENCE') && !line.includes('EDUCATION')) {
           const title = line.replace(/\*\*/g, '').trim();
           addText(title.toUpperCase(), 12, true, true, '#000000');
-          currentY += 12; // Espace avant les sections
+          currentY += 5; // Espace avant les sections réduit
         }
-        // Titres de sections principales (centrés, en gras, en majuscules)
+        // Titres de sections principales (alignés à gauche, en gras, en majuscules)
         else if (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('ADDITIONAL') || line.includes('SOFT SKILLS')) {
-          currentY += 8; // Espace avant section
-          addText(line.toUpperCase(), 12, true, true, '#000000');
-          addHorizontalLine(currentY + 2);
-          currentY += 8; // Espace après titre
+          currentY += 4; // Espace avant section réduit
+          addText(line.toUpperCase(), 12, true, false, '#000000');
+          addHorizontalLine(currentY + 1);
+          currentY += 3; // Espace après titre réduit
           currentSection = line.toUpperCase();
         }
         // Résumé professionnel (paragraphe centré)
         else if (currentSection.includes('PROFESSIONAL SUMMARY') && line.length > 50 && !line.startsWith('**') && !line.startsWith('•')) {
           addText(line, 10, false, true, '#000000');
-          currentY += 6;
+          currentY += 3; // Espacement réduit
         }
         // Lignes de séparation (ignorer)
         else if (line.includes('---')) {
           // Ignorer les lignes de séparation
         }
-        // Positions/titres d'emploi (centrés, en gras)
+        // Positions/titres d'emploi et entreprises/institutions sur la même ligne
         else if (line.startsWith('**') && line.endsWith('**') && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
           const position = line.replace(/\*\*/g, '').trim();
-          addText(position.toUpperCase(), 11, true, true, '#000000');
-          currentY += 4;
+          // Chercher la ligne suivante avec l'entreprise/institution
+          if (i + 1 < lines.length) {
+            const nextLine = lines[i + 1];
+            if (nextLine.includes('(') && nextLine.includes(')') && !nextLine.includes('•')) {
+              // Combiner position et entreprise/institution sur la même ligne
+              const combined = `${position.toUpperCase()} - ${nextLine}`;
+              addText(combined, 10, true, false, '#000000');
+              currentY += 2; // Espacement réduit
+              i++; // Passer la ligne suivante
+            } else {
+              addText(position.toUpperCase(), 10, true, false, '#000000');
+              currentY += 2;
+            }
+          } else {
+            addText(position.toUpperCase(), 10, true, false, '#000000');
+            currentY += 2;
+          }
         }
-        // Entreprises/institutions avec dates (centrés)
+        // Entreprises/institutions avec dates (alignés à gauche, ignorer car déjà traitées)
         else if (line.includes('(') && line.includes(')') && !line.includes('•') && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
-          addText(line, 10, false, true, '#000000');
-          currentY += 2;
+          // Ignorer car déjà traitées avec les positions
         }
         // Points avec puces (alignés à gauche)
         else if (line.startsWith('•')) {
@@ -1424,7 +1438,7 @@ export class PDFGenerator {
           // Corriger les pourcentages manquants
           const correctedContent = content.replace(/(\d+)(?!\s*%)(?=\s*(through|increase|improvement|growth|reduction|by))/gi, '$1%');
           addText(`• ${correctedContent}`, 10, false, false, '#000000');
-          currentY += 4; // Espacement entre les points
+          currentY += 2; // Espacement entre les points réduit
         }
         // Sous-sections dans INFORMATIONS ADDITIONNELLES
         else if (currentSection.includes('ADDITIONAL') && line.includes(':')) {
@@ -1433,15 +1447,15 @@ export class PDFGenerator {
             const label = parts[0].trim();
             const content = parts[1].trim();
             addText(`${label}:`, 10, true, false, '#000000');
-            currentY += 2;
+            currentY += 1;
             addText(content, 10, false, false, '#000000');
-            currentY += 4;
+            currentY += 2;
           }
         }
         // Texte normal
         else if (line.length > 0 && !line.includes('---')) {
           addText(line, 10, false, false, '#000000');
-          currentY += 2;
+          currentY += 1; // Espacement réduit
         }
       }
       
@@ -1518,9 +1532,9 @@ export class PDFGenerator {
         
         doc.setFontSize(fontSize);
         if (isBold) {
-          doc.setFont('helvetica', 'bold');
+          doc.setFont('calibri', 'bold');
         } else {
-          doc.setFont('helvetica', 'normal');
+          doc.setFont('calibri', 'normal');
         }
         doc.setTextColor(color);
         
