@@ -1189,11 +1189,15 @@ export class PDFGenerator {
           
           if (edu.description) {
             let cleanDescription = edu.description;
-            // Supprimer les skills/langues de la description académique
+            // Supprimer les skills/langues de la description académique - VERSION ROBUSTE
             cleanDescription = cleanDescription.replace(/\s*Languages?:[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Langues?:[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Skills?:[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Compétences?:[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*•\s*Languages?:[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*•\s*Langues?:[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*•\s*Skills?:[^.]*\.?/gi, '');
+            cleanDescription = cleanDescription.replace(/\s*•\s*Compétences?:[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Strong interest[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Committed to continuous learning[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Engagé dans l'apprentissage[^.]*\.?/gi, '');
@@ -1328,6 +1332,9 @@ export class PDFGenerator {
         unit: 'mm',
         format: 'a4'
       });
+      
+      // Autoriser les pages supplémentaires (2 pages max)
+      doc.setAutoPageBreak(true, 20);
 
       // Configuration
       const pageWidth = 210;

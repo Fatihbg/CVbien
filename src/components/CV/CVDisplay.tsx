@@ -45,7 +45,9 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
           !line.includes('highlight competencies') &&
           !line.includes('relevant to the position') &&
           !line.includes('Sopra Steria') &&
-          !line.includes('alignment with the qualifications')) {
+          !line.includes('alignment with the qualifications') &&
+          !line.includes('Strong interest') &&
+          !line.includes('Intérêt pour l\'IA')) {
         summary = line;
         break;
       }
@@ -219,7 +221,11 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
       /Certificats?\s*:?\s*([^•\n]+)/i,
       /Certificat\s*:?\s*([^•\n]+)/i,
       /Qualifications?\s*:?\s*([^•\n]+)/i,
-      /Formations?\s*certifiantes?\s*:?\s*([^•\n]+)/i
+      /Formations?\s*certifiantes?\s*:?\s*([^•\n]+)/i,
+      /\*\*CERTIFIED\s+([^*]+)\*\*/gi,
+      /\*\*CERTIFICAT\s+([^*]+)\*\*/gi,
+      /•\s*CERTIFIED\s+([^•\n]+)/gi,
+      /•\s*CERTIFICAT\s+([^•\n]+)/gi
     ];
     
     for (const pattern of certPatterns) {
