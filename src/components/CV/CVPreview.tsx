@@ -84,12 +84,17 @@ export const CVPreview: React.FC = () => {
       // Attendre un peu à 90% pour simuler la génération PDF
       setTimeout(async () => {
         try {
-          console.log('🎯 Génération PDF démarrée avec données de la partie Éditer');
-          // IMPORTANT: PDF utilise UNIQUEMENT les données de la partie "Éditer" (droite)
-          // Aucun lien avec l'aperçu (gauche) qui peut avoir des problèmes de parsing
-          // generateCVPDF utilise parseCVWithAI qui fait un parsing complet et correct
-          await PDFGenerator.generateCVPDF(generatedCV, jobDescription);
-          console.log('✅ PDF généré avec succès - données provenant de la partie Éditer uniquement');
+          console.log('🎯 Génération PDF démarrée avec données de l\'aperçu parsées');
+          // IMPORTANT: PDF utilise les données déjà parsées de l'aperçu (gauche)
+          // Utilise les données structurées de CVDisplay au lieu de refaire le parsing
+          if (parsedCVData) {
+            await PDFGenerator.generateCVPDFFromParsedData(parsedCVData, jobDescription);
+            console.log('✅ PDF généré avec succès - données provenant de l\'aperçu parsées');
+          } else {
+            // Fallback: utiliser le parsing manuel si pas de données parsées
+            await PDFGenerator.generateCVPDF(generatedCV, jobDescription);
+            console.log('✅ PDF généré avec succès - fallback parsing manuel');
+          }
           
           // Finaliser la progression
           setDownloadProgress(100);
