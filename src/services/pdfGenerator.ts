@@ -1309,7 +1309,8 @@ export class PDFGenerator {
       console.log('Job Description length:', jobDescription.length);
       
       // Créer le PDF directement avec le texte du CV (format simplifié)
-      const doc = new (window as any).jsPDF();
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
       const margin = 20;
