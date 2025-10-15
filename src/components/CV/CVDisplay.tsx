@@ -154,7 +154,29 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
       
       // Parser les formations
       if (currentSection === 'education') {
-        if (line.includes('-') && line.includes('(') && line.includes(')')) {
+        // Format 1: **Degree** (ligne en gras)
+        if (line.startsWith('**') && line.endsWith('**')) {
+          if (currentEducation) {
+            education.push(currentEducation);
+          }
+          const degree = line.replace(/\*\*/g, '').trim();
+          currentEducation = {
+            institution: '',
+            degree,
+            period: '',
+            description: ''
+          };
+        }
+        // Format 2: Institution (Period) - après un degree en gras
+        else if (currentEducation && currentEducation.degree && !currentEducation.institution && line.includes('(') && line.includes(')')) {
+          const periodMatch = line.match(/\(([^)]+)\)/);
+          const period = periodMatch ? periodMatch[1] : '';
+          const institution = line.replace(/\([^)]+\)/, '').trim();
+          currentEducation.institution = institution;
+          currentEducation.period = period;
+        }
+        // Format 3: Institution - Degree (Period)
+        else if (line.includes('-') && line.includes('(') && line.includes(')')) {
           if (currentEducation) {
             education.push(currentEducation);
           }
@@ -174,6 +196,7 @@ export const CVDisplay: React.FC<CVDisplayProps> = ({ cvText, onDataParsed }) =>
             };
           }
         }
+        // Format 4: Institution, Degree (Period)
         else if (line.includes(',') && line.includes('(') && line.includes(')')) {
           if (currentEducation) {
             education.push(currentEducation);
