@@ -22,6 +22,7 @@ interface CVParsedData {
   certifications: string[];
   languages: string;
   additionalInfo: string;
+  hasLanguagesInEducation?: boolean;
 }
 
 export class PDFGenerator {
@@ -968,7 +969,8 @@ export class PDFGenerator {
       softSkills,
       certifications,
       languages,
-      additionalInfo: ''
+      additionalInfo: '',
+      hasLanguagesInEducation
     };
   }
 
@@ -1005,7 +1007,11 @@ export class PDFGenerator {
 
       // Fonction pour ajouter du texte
       const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
-        if (currentY > pageHeight - 20) return;
+        // Gérer les pages multiples
+        if (currentY > pageHeight - 20) {
+          doc.addPage();
+          currentY = margin;
+        }
         
         doc.setFontSize(fontSize);
         if (isBold) {
@@ -1018,7 +1024,10 @@ export class PDFGenerator {
         const lines = doc.splitTextToSize(text, maxWidth);
         
         lines.forEach((line: string) => {
-          if (currentY > pageHeight - 20) return;
+          if (currentY > pageHeight - 20) {
+            doc.addPage();
+            currentY = margin;
+          }
           let xPos = margin;
           let align: any = 'left';
           
@@ -1168,7 +1177,15 @@ export class PDFGenerator {
           currentY += 2;
           
           exp.description.forEach((desc: string) => {
-            addText(`• ${desc}`, 10.3, false, false, '#2d3748');
+            // Corriger les pourcentages manquants (35, 40, 25 -> 35%, 40%, 25%)
+            let cleanDesc = desc;
+            // Ajouter % après les nombres suivis de mots-clés d'amélioration
+            cleanDesc = cleanDesc.replace(/(\d+)(?!\s*%|\d)(\s+(through|increase|improved|improvement|growth|reduction|enhanced|achieving|achieved))/gi, '$1%$2');
+            // Ajouter % après "by X" (ex: "by 25" -> "by 25%")
+            cleanDesc = cleanDesc.replace(/by\s+(\d+)(?!\s*%)/gi, 'by $1%');
+            // Ajouter % après les nombres en fin de phrase (ex: "efficiency by 25." -> "efficiency by 25%.")
+            cleanDesc = cleanDesc.replace(/(\d+)(\s*[.,;])/g, '$1%$2');
+            addText(`• ${cleanDesc}`, 10.3, false, false, '#2d3748');
             currentY += 1;
           });
           currentY += 3;
@@ -1198,6 +1215,8 @@ export class PDFGenerator {
             cleanDescription = cleanDescription.replace(/\s*•\s*Langues?:[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*•\s*Skills?:[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*•\s*Compétences?:[^.]*\.?/gi, '');
+            // Supprimer les lignes qui commencent par "- Languages:" ou "- Langues:"
+            cleanDescription = cleanDescription.replace(/^\s*-\s*(Languages?|Langues?):[^\n]*$/gm, '');
             cleanDescription = cleanDescription.replace(/\s*Strong interest[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Committed to continuous learning[^.]*\.?/gi, '');
             cleanDescription = cleanDescription.replace(/\s*Engagé dans l'apprentissage[^.]*\.?/gi, '');
@@ -1342,7 +1361,11 @@ export class PDFGenerator {
 
       // Fonction pour ajouter du texte
       const addText = (text: string, fontSize: number = 10, isBold: boolean = false, isCenter: boolean = false, color: string = '#000000') => {
-        if (currentY > pageHeight - 20) return;
+        // Gérer les pages multiples
+        if (currentY > pageHeight - 20) {
+          doc.addPage();
+          currentY = margin;
+        }
         
         doc.setFontSize(fontSize);
         if (isBold) {
@@ -1355,7 +1378,10 @@ export class PDFGenerator {
         const lines = doc.splitTextToSize(text, maxWidth);
         
         lines.forEach((line: string) => {
-          if (currentY > pageHeight - 20) return;
+          if (currentY > pageHeight - 20) {
+            doc.addPage();
+            currentY = margin;
+          }
           let xPos = margin;
           let align: any = 'left';
           
@@ -1652,8 +1678,14 @@ export class PDFGenerator {
                            'Certifications';
           
           addText(`• ${certLabel} : `, 10.3, false, false, '#000000'); // 10.0 -> 10.3 (+0.3pt)
-          // Ajouter les certifications en gras
-          const certText = parsedCV.certifications.join(', ');
+          // Ajouter les certifications en gras avec phrases explicatives
+          const certText = parsedCV.certifications.map(cert => {
+            // Ajouter une phrase explicative si la certification n'en a pas déjà
+            if (!cert.includes('certification') && !cert.includes('certified') && !cert.includes('certificat')) {
+              return `${cert} (Certification professionnelle)`;
+            }
+            return cert;
+          }).join(', ');
           console.log('🎯 Texte certifications à afficher:', certText);
           doc.setFont(undefined, 'bold');
           addText(certText, 10.3, false, false, '#000000'); // 10.0 -> 10.3 (+0.3pt)
@@ -1690,7 +1722,7 @@ export class PDFGenerator {
           }
           
           // Afficher les langues en gras en dernier (sans ** et sans duplication "langues")
-          if (languages.length > 0) {
+          if (languages.length > 0 && !parsedCV.hasLanguagesInEducation) {
             const cleanLanguages = languages.map(lang => 
               lang.replace(/\*\*/g, '').replace(/langues?\s*:?\s*/gi, '').trim()
             ).join(', ');
