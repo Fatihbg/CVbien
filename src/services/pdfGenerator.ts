@@ -1375,27 +1375,27 @@ export class PDFGenerator {
         // Nom en gras et centré (grande taille)
         if (line.startsWith('**') && line.endsWith('**') && i < 3) {
           const name = line.replace(/\*\*/g, '').trim();
-          currentY += 5; // Espace avant le nom réduit
+          currentY += 2; // Espace avant le nom très réduit
           addText(name.toUpperCase(), 18, true, true, '#000000');
-          currentY += 3; // Espace après le nom réduit
+          currentY += 1; // Espace après le nom très réduit
         }
         // Contact centré
         else if (line.includes('@') || line.match(/[\+]?[0-9\s\-\(\)]{10,}/)) {
           addText(line, 10, false, true, '#000000');
-          currentY += 2; // Espace après contact réduit
+          currentY += 1; // Espace après contact très réduit
         }
-        // Titre professionnel centré et en gras
+        // Titre professionnel aligné à gauche et en gras
         else if (line.startsWith('**') && line.endsWith('**') && i > 2 && !line.includes('EXPERIENCE') && !line.includes('EDUCATION')) {
           const title = line.replace(/\*\*/g, '').trim();
-          addText(title.toUpperCase(), 12, true, true, '#000000');
-          currentY += 5; // Espace avant les sections réduit
+          addText(title.toUpperCase(), 12, true, false, '#000000');
+          currentY += 3; // Espace avant les sections réduit
         }
         // Titres de sections principales (alignés à gauche, en gras, en majuscules)
         else if (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('ADDITIONAL') || line.includes('SOFT SKILLS')) {
           currentY += 4; // Espace avant section réduit
           addText(line.toUpperCase(), 12, true, false, '#000000');
-          addHorizontalLine(currentY + 1);
-          currentY += 2; // Espace après titre réduit (quasi collé)
+          addHorizontalLine(currentY + 0.5); // Ligne quasi collée au titre
+          currentY += 1; // Espace après titre très réduit (quasi collé)
           currentSection = line.toUpperCase();
         }
         // Résumé professionnel (paragraphe centré)
