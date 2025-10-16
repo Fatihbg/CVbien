@@ -182,8 +182,8 @@ export class PDFGenerator {
   // Fallback: parsing manuel amélioré
   public static parseCVManually(cvText: string): CVParsedData {
     console.log('🔍 Parsing manuel du CV...');
-    console.log('📄 Texte CV reçu (premiers 500 caractères):', cvText.substring(0, 500));
-    console.log('📄 Texte CV reçu (derniers 500 caractères):', cvText.substring(Math.max(0, cvText.length - 500)));
+    console.log('📄 TEXTE CV COMPLET:', cvText);
+    console.log('📏 Longueur du texte:', cvText.length);
     
     // Nettoyer le texte en supprimant les phrases d'adaptation et éléments indésirables
     let cleanedText = cvText;
