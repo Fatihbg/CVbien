@@ -1270,13 +1270,13 @@ export class PDFGenerator {
           currentY += 3;
         }
         
-        // Certifications
+        // Certifications (sur la même ligne)
         if (parsedData.certifications && parsedData.certifications.length > 0) {
           const certLabel = detectedLanguage === 'english' ? 'Certifications:' : 
                            detectedLanguage === 'dutch' ? 'Certificeringen:' : 'Certifications:';
           const certText = parsedData.certifications.join(', ');
           addTextNoLine(`${certLabel} ${certText}`, 10.3, false, false, '#2d3748');
-          currentY += 3;
+          currentY += 1; // Espacement réduit
         }
         
         // Langues (séparées des compétences techniques) - UNIQUEMENT si elles existent
@@ -1285,8 +1285,26 @@ export class PDFGenerator {
                            detectedLanguage === 'dutch' ? 'Talen:' : 'Langues:';
           const cleanLanguages = parsedData.languages.replace(/^Langues?\s*:?\s*/i, '').replace(/^Languages?\s*:?\s*/i, '').trim();
           if (cleanLanguages) {
-            addText(`${langLabel} ${cleanLanguages}`, 10.3, false, false, '#2d3748');
+            // Mettre les langues en gras
+            const boldLanguages = cleanLanguages.replace(/(Français|Anglais|Turc|Néerlandais|French|English|Turkish|Dutch|C1|C2|B1|B2|A1|A2)/g, '**$1**');
+            addText(`${langLabel} ${boldLanguages}`, 10.3, false, false, '#2d3748');
             currentY += 3;
+          }
+        }
+        
+        // Liens utiles
+        if (parsedData.contact && (parsedData.contact.includes('cvbien.dev') || parsedData.contact.includes('dagence.be'))) {
+          const linksLabel = detectedLanguage === 'english' ? 'Useful Links:' : 
+                           detectedLanguage === 'dutch' ? 'Nuttige Links:' : 'Liens utiles:';
+          addText(`${linksLabel}`, 10.3, true, false, '#2d3748');
+          
+          if (parsedData.contact.includes('cvbien.dev')) {
+            addText('• [CVbien](https://cvbien.dev)', 10.3, false, false, '#2d3748');
+            currentY += 2;
+          }
+          if (parsedData.contact.includes('dagence.be')) {
+            addText('• [Dagence](https://dagence.be)', 10.3, false, false, '#2d3748');
+            currentY += 2;
           }
         }
         
@@ -1392,7 +1410,7 @@ export class PDFGenerator {
         }
         // Titres de sections principales (alignés à gauche, en gras, en majuscules)
         else if (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('ADDITIONAL') || line.includes('SOFT SKILLS')) {
-          currentY += 4; // Espace avant section réduit
+          currentY += 8; // Espace avant section augmenté
           addText(line.toUpperCase(), 12, true, false, '#000000');
           addHorizontalLine(currentY + 0.5); // Ligne quasi collée au titre
           currentY += 1; // Espace après titre très réduit (quasi collé)
@@ -1408,7 +1426,7 @@ export class PDFGenerator {
           // Ignorer les lignes de séparation
         }
         // Positions/titres d'emploi et entreprises/institutions sur la même ligne (alignés à gauche)
-        else if (line.startsWith('**') && line.endsWith('**') && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
+        else if ((line.startsWith('**') && line.endsWith('**') || line.match(/^[A-Z\s]+$/)) && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
           const position = line.replace(/\*\*/g, '').trim();
           // Chercher la ligne suivante avec l'entreprise/institution
           if (i + 1 < lines.length) {

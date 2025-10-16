@@ -96,3 +96,4 @@ Une fois configuré, teste :
 - Configure les règles Firestore pour la sécurité
 
 
+
