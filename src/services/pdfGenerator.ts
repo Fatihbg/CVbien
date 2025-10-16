@@ -1421,19 +1421,33 @@ export class PDFGenerator {
           currentY += 3; // Espacement réduit
         }
         // Lignes de séparation (ignorer)
-        else if (line.includes('---')) {
-          // Ignorer les lignes de séparation
+        else if (line.includes('---') || line.includes('%')) {
+          // Ignorer les lignes de séparation et les lignes de %
         }
-        // Positions/titres d'emploi (alignés à gauche, en gras)
+        // Positions/titres d'emploi et entreprises/institutions sur la même ligne (alignés à gauche)
         else if ((line.startsWith('**') && line.endsWith('**') || line.match(/^[A-Z\s]+$/)) && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
           const position = line.replace(/\*\*/g, '').trim();
-          addText(position.toUpperCase(), 10, true, false, '#000000');
-          currentY += 0; // Pas d'espacement après le titre
+          // Chercher la ligne suivante avec l'entreprise/institution
+          if (i + 1 < lines.length) {
+            const nextLine = lines[i + 1];
+            if (nextLine.includes('(') && nextLine.includes(')') && !nextLine.includes('•') && !nextLine.includes('%')) {
+              // Combiner position et entreprise/institution sur la même ligne
+              const combined = `${position.toUpperCase()} - ${nextLine}`;
+              addText(combined, 10, true, false, '#000000');
+              currentY += 0; // Pas d'espacement après le titre combiné
+              i++; // Passer la ligne suivante
+            } else {
+              addText(position.toUpperCase(), 10, true, false, '#000000');
+              currentY += 0;
+            }
+          } else {
+            addText(position.toUpperCase(), 10, true, false, '#000000');
+            currentY += 0;
+          }
         }
-        // Entreprises/institutions avec dates (alignés à gauche, normal)
+        // Entreprises/institutions avec dates (alignés à gauche, ignorer car déjà traitées)
         else if (line.includes('(') && line.includes(')') && !line.includes('•') && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
-          addText(line, 10, false, false, '#000000');
-          currentY += 0; // Pas d'espacement après l'entreprise/institution
+          // Ignorer car déjà traitées avec les positions
         }
         // Points avec puces (alignés à gauche)
         else if (line.startsWith('•')) {
@@ -1442,6 +1456,18 @@ export class PDFGenerator {
           const correctedContent = content.replace(/(\d+)(?!\s*%)(?=\s*(through|increase|improvement|growth|reduction|by))/gi, '$1%');
           addText(`• ${correctedContent}`, 10, false, false, '#000000');
           currentY += 1; // Espacement entre les points très réduit
+        }
+        // Lignes vides - ajouter de l'espacement entre les entrées
+        else if (line.trim() === '') {
+          // Vérifier si on est entre deux entrées (poste/formation)
+          if (i > 0 && i < lines.length - 1) {
+            const prevLine = lines[i - 1];
+            const nextLine = lines[i + 1];
+            // Si la ligne précédente contient des puces et la suivante est un titre de poste/formation
+            if (prevLine.startsWith('•') && (nextLine.startsWith('**') || nextLine.match(/^[A-Z\s]+$/))) {
+              currentY += 3; // Espacement entre les entrées
+            }
+          }
         }
         // Sous-sections dans INFORMATIONS ADDITIONNELLES
         else if (currentSection.includes('ADDITIONAL') && line.includes(':')) {
