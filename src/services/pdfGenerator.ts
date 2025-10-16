@@ -1390,6 +1390,7 @@ export class PDFGenerator {
       
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
+        console.log(`📝 Ligne ${i + 1}: "${line}" | Section: ${currentSection}`);
         
         // Nom en gras et centré (grande taille)
         if (line.startsWith('**') && line.endsWith('**') && i < 3) {
@@ -1409,8 +1410,8 @@ export class PDFGenerator {
           addText(title.toUpperCase(), 12, true, false, '#000000');
           currentY += 3; // Espace avant les sections réduit
         }
-        // Titres de sections principales (alignés à gauche, en gras, en majuscules)
-        else if (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('ADDITIONAL') || line.includes('SOFT SKILLS')) {
+        // Titres de sections principales (alignés à gauche, en gras, en majuscules) - TOUTES LES SECTIONS
+        else if (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('ADDITIONAL') || line.includes('SOFT SKILLS') || line.includes('FORMATION') || line.includes('ACADEMIC') || line.includes('COMPETENCES') || line.includes('SKILLS') || line.includes('LANGUES') || line.includes('LANGUAGES')) {
           currentY += 8; // Espace avant section augmenté (éloigner du contenu précédent)
           addText(line.toUpperCase(), 12, true, false, '#000000');
           currentY += 1; // Espace après titre réduit (rapprocher du premier élément)
@@ -1514,9 +1515,10 @@ export class PDFGenerator {
           currentY += 1;
           lastLineWasBullet = false; // Reset du flag
         }
-        // Texte normal (fallback pour les lignes non reconnues)
-        else if (line.trim() && line.length > 3 && !line.includes('**') && !line.includes('•')) {
-          // Afficher les lignes de texte normal qui n'ont pas été traitées
+        // Texte normal (fallback pour les lignes non reconnues) - CAPTURER TOUT
+        else if (line.trim() && line.length > 1) {
+          // Afficher TOUTES les lignes qui n'ont pas été traitées par les autres patterns
+          // Ceci est un fallback pour s'assurer qu'aucune information n'est perdue
           addText(line, 10, false, false, '#000000');
           currentY += 1;
           lastLineWasBullet = false; // Reset du flag
