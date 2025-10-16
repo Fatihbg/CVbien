@@ -1386,6 +1386,7 @@ export class PDFGenerator {
       let currentSection = '';
       let inExperience = false;
       let inEducation = false;
+      let lastLineWasBullet = false; // Pour détecter les transitions entre entrées
       
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
@@ -1410,10 +1411,11 @@ export class PDFGenerator {
         }
         // Titres de sections principales (alignés à gauche, en gras, en majuscules)
         else if (line.includes('PROFESSIONAL SUMMARY') || line.includes('EXPERIENCE') || line.includes('EDUCATION') || line.includes('CERTIFICATIONS') || line.includes('ADDITIONAL') || line.includes('SOFT SKILLS')) {
-          currentY += 4; // Espace avant section réduit
+          currentY += 8; // Espace avant section augmenté (éloigner du contenu précédent)
           addText(line.toUpperCase(), 12, true, false, '#000000');
-          currentY += 2; // Espace après titre réduit
+          currentY += 1; // Espace après titre réduit (rapprocher du premier élément)
           currentSection = line.toUpperCase();
+          lastLineWasBullet = false; // Reset du flag pour nouvelle section
         }
         // Résumé professionnel (paragraphe centré)
         else if (currentSection.includes('PROFESSIONAL SUMMARY') && line.length > 50 && !line.startsWith('**') && !line.startsWith('•')) {
@@ -1423,9 +1425,15 @@ export class PDFGenerator {
         // Lignes de séparation (ignorer)
         else if (line.includes('---') || line.includes('%')) {
           // Ignorer les lignes de séparation et les lignes de %
+          lastLineWasBullet = false; // Reset du flag
         }
         // Positions/titres d'emploi et entreprises/institutions sur la même ligne (alignés à gauche)
         else if ((line.startsWith('**') && line.endsWith('**') || line.match(/^[A-Z\s]+$/)) && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
+          // Ajouter de l'espace avant un nouveau titre si la ligne précédente était une puce
+          if (lastLineWasBullet) {
+            currentY += 4; // Espacement avant nouveau titre de rôle/formation
+          }
+          
           const position = line.replace(/\*\*/g, '').trim();
           // Chercher la ligne suivante avec l'entreprise/institution
           if (i + 1 < lines.length) {
@@ -1444,6 +1452,7 @@ export class PDFGenerator {
             addText(position.toUpperCase(), 10, true, false, '#000000');
             currentY += 1;
           }
+          lastLineWasBullet = false; // Reset du flag
         }
         // Entreprises/institutions avec dates (alignés à gauche)
         else if (line.includes('(') && line.includes(')') && !line.includes('•') && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
@@ -1460,17 +1469,20 @@ export class PDFGenerator {
           const correctedContent = content.replace(/(\d+)(?!\s*%)(?=\s*(through|increase|improvement|growth|reduction|by))/gi, '$1%');
           addText(`• ${correctedContent}`, 10, false, false, '#000000');
           currentY += 1; // Espacement entre les points très réduit
+          lastLineWasBullet = true; // Marquer que la dernière ligne était une puce
         }
         // Lignes vides - ajouter de l'espacement entre les entrées
         else if (line.trim() === '') {
           // Ajouter un petit espacement pour les lignes vides
           currentY += 1;
+          lastLineWasBullet = false; // Reset du flag
         }
         // Texte normal (fallback pour les lignes non reconnues)
         else if (line.trim() && line.length > 3 && !line.includes('**') && !line.includes('•')) {
           // Afficher les lignes de texte normal qui n'ont pas été traitées
           addText(line, 10, false, false, '#000000');
           currentY += 1;
+          lastLineWasBullet = false; // Reset du flag
         }
         // Sous-sections dans INFORMATIONS ADDITIONNELLES
         else if (currentSection.includes('ADDITIONAL') && line.includes(':')) {
