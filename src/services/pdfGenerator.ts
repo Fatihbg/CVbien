@@ -1431,40 +1431,77 @@ export class PDFGenerator {
         else if ((line.startsWith('**') && line.endsWith('**') || line.match(/^[A-Z\s]+$/)) && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
           // Ajouter de l'espace avant un nouveau titre si la ligne précédente était une puce
           if (lastLineWasBullet) {
-            currentY += 4; // Espacement avant nouveau titre de rôle/formation
+            currentY += 6; // Espacement avant nouveau titre de rôle/formation (augmenté)
           }
           
           const position = line.replace(/\*\*/g, '').trim();
-          // Chercher la ligne suivante avec l'entreprise/institution
-          if (i + 1 < lines.length) {
-            const nextLine = lines[i + 1];
+          
+          // Chercher les lignes suivantes pour l'entreprise/institution et les liens
+          let companyLine = '';
+          let linkFound = '';
+          
+          // Chercher dans les 2 prochaines lignes
+          for (let j = i + 1; j <= Math.min(i + 2, lines.length - 1); j++) {
+            const nextLine = lines[j];
+            
+            // Si c'est une ligne avec des dates (entreprise/institution)
             if (nextLine.includes('(') && nextLine.includes(')') && !nextLine.includes('•') && !nextLine.includes('%')) {
-              // Combiner position et entreprise/institution sur la même ligne
-              const combined = `${position.toUpperCase()} - ${nextLine}`;
-              addText(combined, 10, true, false, '#000000');
-              currentY += 1; // Espacement après le titre
-              i++; // Passer la ligne suivante
-            } else {
-              addText(position.toUpperCase(), 10, true, false, '#000000');
-              currentY += 1;
+              companyLine = nextLine;
             }
-          } else {
-            addText(position.toUpperCase(), 10, true, false, '#000000');
-            currentY += 1;
+            
+            // Si c'est une ligne avec un lien
+            if (nextLine.includes('[dagence.be]') || nextLine.includes('[cvbien.dev]') || nextLine.includes('dagence.be') || nextLine.includes('cvbien.dev')) {
+              // Extraire le lien unique
+              const linkMatch = nextLine.match(/\[([^\]]+)\]\([^)]+\)|https?:\/\/[^\s\)]+/);
+              if (linkMatch) {
+                linkFound = linkMatch[0];
+              }
+            }
           }
+          
+          // Afficher le titre avec l'entreprise et le lien
+          let displayText = position.toUpperCase();
+          if (companyLine) {
+            displayText += ` - ${companyLine}`;
+          }
+          if (linkFound) {
+            displayText += ` ${linkFound}`;
+          }
+          
+          addText(displayText, 10, true, false, '#000000');
+          currentY += 1; // Espacement après le titre
+          
+          // Passer les lignes déjà traitées
+          if (companyLine) {
+            i++; // Passer la ligne de l'entreprise
+          }
+          
           lastLineWasBullet = false; // Reset du flag
         }
         // Entreprises/institutions avec dates (alignés à gauche)
         else if (line.includes('(') && line.includes(')') && !line.includes('•') && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
           // Si cette ligne n'a pas été traitée avec une position, l'afficher
-          if (!line.includes(' - ')) {
+          if (!line.includes(' - ') && !line.includes('[dagence.be]') && !line.includes('[cvbien.dev]')) {
             addText(line, 10, false, false, '#000000');
             currentY += 1;
           }
         }
-        // Points avec puces (alignés à gauche)
+        // Lignes de liens (ignorer car déjà traitées avec les titres)
+        else if (line.includes('[dagence.be]') || line.includes('[cvbien.dev]') || line.includes('dagence.be') || line.includes('cvbien.dev')) {
+          // Ignorer car déjà traitées avec les titres
+        }
+        // Points avec puces (alignés à gauche) - TOUS les bullet points
         else if (line.startsWith('•')) {
           const content = line.replace(/^•\s*/, '').trim();
+          // Corriger les pourcentages manquants
+          const correctedContent = content.replace(/(\d+)(?!\s*%)(?=\s*(through|increase|improvement|growth|reduction|by))/gi, '$1%');
+          addText(`• ${correctedContent}`, 10, false, false, '#000000');
+          currentY += 1; // Espacement entre les points très réduit
+          lastLineWasBullet = true; // Marquer que la dernière ligne était une puce
+        }
+        // Points avec tirets (alignés à gauche) - TOUS les bullet points
+        else if (line.startsWith('- ')) {
+          const content = line.replace(/^-\s*/, '').trim();
           // Corriger les pourcentages manquants
           const correctedContent = content.replace(/(\d+)(?!\s*%)(?=\s*(through|increase|improvement|growth|reduction|by))/gi, '$1%');
           addText(`• ${correctedContent}`, 10, false, false, '#000000');
