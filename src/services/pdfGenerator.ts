@@ -1434,20 +1434,24 @@ export class PDFGenerator {
               // Combiner position et entreprise/institution sur la même ligne
               const combined = `${position.toUpperCase()} - ${nextLine}`;
               addText(combined, 10, true, false, '#000000');
-              currentY += 0; // Pas d'espacement après le titre combiné
+              currentY += 1; // Espacement après le titre
               i++; // Passer la ligne suivante
             } else {
               addText(position.toUpperCase(), 10, true, false, '#000000');
-              currentY += 0;
+              currentY += 1;
             }
           } else {
             addText(position.toUpperCase(), 10, true, false, '#000000');
-            currentY += 0;
+            currentY += 1;
           }
         }
-        // Entreprises/institutions avec dates (alignés à gauche, ignorer car déjà traitées)
+        // Entreprises/institutions avec dates (alignés à gauche)
         else if (line.includes('(') && line.includes(')') && !line.includes('•') && (currentSection.includes('EXPERIENCE') || currentSection.includes('EDUCATION'))) {
-          // Ignorer car déjà traitées avec les positions
+          // Si cette ligne n'a pas été traitée avec une position, l'afficher
+          if (!line.includes(' - ')) {
+            addText(line, 10, false, false, '#000000');
+            currentY += 1;
+          }
         }
         // Points avec puces (alignés à gauche)
         else if (line.startsWith('•')) {
@@ -1459,15 +1463,14 @@ export class PDFGenerator {
         }
         // Lignes vides - ajouter de l'espacement entre les entrées
         else if (line.trim() === '') {
-          // Vérifier si on est entre deux entrées (poste/formation)
-          if (i > 0 && i < lines.length - 1) {
-            const prevLine = lines[i - 1];
-            const nextLine = lines[i + 1];
-            // Si la ligne précédente contient des puces et la suivante est un titre de poste/formation
-            if (prevLine.startsWith('•') && (nextLine.startsWith('**') || nextLine.match(/^[A-Z\s]+$/))) {
-              currentY += 3; // Espacement entre les entrées
-            }
-          }
+          // Ajouter un petit espacement pour les lignes vides
+          currentY += 1;
+        }
+        // Texte normal (fallback pour les lignes non reconnues)
+        else if (line.trim() && line.length > 3 && !line.includes('**') && !line.includes('•')) {
+          // Afficher les lignes de texte normal qui n'ont pas été traitées
+          addText(line, 10, false, false, '#000000');
+          currentY += 1;
         }
         // Sous-sections dans INFORMATIONS ADDITIONNELLES
         else if (currentSection.includes('ADDITIONAL') && line.includes(':')) {
