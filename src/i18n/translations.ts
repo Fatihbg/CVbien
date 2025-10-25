@@ -158,7 +158,7 @@ export const translations: Record<string, Translations> = {
       selectFile: "Sélectionner un fichier",
       jobDescriptionTitle: "2. Collez l'offre d'emploi",
       jobDescriptionPlaceholder: "Copiez-collez ici l'offre d'emploi pour laquelle vous postulez...",
-      generateButton: "Générer mon CV optimisé",
+      generateButton: "Générer monn CV optimisé",
       creditInfo: "1 crédit",
       downloadPDF: "Télécharger le PDF",
       editCV: "Modifier le CV",
