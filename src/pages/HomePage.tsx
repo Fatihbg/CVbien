@@ -1662,78 +1662,77 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Download Button - Always visible */}
-          {(generatedCV || uploadedFile || jobDescription) && (
-            <div className="fade-in" style={{ textAlign: 'center', marginTop: '20px' }}>
-              <div className="glass-card" style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(30px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '20px',
-                padding: '20px',
-                margin: '0 auto',
-                maxWidth: 'min(500px, calc(100vw - 24px))',
-                position: 'relative',
-                overflow: 'hidden',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}>
-                <button
-                  className="btn-primary zoom-hover"
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      setShowAuthModal(true);
-                      return;
-                    }
-                    handleDownloadPDF();
-                  }}
-                  disabled={isDownloading || !generatedCV}
-                  style={{
-                    padding: '16px 32px',
-                    fontSize: '16px',
-                    fontWeight: '700',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    opacity: (isDownloading || !generatedCV) ? 0.5 : 1,
-                    cursor: (isDownloading || !generatedCV) ? 'not-allowed' : 'pointer',
-                    borderRadius: '16px',
-                    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    width: '100%'
-                  }}
-                >
-                  {isDownloading ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        border: '2px solid rgba(255, 255, 255, 0.3)',
-                        borderTop: '2px solid white',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                      }} />
-                      {t.common.loading.toUpperCase()}
+          <div className="fade-in" style={{ textAlign: 'center', marginTop: '20px' }}>
+            <div className="glass-card" style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(30px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '20px',
+              padding: '20px',
+              margin: '0 auto',
+              maxWidth: 'min(500px, calc(100vw - 24px))',
+              position: 'relative',
+              overflow: 'hidden',
+              width: '100%',
+              boxSizing: 'border-box'
+            }}>
+              <button
+                className="btn-primary zoom-hover"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    setShowAuthModal(true);
+                    return;
+                  }
+                  handleDownloadPDF();
+                }}
+                disabled={isDownloading || !uploadedFile || !jobDescription}
+                style={{
+                  padding: '16px 32px',
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  opacity: (isDownloading || !uploadedFile || !jobDescription) ? 0.5 : 1,
+                  cursor: (isDownloading || !uploadedFile || !jobDescription) ? 'not-allowed' : 'pointer',
+                  borderRadius: '16px',
+                  boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  width: '100%'
+                }}
+              >
+                {isDownloading ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      borderTop: '2px solid white',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }} />
+                    {t.common.loading.toUpperCase()}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <span>{t.main.downloadPDF.toUpperCase()}</span>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '6px',
+                      fontSize: '11px', 
+                      fontWeight: '500',
+                      color: 'rgba(255, 255, 255, 0.85)',
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      padding: '3px 8px',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                    }}>
+                      <span style={{ fontSize: '10px' }}>💎</span>
+                      <span>{t.main.creditInfo}</span>
                     </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                      <span>{t.main.downloadPDF.toUpperCase()}</span>
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '6px',
-                        fontSize: '11px', 
-                        fontWeight: '500',
-                        color: 'rgba(255, 255, 255, 0.85)',
-                        background: 'rgba(255, 255, 255, 0.15)',
-                        padding: '3px 8px',
-                        borderRadius: '12px',
-                        border: '1px solid rgba(255, 255, 255, 0.2)'
-                      }}>
-                        <span style={{ fontSize: '10px' }}>💎</span>
-                        <span>{t.main.creditInfo}</span>
-                      </div>
-                    </div>
-                  )}
-                </button>
+                  </div>
+                )}
+              </button>
 
                 {/* Progress Bar */}
                 {isDownloading && (
@@ -1837,7 +1836,6 @@ export const HomePage: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
 
           {/* Improvements List */}
           {improvements.length > 0 && (
