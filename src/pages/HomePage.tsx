@@ -1663,53 +1663,126 @@ export const HomePage: React.FC = () => {
 
           {/* Download Button */}
           {generatedCV && (
-            <div className="slide-up" style={{ marginTop: '20px' }}>
-              <button
-                className="btn-primary zoom-hover"
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    setShowAuthModal(true);
-                    return;
-                  }
-                  handleDownloadPDF();
-                }}
-                disabled={isDownloading}
-                style={{
-                  width: '100%',
-                  padding: '12px 24px',
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  background: isDownloading 
-                    ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' 
-                    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  borderRadius: '16px',
-                  boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
-                  opacity: isDownloading ? 0.8 : 1,
-                  cursor: isDownloading ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
-              >
-                {isDownloading ? (
-                  <>
+            <div className="fade-in" style={{ textAlign: 'center', marginTop: '20px' }}>
+              <div className="glass-card" style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(30px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '20px',
+                padding: '20px',
+                margin: '0 auto',
+                maxWidth: 'min(500px, calc(100vw - 24px))',
+                position: 'relative',
+                overflow: 'hidden',
+                width: '100%',
+                boxSizing: 'border-box'
+              }}>
+                <button
+                  className="btn-primary zoom-hover"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      setShowAuthModal(true);
+                      return;
+                    }
+                    handleDownloadPDF();
+                  }}
+                  disabled={isDownloading}
+                  style={{
+                    padding: '16px 32px',
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    opacity: isDownloading ? 0.8 : 1,
+                    cursor: isDownloading ? 'not-allowed' : 'pointer',
+                    borderRadius: '16px',
+                    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    width: '100%'
+                  }}
+                >
+                  {isDownloading ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        borderTop: '2px solid white',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                      }} />
+                      {t.common.loading.toUpperCase()}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <span>{t.main.downloadPDF.toUpperCase()}</span>
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '6px',
+                        fontSize: '11px', 
+                        fontWeight: '500',
+                        color: 'rgba(255, 255, 255, 0.85)',
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        padding: '3px 8px',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(255, 255, 255, 0.2)'
+                      }}>
+                        <span style={{ fontSize: '10px' }}>💎</span>
+                        <span>{t.main.creditInfo}</span>
+                      </div>
+                    </div>
+                  )}
+                </button>
+
+                {/* Status Indicators */}
+                <div style={{ 
+                  marginTop: '16px', 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  gap: '16px',
+                  flexWrap: 'wrap'
+                }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px',
+                    padding: '6px 12px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}>
                     <div style={{
-                      width: '16px',
-                      height: '16px',
-                      border: '2px solid rgba(255, 255, 255, 0.3)',
-                      borderTop: '2px solid white',
+                      width: '6px',
+                      height: '6px',
                       borderRadius: '50%',
-                      animation: 'spin 1s linear infinite'
-                    }}></div>
-                    <span>Téléchargement... {downloadProgress}%</span>
-                  </>
-                ) : (
-                  <>
-                    📥 {t.main.downloadPDF.toUpperCase()}
-                  </>
-                )}
-              </button>
+                      background: uploadedFile ? '#4facfe' : '#e5e5ea'
+                    }} />
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      CV: {uploadedFile ? '✓' : '✗'}
+                    </span>
+                  </div>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px',
+                    padding: '6px 12px',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}>
+                    <div style={{
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      background: jobDescription ? '#f093fb' : '#e5e5ea'
+                    }} />
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      Job: {jobDescription ? '✓' : '✗'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
