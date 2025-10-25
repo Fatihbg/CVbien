@@ -1932,6 +1932,254 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* How It Works Section */}
+          <div className="fade-in" style={{ marginTop: '30px' }}>
+            <div className="glass-card" style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(30px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '20px',
+              padding: '24px',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <h2 style={{
+                fontSize: '20px',
+                fontWeight: '700',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                margin: '0 0 24px 0',
+                textAlign: 'center'
+              }}>
+                {isEnglish ? 'HOW IT WORKS' : 'COMMENT ÇA MARCHE'}
+              </h2>
+
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '20px',
+                marginBottom: '24px'
+              }}>
+                {/* Step 1 */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 12px',
+                    fontSize: '24px',
+                    fontWeight: '700',
+                    color: 'white',
+                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                  }}>
+                    1
+                  </div>
+                  <h3 style={{
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px'
+                  }}>
+                    {isEnglish ? 'Upload your CV' : 'Uploadez votre CV'}
+                  </h3>
+                  <p style={{
+                    fontSize: '12px',
+                    color: 'var(--text-secondary)',
+                    lineHeight: '1.5'
+                  }}>
+                    {isEnglish ? 'Upload your current CV in PDF, DOCX or TXT format' : 'Uploadez votre CV actuel au format PDF, DOCX ou TXT'}
+                  </p>
+                </div>
+
+                {/* Step 2 */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 12px',
+                    fontSize: '24px',
+                    fontWeight: '700',
+                    color: 'white',
+                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                  }}>
+                    2
+                  </div>
+                  <h3 style={{
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px'
+                  }}>
+                    {isEnglish ? 'Paste job offer' : 'Collez l\'offre d\'emploi'}
+                  </h3>
+                  <p style={{
+                    fontSize: '12px',
+                    color: 'var(--text-secondary)',
+                    lineHeight: '1.5'
+                  }}>
+                    {isEnglish ? 'Copy and paste the job description you\'re applying for' : 'Copiez-collez la description de l\'offre d\'emploi'}
+                  </p>
+                </div>
+
+                {/* Step 3 */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 12px',
+                    fontSize: '24px',
+                    fontWeight: '700',
+                    color: 'white',
+                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                  }}>
+                    3
+                  </div>
+                  <h3 style={{
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px'
+                  }}>
+                    {isEnglish ? 'Generate CV' : 'Générez le CV'}
+                  </h3>
+                  <p style={{
+                    fontSize: '12px',
+                    color: 'var(--text-secondary)',
+                    lineHeight: '1.5'
+                  }}>
+                    {isEnglish ? 'Click the button and our AI will optimize your CV' : 'Cliquez sur le bouton et notre IA optimisera votre CV'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 4 - Results */}
+              <div style={{
+                background: 'rgba(79, 172, 254, 0.1)',
+                borderRadius: '16px',
+                padding: '20px',
+                border: '1px solid rgba(79, 172, 254, 0.2)'
+              }}>
+                <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 12px',
+                    fontSize: '24px',
+                    fontWeight: '700',
+                    color: 'white',
+                    boxShadow: '0 4px 15px rgba(79, 172, 254, 0.4)'
+                  }}>
+                    4
+                  </div>
+                  <h3 style={{
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    marginBottom: '12px'
+                  }}>
+                    {isEnglish ? 'Get your optimized CV' : 'Obtenez votre CV optimisé'}
+                  </h3>
+                </div>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                  gap: '12px'
+                }}>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>🎯</div>
+                    <p style={{
+                      fontSize: '11px',
+                      color: 'var(--text-secondary)',
+                      fontWeight: '500',
+                      margin: 0
+                    }}>
+                      {isEnglish ? 'Perfectly matched keywords' : 'Mots-clés parfaitement adaptés'}
+                    </p>
+                  </div>
+
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>✨</div>
+                    <p style={{
+                      fontSize: '11px',
+                      color: 'var(--text-secondary)',
+                      fontWeight: '500',
+                      margin: 0
+                    }}>
+                      {isEnglish ? 'Enhanced content' : 'Contenu enrichi'}
+                    </p>
+                  </div>
+
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>📊</div>
+                    <p style={{
+                      fontSize: '11px',
+                      color: 'var(--text-secondary)',
+                      fontWeight: '500',
+                      margin: 0
+                    }}>
+                      {isEnglish ? 'ATS-optimized' : 'Optimisé pour ATS'}
+                    </p>
+                  </div>
+
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>🎨</div>
+                    <p style={{
+                      fontSize: '11px',
+                      color: 'var(--text-secondary)',
+                      fontWeight: '500',
+                      margin: 0
+                    }}>
+                      {isEnglish ? 'Professional layout' : 'Mise en page professionnelle'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       
