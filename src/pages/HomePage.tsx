@@ -1661,8 +1661,8 @@ export const HomePage: React.FC = () => {
                 )}
           </div>
 
-          {/* Download Button */}
-          {generatedCV && (
+          {/* Download Button - Always visible */}
+          {(generatedCV || uploadedFile || jobDescription) && (
             <div className="fade-in" style={{ textAlign: 'center', marginTop: '20px' }}>
               <div className="glass-card" style={{
                 background: 'rgba(255, 255, 255, 0.1)',
@@ -1684,16 +1684,21 @@ export const HomePage: React.FC = () => {
                       setShowAuthModal(true);
                       return;
                     }
+                    if (!generatedCV) {
+                      // If CV not generated yet, trigger generation first
+                      handleGenerate();
+                      return;
+                    }
                     handleDownloadPDF();
                   }}
-                  disabled={isDownloading}
+                  disabled={isDownloading || isGenerating}
                   style={{
                     padding: '16px 32px',
                     fontSize: '16px',
                     fontWeight: '700',
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    opacity: isDownloading ? 0.8 : 1,
-                    cursor: isDownloading ? 'not-allowed' : 'pointer',
+                    opacity: (isDownloading || isGenerating || (!generatedCV && (!uploadedFile || !jobDescription))) ? 0.5 : 1,
+                    cursor: (isDownloading || isGenerating || (!generatedCV && (!uploadedFile || !jobDescription))) ? 'not-allowed' : 'pointer',
                     borderRadius: '16px',
                     boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
                     position: 'relative',
@@ -1712,6 +1717,18 @@ export const HomePage: React.FC = () => {
                         animation: 'spin 1s linear infinite'
                       }} />
                       {t.common.loading.toUpperCase()}
+                    </div>
+                  ) : !generatedCV ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        borderTop: '2px solid white',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                      }} />
+                      {isGenerating ? t.common.loading.toUpperCase() : t.main.generateButton.toUpperCase()}
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
@@ -1734,6 +1751,59 @@ export const HomePage: React.FC = () => {
                     </div>
                   )}
                 </button>
+
+                {/* Progress Bar */}
+                {(isDownloading || isGenerating) && (
+                  <div className="slide-up" style={{ 
+                    marginTop: '16px',
+                    maxWidth: '400px',
+                    margin: '16px auto 0 auto'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <span style={{ 
+                        fontSize: '14px', 
+                        color: 'var(--text-primary)', 
+                        fontWeight: '600',
+                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                      }}>
+                        {isDownloading ? 'Téléchargement du PDF...' : progressMessage}
+                      </span>
+                      <span style={{ 
+                        fontSize: '14px', 
+                        color: 'var(--text-secondary)',
+                        fontWeight: '600'
+                      }}>
+                        {isDownloading ? `${downloadProgress}%` : `${progress}%`}
+                      </span>
+                    </div>
+                    <div className="progress-bar" style={{
+                      width: '100%',
+                      height: '8px',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(20px)',
+                      borderRadius: '16px',
+                      overflow: 'hidden',
+                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                    }}>
+                      <div className="progress-fill" style={{
+                        width: `${isDownloading ? downloadProgress : progress}%`,
+                        height: '100%',
+                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        borderRadius: '16px',
+                        transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }} />
+                    </div>
+                  </div>
+                )}
 
                 {/* Status Indicators */}
                 <div style={{ 
