@@ -24,6 +24,7 @@ export const HomePage: React.FC = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [downloadMessage, setDownloadMessage] = useState('');
+  const [showDownloadImprovements, setShowDownloadImprovements] = useState(false);
   
   // Hook de traduction
   const { t, language, isEnglish } = useTranslation();
@@ -386,10 +387,11 @@ export const HomePage: React.FC = () => {
           // Finaliser la progression
           setDownloadProgress(100);
           
-          // Réinitialiser après un délai
+          // Réinitialiser après un délai et afficher les améliorations
           setTimeout(() => {
             setIsDownloading(false);
             setDownloadProgress(0);
+            setShowDownloadImprovements(true);
           }, 800);
           
         } catch (error) {
@@ -1933,8 +1935,9 @@ export const HomePage: React.FC = () => {
             </div>
           )}
 
-          {/* How It Works Section */}
-          <div className="fade-in" style={{ marginTop: '30px' }}>
+          {/* How It Works Section - Hidden during download or if CV generated */}
+          {!isDownloading && !generatedCV && (
+            <div className="fade-in" style={{ marginTop: '30px' }}>
             <div className="glass-card" style={{
               background: 'rgba(255, 255, 255, 0.1)',
               backdropFilter: 'blur(30px)',
@@ -2042,7 +2045,7 @@ export const HomePage: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    margin: '0 auto 12px',
+                    margin: '12px auto',
                     fontSize: '24px',
                     fontWeight: '700',
                     color: 'white',
@@ -2085,12 +2088,9 @@ export const HomePage: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     margin: '0 auto 12px',
-                    fontSize: '24px',
-                    fontWeight: '700',
-                    color: 'white',
                     boxShadow: '0 4px 15px rgba(79, 172, 254, 0.4)'
                   }}>
-                    4
+                    <span style={{ fontSize: '28px' }}>💎</span>
                   </div>
                   <h3 style={{
                     fontSize: '16px',
@@ -2104,82 +2104,139 @@ export const HomePage: React.FC = () => {
                   </h3>
                 </div>
 
+                <p style={{
+                  fontSize: '13px',
+                  color: 'var(--text-secondary)',
+                  textAlign: 'center',
+                  lineHeight: '1.6',
+                  margin: '0 0 16px 0'
+                }}>
+                  {isEnglish 
+                    ? 'Your CV is perfectly optimized with matched keywords, enhanced content, ATS compliance, and professional formatting'
+                    : 'Votre CV est parfaitement optimisé avec des mots-clés adaptés, un contenu enrichi, une conformité ATS et une mise en page professionnelle'}
+                </p>
+
                 <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                  gap: '12px'
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  justifyContent: 'center'
                 }}>
                   <div style={{
                     background: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    textAlign: 'center'
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    fontSize: '11px',
+                    color: 'var(--text-secondary)',
+                    fontWeight: '500'
                   }}>
-                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>🎯</div>
-                    <p style={{
-                      fontSize: '11px',
-                      color: 'var(--text-secondary)',
-                      fontWeight: '500',
-                      margin: 0
-                    }}>
-                      {isEnglish ? 'Perfectly matched keywords' : 'Mots-clés parfaitement adaptés'}
-                    </p>
+                    ✅ {isEnglish ? 'Keywords matched' : 'Mots-clés adaptés'}
                   </div>
-
                   <div style={{
                     background: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    textAlign: 'center'
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    fontSize: '11px',
+                    color: 'var(--text-secondary)',
+                    fontWeight: '500'
                   }}>
-                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>✨</div>
-                    <p style={{
-                      fontSize: '11px',
-                      color: 'var(--text-secondary)',
-                      fontWeight: '500',
-                      margin: 0
-                    }}>
-                      {isEnglish ? 'Enhanced content' : 'Contenu enrichi'}
-                    </p>
+                    ✅ {isEnglish ? 'Content enhanced' : 'Contenu enrichi'}
                   </div>
-
                   <div style={{
                     background: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    textAlign: 'center'
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    fontSize: '11px',
+                    color: 'var(--text-secondary)',
+                    fontWeight: '500'
                   }}>
-                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>📊</div>
-                    <p style={{
-                      fontSize: '11px',
-                      color: 'var(--text-secondary)',
-                      fontWeight: '500',
-                      margin: 0
-                    }}>
-                      {isEnglish ? 'ATS-optimized' : 'Optimisé pour ATS'}
-                    </p>
+                    ✅ {isEnglish ? 'ATS optimized' : 'Optimisé ATS'}
                   </div>
-
                   <div style={{
                     background: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    textAlign: 'center'
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    fontSize: '11px',
+                    color: 'var(--text-secondary)',
+                    fontWeight: '500'
                   }}>
-                    <div style={{ fontSize: '20px', marginBottom: '6px' }}>🎨</div>
-                    <p style={{
-                      fontSize: '11px',
-                      color: 'var(--text-secondary)',
-                      fontWeight: '500',
-                      margin: 0
-                    }}>
-                      {isEnglish ? 'Professional layout' : 'Mise en page professionnelle'}
-                    </p>
+                    ✅ {isEnglish ? 'Professional' : 'Professionnel'}
                   </div>
                 </div>
               </div>
             </div>
           </div>
+          )}
+
+          {/* Download Improvements Section */}
+          {showDownloadImprovements && generatedCV && (
+            <div className="slide-up" style={{ marginTop: '16px' }}>
+              <div className="glass-card" style={{
+                padding: '16px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}>
+                <div style={{ marginBottom: '12px' }}>
+                  <p style={{
+                    fontSize: '12px',
+                    color: 'var(--text-secondary)',
+                    marginBottom: '8px',
+                    fontStyle: 'italic'
+                  }}>
+                    {t.main.improvementsExplanation}
+                  </p>
+                  <h4 style={{ 
+                    fontSize: '14px', 
+                    fontWeight: '600', 
+                    color: 'var(--text-primary)', 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <div style={{
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+                    }} />
+                    {t.main.improvements.toUpperCase()} :
+                  </h4>
+                </div>
+                <ul style={{ fontSize: '12px', color: 'var(--text-secondary)', paddingLeft: '16px', margin: '0 0 12px 0' }}>
+                  {[
+                    `✅ ${t.main.improvementItems.structure}`,
+                    `✅ ${t.main.improvementItems.keywords}`,
+                    `✅ ${t.main.improvementItems.content}`,
+                    `✅ ${t.main.improvementItems.metrics}`,
+                    `✅ ${t.main.improvementItems.style}`,
+                    `✅ ${t.main.improvementItems.preserved}`,
+                    `✅ ${t.main.improvementItems.training}`
+                  ].map((improvement, index) => (
+                    <li key={index} style={{ marginBottom: '6px', lineHeight: '1.4' }}>{improvement}</li>
+                  ))}
+                </ul>
+                
+                <div style={{
+                  background: 'rgba(249, 115, 22, 0.1)',
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(249, 115, 22, 0.2)',
+                  marginTop: '8px'
+                }}>
+                  <p style={{
+                    fontSize: '11px',
+                    margin: 0,
+                    color: '#ea580c',
+                    fontWeight: '500',
+                    textAlign: 'center'
+                  }}>
+                    {t.main.advice}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       
