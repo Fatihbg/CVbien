@@ -23,6 +23,7 @@ export const HomePage: React.FC = () => {
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [downloadMessage, setDownloadMessage] = useState('');
   
   // Hook de traduction
   const { t, language, isEnglish } = useTranslation();
@@ -322,25 +323,46 @@ export const HomePage: React.FC = () => {
     console.log('🚀 handleDownloadPDF appelé');
     setIsDownloading(true);
     setDownloadProgress(0);
+    setDownloadMessage('Analyse de votre CV...');
     
     try {
+      // Messages de progression comme pour la génération
+      const messages = [
+        { progress: 10, message: 'Analyse de votre CV...' },
+        { progress: 25, message: 'Formatage du document...' },
+        { progress: 45, message: 'Génération du contenu...' },
+        { progress: 65, message: 'Optimisation du PDF...' },
+        { progress: 85, message: 'Finalisation...' }
+      ];
+      
+      let messageIndex = 0;
+      
       // Simulation de progression qui monte à 90%
       const progressInterval = setInterval(() => {
         setDownloadProgress(prev => {
-          console.log('📊 Progression:', prev + 15);
-          if (prev >= 90) {
+          const nextProgress = prev + 10;
+          
+          // Mettre à jour le message à chaque étape
+          if (messageIndex < messages.length && nextProgress >= messages[messageIndex].progress) {
+            setDownloadMessage(messages[messageIndex].message);
+            messageIndex++;
+          }
+          
+          console.log('📊 Progression:', nextProgress);
+          if (nextProgress >= 90) {
             clearInterval(progressInterval);
             console.log('📊 Progression arrêtée à 90%');
             return 90;
           }
-          return prev + 15; // Plus rapide pour arriver à 90%
+          return nextProgress;
         });
-      }, 150);
+      }, 200);
       
       // Attendre un peu à 90% pour simuler la génération PDF
       setTimeout(async () => {
         try {
           console.log('🎯 Génération PDF démarrée');
+          setDownloadMessage('Génération du PDF final...');
           
           // Générer le nom de fichier basé sur le fichier original
           const originalName = uploadedFile.name;
@@ -1759,7 +1781,7 @@ export const HomePage: React.FC = () => {
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent'
                       }}>
-                        Téléchargement du PDF...
+                        {downloadMessage || progressMessage || 'Génération du PDF...'}
                       </span>
                       <span style={{ 
                         fontSize: '14px', 
