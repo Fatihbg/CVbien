@@ -1684,21 +1684,16 @@ export const HomePage: React.FC = () => {
                       setShowAuthModal(true);
                       return;
                     }
-                    if (!generatedCV) {
-                      // If CV not generated yet, trigger generation first
-                      handleGenerate();
-                      return;
-                    }
                     handleDownloadPDF();
                   }}
-                  disabled={isDownloading || isGenerating}
+                  disabled={isDownloading || !generatedCV}
                   style={{
                     padding: '16px 32px',
                     fontSize: '16px',
                     fontWeight: '700',
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    opacity: (isDownloading || isGenerating || (!generatedCV && (!uploadedFile || !jobDescription))) ? 0.5 : 1,
-                    cursor: (isDownloading || isGenerating || (!generatedCV && (!uploadedFile || !jobDescription))) ? 'not-allowed' : 'pointer',
+                    opacity: (isDownloading || !generatedCV) ? 0.5 : 1,
+                    cursor: (isDownloading || !generatedCV) ? 'not-allowed' : 'pointer',
                     borderRadius: '16px',
                     boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
                     position: 'relative',
@@ -1717,18 +1712,6 @@ export const HomePage: React.FC = () => {
                         animation: 'spin 1s linear infinite'
                       }} />
                       {t.common.loading.toUpperCase()}
-                    </div>
-                  ) : !generatedCV ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        border: '2px solid rgba(255, 255, 255, 0.3)',
-                        borderTop: '2px solid white',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                      }} />
-                      {isGenerating ? t.common.loading.toUpperCase() : t.main.generateButton.toUpperCase()}
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
@@ -1753,7 +1736,7 @@ export const HomePage: React.FC = () => {
                 </button>
 
                 {/* Progress Bar */}
-                {(isDownloading || isGenerating) && (
+                {isDownloading && (
                   <div className="slide-up" style={{ 
                     marginTop: '16px',
                     maxWidth: '400px',
@@ -1773,14 +1756,14 @@ export const HomePage: React.FC = () => {
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent'
                       }}>
-                        {isDownloading ? 'Téléchargement du PDF...' : progressMessage}
+                        Téléchargement du PDF...
                       </span>
                       <span style={{ 
                         fontSize: '14px', 
                         color: 'var(--text-secondary)',
                         fontWeight: '600'
                       }}>
-                        {isDownloading ? `${downloadProgress}%` : `${progress}%`}
+                        {downloadProgress}%
                       </span>
                     </div>
                     <div className="progress-bar" style={{
@@ -1793,7 +1776,7 @@ export const HomePage: React.FC = () => {
                       border: '1px solid rgba(255, 255, 255, 0.2)'
                     }}>
                       <div className="progress-fill" style={{
-                        width: `${isDownloading ? downloadProgress : progress}%`,
+                        width: `${downloadProgress}%`,
                         height: '100%',
                         background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                         borderRadius: '16px',
