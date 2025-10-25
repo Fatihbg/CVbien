@@ -316,7 +316,8 @@ export const HomePage: React.FC = () => {
   };
 
   const handleDownloadPDF = async () => {
-    if (!generatedCV || !uploadedFile) return;
+    // Le bouton peut fonctionner avec le CV brut ou le CV généré
+    if (!uploadedFile || !cvText) return;
     
     console.log('🚀 handleDownloadPDF appelé');
     setIsDownloading(true);
@@ -353,8 +354,11 @@ export const HomePage: React.FC = () => {
           // Générer le nom de fichier avec le compteur - TOUJOURS en PDF
           const filename = `${nameWithoutExt}_${currentCounter}.pdf`;
           
+          // Utiliser le CV généré s'il existe, sinon le CV brut
+          const cvContent = generatedCV || cvText;
+          
           console.log(`Téléchargement du CV: ${filename}`);
-          await PDFGenerator.generateCVPDF(generatedCV, jobDescription, filename);
+          await PDFGenerator.generateCVPDF(cvContent, jobDescription, filename);
           console.log('✅ PDF généré avec succès');
           
           // Finaliser la progression
@@ -1685,14 +1689,14 @@ export const HomePage: React.FC = () => {
                   }
                   handleDownloadPDF();
                 }}
-                disabled={isDownloading || !uploadedFile || !jobDescription}
+                disabled={isDownloading || !uploadedFile || !cvText}
                 style={{
                   padding: '16px 32px',
                   fontSize: '16px',
                   fontWeight: '700',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  opacity: (isDownloading || !uploadedFile || !jobDescription) ? 0.5 : 1,
-                  cursor: (isDownloading || !uploadedFile || !jobDescription) ? 'not-allowed' : 'pointer',
+                  opacity: (isDownloading || !uploadedFile || !cvText) ? 0.5 : 1,
+                  cursor: (isDownloading || !uploadedFile || !cvText) ? 'not-allowed' : 'pointer',
                   borderRadius: '16px',
                   boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
                   position: 'relative',
