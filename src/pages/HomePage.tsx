@@ -1262,7 +1262,7 @@ export const HomePage: React.FC = () => {
                     fontStyle: 'italic',
                     opacity: 0.8
                   }}>
-                    💡 {isEnglish ? 'The generated resume will be in the language of this description' : 'Le CV généré sera dans la langue de cette description'}
+                    💡 {isEnglish ? 'The generated resume will be in the language of this description (English, French)' : 'Le CV généré sera dans la langue de cette description (anglais, français)'}
                   </p>
                 </div>
                 
@@ -1332,8 +1332,8 @@ export const HomePage: React.FC = () => {
               </div>
         </div>
 
-        {/* Generate Button Section */}
-        <div className="fade-in" style={{ textAlign: 'center', marginBottom: '20px' }}>
+        {/* Generate Button Section - Temporarily hidden */}
+        <div className="fade-in" style={{ display: 'none', textAlign: 'center', marginBottom: '20px' }}>
           <div className="glass-card" style={{
             background: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(30px)',
@@ -1507,8 +1507,8 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Frame - CV Preview */}
-        <div className="card glass-card slide-up zoom-hover" style={{
+        {/* Bottom Frame - CV Preview - Temporarily hidden */}
+        <div className="card glass-card slide-up zoom-hover" style={{ display: 'none',
           background: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(30px)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
