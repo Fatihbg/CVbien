@@ -401,6 +401,7 @@ export const HomePage: React.FC = () => {
             setIsDownloading(false);
             setDownloadProgress(0);
             setShowDownloadImprovements(true);
+            console.log('✅ showDownloadImprovements set to true');
           }, 800);
           
         } catch (error) {
@@ -1722,14 +1723,14 @@ export const HomePage: React.FC = () => {
                   }
                   handleDownloadPDF();
                 }}
-                disabled={isDownloading || !uploadedFile || !cvText}
+                disabled={isDownloading || !uploadedFile || !cvText || !jobDescription}
                 style={{
                   padding: '16px 32px',
                   fontSize: '16px',
                   fontWeight: '700',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  opacity: (isDownloading || !uploadedFile || !cvText) ? 0.5 : 1,
-                  cursor: (isDownloading || !uploadedFile || !cvText) ? 'not-allowed' : 'pointer',
+                  opacity: (isDownloading || !uploadedFile || !cvText || !jobDescription) ? 0.5 : 1,
+                  cursor: (isDownloading || !uploadedFile || !cvText || !jobDescription) ? 'not-allowed' : 'pointer',
                   borderRadius: '16px',
                   boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
                   position: 'relative',
@@ -1751,7 +1752,7 @@ export const HomePage: React.FC = () => {
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                    <span>{t.main.downloadPDF.toUpperCase()}</span>
+                    <span>{isEnglish ? 'GET YOUR CV' : 'OBTENEZ VOTRE CV'}</span>
                     <div style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
@@ -1945,7 +1946,7 @@ export const HomePage: React.FC = () => {
           )}
 
           {/* Download Improvements Section - Above How It Works */}
-          {showDownloadImprovements && generatedCV && (
+          {showDownloadImprovements && (
             <div className="slide-up" style={{ marginTop: '20px' }}>
               <div className="glass-card" style={{
                 padding: '16px',
@@ -2190,8 +2191,8 @@ export const HomePage: React.FC = () => {
                   margin: '0'
                 }}>
                   {isEnglish 
-                    ? 'In a few seconds, get your perfectly optimized CV with matched keywords ✅, enhanced content ✅, ATS compliance ✅ and professional formatting ✅.'
-                    : 'En quelques secondes, obtenez votre CV parfaitement optimisé avec des mots-clés adaptés ✅, un contenu enrichi ✅, une conformité ATS ✅ et une mise en page professionnelle ✅.'}
+                    ? 'In a few seconds, get your perfectly optimized CV with matched keywords, enhanced content, ATS compliance and professional formatting.'
+                    : 'En quelques secondes, obtenez votre CV parfaitement optimisé avec des mots-clés adaptés, un contenu enrichi, une conformité ATS et une mise en page professionnelle.'}
                 </p>
               </div>
             </div>
