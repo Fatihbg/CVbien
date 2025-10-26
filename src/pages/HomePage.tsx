@@ -1946,7 +1946,7 @@ export const HomePage: React.FC = () => {
           )}
 
           {/* Download Improvements Section - Above How It Works */}
-          {showDownloadImprovements && (
+          {showDownloadImprovements && uploadedFile && jobDescription && (
             <div className="slide-up" style={{ marginTop: '20px' }}>
               <div className="glass-card" style={{
                 padding: '16px',
