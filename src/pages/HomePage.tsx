@@ -325,6 +325,7 @@ export const HomePage: React.FC = () => {
     setIsDownloading(true);
     setDownloadProgress(0);
     setDownloadMessage('Analyse de votre CV...');
+    setShowDownloadImprovements(false); // Reset to show improvements after download
     
     try {
       // Messages de progression comme pour la génération
@@ -2038,7 +2039,7 @@ export const HomePage: React.FC = () => {
 
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(3, 1fr)',
                 gap: '20px',
                 marginBottom: '24px'
               }}>
@@ -2165,18 +2166,9 @@ export const HomePage: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     margin: '0 auto 12px',
-                    position: 'relative',
                     boxShadow: '0 4px 15px rgba(79, 172, 254, 0.4)'
                   }}>
                     <span style={{ fontSize: '28px' }}>💎</span>
-                    <span style={{
-                      position: 'absolute',
-                      fontSize: '10px',
-                      fontWeight: '700',
-                      color: 'white',
-                      bottom: '4px',
-                      right: '4px'
-                    }}>4</span>
                   </div>
                   <h3 style={{
                     fontSize: '16px',
@@ -2195,24 +2187,11 @@ export const HomePage: React.FC = () => {
                   color: 'var(--text-secondary)',
                   textAlign: 'center',
                   lineHeight: '1.6',
-                  margin: '0 0 12px 0'
+                  margin: '0'
                 }}>
                   {isEnglish 
-                    ? 'Your CV is perfectly optimized with ✅ matched keywords, ✅ enhanced content, ✅ ATS compliance and ✅ professional formatting'
-                    : 'Votre CV est parfaitement optimisé avec ✅ des mots-clés adaptés, ✅ un contenu enrichi, ✅ une conformité ATS et ✅ une mise en page professionnelle'}
-                </p>
-                <p style={{
-                  fontSize: '12px',
-                  color: 'var(--text-secondary)',
-                  textAlign: 'center',
-                  lineHeight: '1.6',
-                  margin: '0',
-                  fontStyle: 'italic',
-                  opacity: 0.9
-                }}>
-                  {isEnglish 
-                    ? 'Our goal is speed and simplicity, so you can generate the perfect CV for your dream job without wasting time and with maximum efficiency.'
-                    : 'Notre objectif est la vitesse et la simplicité, pour que vous puissiez générer le CV parfait pour le job de vos rêves sans perdre de temps et avec une efficacité maximale.'}
+                    ? 'In a few seconds, get your perfectly optimized CV with matched keywords ✅, enhanced content ✅, ATS compliance ✅ and professional formatting ✅.'
+                    : 'En quelques secondes, obtenez votre CV parfaitement optimisé avec des mots-clés adaptés ✅, un contenu enrichi ✅, une conformité ATS ✅ et une mise en page professionnelle ✅.'}
                 </p>
               </div>
             </div>
