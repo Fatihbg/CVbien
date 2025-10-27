@@ -2,6 +2,8 @@
 
 > **Générateur de CV professionnel optimisé ATS avec intelligence artificielle**
 
+<!-- Last update: Trigger deployment -->
+
 [![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=flat&logo=vercel)](https://vercel.com)
 [![Railway](https://img.shields.io/badge/Backend-Railway-0B0D0E?style=flat&logo=railway)](https://railway.app)
 [![OpenAI](https://img.shields.io/badge/Powered%20by-OpenAI-412991?style=flat&logo=openai)](https://openai.com)
