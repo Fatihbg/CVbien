@@ -1347,6 +1347,67 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
 
+        {/* Download Button - Always visible */}
+        <div className="slide-up fade-in" style={{ textAlign: 'center', marginTop: '20px', marginBottom: '30px' }}>
+          <div className="glass-card" style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(30px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '20px',
+            padding: '20px',
+            margin: '0 auto',
+            maxWidth: 'min(500px, calc(100vw - 24px))',
+            position: 'relative',
+            overflow: 'hidden',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}>
+            <button
+              className="btn-primary zoom-hover"
+              onClick={() => {
+                if (!isAuthenticated) {
+                  setShowAuthModal(true);
+                  return;
+                }
+                handleDownloadPDF();
+              }}
+              disabled={!uploadedFile || !cvText || !jobDescription}
+              style={{
+                padding: '16px 32px',
+                fontSize: '16px',
+                fontWeight: '700',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                opacity: (!uploadedFile || !cvText || !jobDescription) ? 0.5 : 1,
+                cursor: (!uploadedFile || !cvText || !jobDescription) ? 'not-allowed' : 'pointer',
+                borderRadius: '16px',
+                boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
+                position: 'relative',
+                overflow: 'hidden',
+                width: '100%'
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                <span>OBTENEZ VOTRE CV</span>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px',
+                  fontSize: '11px', 
+                  fontWeight: '500',
+                  color: 'rgba(255, 255, 255, 0.85)',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  padding: '3px 8px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                }}>
+                  <span style={{ fontSize: '10px' }}>💎</span>
+                  <span>{t.main.creditInfo}</span>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
         {/* Bottom Frame - CV Preview */}
         <div className="card glass-card slide-up zoom-hover" style={{
           background: 'rgba(255, 255, 255, 0.1)',
@@ -1549,31 +1610,6 @@ export const HomePage: React.FC = () => {
                   </div>
                 )}
           </div>
-
-          {/* Download Button - Always visible */}
-          <div className="slide-up" style={{ marginTop: '20px' }}>
-              <button
-                className="btn-primary zoom-hover"
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    setShowAuthModal(true);
-                    return;
-                  }
-                  handleDownloadPDF();
-                }}
-                style={{
-                  width: '100%',
-                  padding: '12px 24px',
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  borderRadius: '16px',
-                  boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)'
-                }}
-              >
-                📥 {t.main.downloadPDF.toUpperCase()}
-              </button>
-            </div>
 
           {/* Improvements List */}
           {improvements.length > 0 && (
