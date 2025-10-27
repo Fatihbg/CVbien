@@ -8,8 +8,6 @@ import { UserProfile } from '../components/User/UserProfile';
 import { PaymentModal } from '../components/Payment/PaymentModal';
 import { useTranslation } from '../hooks/useTranslation';
 import { LanguageSelector } from '../components/LanguageSelector';
-import { config } from '../config/environment';
-import { useRealtimeCredits } from '../hooks/useRealtimeCredits';
 
 export const HomePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -21,17 +19,9 @@ export const HomePage: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileRecommendation, setShowMobileRecommendation] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
-  const [downloadMessage, setDownloadMessage] = useState('');
-  const [showDownloadImprovements, setShowDownloadImprovements] = useState(false);
   
   // Hook de traduction
   const { t, language, isEnglish } = useTranslation();
-  
-  // Hook pour les crédits en temps réel
-  const { user: currentUser } = useAuthStore();
-  const { credits: realtimeCredits, isLoading: creditsLoading } = useRealtimeCredits(currentUser?.id || null);
   
   // Hook pour gérer le redimensionnement
   useEffect(() => {
@@ -43,20 +33,6 @@ export const HomePage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Mettre à jour les crédits dans le store avec les données temps réel
-  useEffect(() => {
-    if (realtimeCredits !== undefined && currentUser) {
-      const authStore = useAuthStore.getState();
-      if (authStore.user && authStore.user.credits !== realtimeCredits) {
-        console.log('🔄 Mise à jour crédits dans le store:', realtimeCredits);
-        authStore.updateCredits(realtimeCredits);
-      }
-    }
-  }, [realtimeCredits, currentUser]);
-
-  // Utiliser les crédits temps réel au lieu de ceux du store
-  const displayCredits = realtimeCredits !== undefined ? realtimeCredits : (currentUser?.credits || 0);
-
   // Hook pour gérer le retour de paiement Stripe
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -64,54 +40,17 @@ export const HomePage: React.FC = () => {
     const credits = urlParams.get('credits');
 
     if (paymentStatus === 'success' && credits) {
-      // Paiement réussi - confirmer et ajouter les crédits
-      const confirmPayment = async () => {
-        try {
-          const sessionId = urlParams.get('session_id');
-          const userIdFromUrl = urlParams.get('user_id');
-          
-          // Obtenir l'UID Firebase de l'utilisateur connecté
-          const { firebaseAuthService } = await import('../services/firebaseAuth');
-          const firebaseUser = await firebaseAuthService.getCurrentUser();
-          const userId = firebaseUser?.uid || userIdFromUrl || 'test_user';
-          
-          console.log(`🔧 DEBUG: Confirmation paiement - Session: ${sessionId}, User: ${userId} (Firebase UID: ${firebaseUser?.uid}), Credits: ${credits}`);
-          
-          // Appeler l'endpoint de confirmation avec les métadonnées Stripe
-          const response = await fetch(`${config.API_BASE_URL}/api/payments/confirm-payment-stripe`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              session_id: sessionId
-            })
-          });
-          
-          if (response.ok) {
-            const result = await response.json();
-            console.log('✅ Paiement confirmé:', result);
-            
-            const successMessage = isEnglish 
-              ? `🎉 Payment successful!\n✅ ${credits} credits added to your account!\nTotal: ${result.credits} credits`
-              : `🎉 Paiement réussi !\n✅ ${credits} crédits ajoutés à votre compte !\nTotal: ${result.credits} crédits`;
-            alert(successMessage);
-            
-            // Recharger la page pour mettre à jour les crédits
-            window.location.reload();
-          } else {
-            throw new Error('Erreur confirmation paiement');
-          }
-        } catch (error) {
-          console.error('❌ Erreur confirmation paiement:', error);
-          alert('Paiement réussi mais erreur lors de l\'ajout des crédits. Contactez le support.');
-        }
-      };
-      
-      confirmPayment();
+      // Paiement réussi
+      const successMessage = isEnglish 
+        ? `🎉 Payment successful!\n✅ ${credits} credits added to your account!`
+        : `🎉 Paiement réussi !\n✅ ${credits} crédits ajoutés à votre compte !`;
+      alert(successMessage);
       
       // Nettoyer l'URL
       window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Recharger les crédits utilisateur (si connecté)
+      // updateCredits(parseInt(credits));
     } else if (paymentStatus === 'cancelled') {
       // Paiement annulé
       const cancelMessage = isEnglish ? '❌ Payment cancelled' : '❌ Paiement annulé';
@@ -264,7 +203,7 @@ export const HomePage: React.FC = () => {
     // TODO: Réactiver l'authentification plus tard
     
     // Vérifier les crédits seulement si l'utilisateur est authentifié
-    if (isAuthenticated && displayCredits < 1) {
+    if (isAuthenticated && user && user.credits < 1) {
       alert('Vous n\'avez plus de crédits. Veuillez en acheter pour continuer.');
       setShowUserProfile(true);
       return;
@@ -307,7 +246,14 @@ export const HomePage: React.FC = () => {
         console.log('Génération du CV optimisé...');
         await generateOptimizedCV();
         
-        // La consommation de crédits est gérée dans cvGenerationStore
+        // Consommer un crédit après génération réussie
+        if (user && isAuthenticated) {
+          try {
+            await consumeCredits(1);
+          } catch (error) {
+            console.warn('Impossible de consommer des crédits, génération gratuite:', error);
+          }
+        }
       } else {
         alert('Veuillez saisir une description de poste');
       }
@@ -318,105 +264,26 @@ export const HomePage: React.FC = () => {
   };
 
   const handleDownloadPDF = async () => {
-    // Le bouton peut fonctionner avec le CV brut ou le CV généré
-    if (!uploadedFile || !cvText) return;
-    
-    console.log('🚀 handleDownloadPDF appelé');
-    setIsDownloading(true);
-    setDownloadProgress(0);
-    setDownloadMessage('Analyse de votre CV...');
-    setShowDownloadImprovements(false); // Reset to show improvements after download
-    
-    try {
-      // Messages de progression comme pour la génération
-      const messages = [
-        { progress: 10, message: 'Analyse de votre CV...' },
-        { progress: 25, message: 'Formatage du document...' },
-        { progress: 45, message: 'Génération du contenu...' },
-        { progress: 65, message: 'Optimisation du PDF...' },
-        { progress: 85, message: 'Finalisation...' }
-      ];
-      
-      let messageIndex = 0;
-      
-      // Simulation de progression qui monte à 90%
-      const progressInterval = setInterval(() => {
-        setDownloadProgress(prev => {
-          const nextProgress = prev + 10;
-          
-          // Mettre à jour le message à chaque étape
-          if (messageIndex < messages.length && nextProgress >= messages[messageIndex].progress) {
-            setDownloadMessage(messages[messageIndex].message);
-            messageIndex++;
-          }
-          
-          console.log('📊 Progression:', nextProgress);
-          if (nextProgress >= 90) {
-            clearInterval(progressInterval);
-            console.log('📊 Progression arrêtée à 90%');
-            return 90;
-          }
-          return nextProgress;
-        });
-      }, 200);
-      
-      // Attendre un peu à 90% pour simuler la génération PDF
-      setTimeout(async () => {
-        try {
-          console.log('🎯 Génération PDF démarrée');
-          setDownloadMessage('Génération du PDF final...');
-          
-          // Générer le nom de fichier basé sur le fichier original
-          const originalName = uploadedFile.name;
-          const nameWithoutExt = originalName.replace(/\.[^/.]+$/, ""); // Enlever l'extension
-          
-          // Utiliser un compteur basé sur le localStorage pour chaque nom de fichier
-          const storageKey = `cv_counter_${nameWithoutExt}`;
-          const currentCounter = parseInt(localStorage.getItem(storageKey) || '0') + 1;
-          localStorage.setItem(storageKey, currentCounter.toString());
-          
-          // Générer le nom de fichier avec le compteur - TOUJOURS en PDF
-          const filename = `${nameWithoutExt}_${currentCounter}.pdf`;
-          
-          // Utiliser le CV généré s'il existe, sinon le CV brut
-          const cvContent = generatedCV || cvText;
-          
-          console.log(`Téléchargement du CV: ${filename}`);
-          await PDFGenerator.generateCVPDF(cvContent, jobDescription, filename);
-          console.log('✅ PDF généré avec succès');
-          
-          // Consommer 1 crédit
-          try {
-            await consumeCredits(1);
-            console.log('✅ Crédit consommé');
-          } catch (error) {
-            console.error('❌ Erreur lors de la consommation du crédit:', error);
-          }
-          
-          // Finaliser la progression
-          setDownloadProgress(100);
-          
-          // Réinitialiser après un délai et afficher les améliorations
-          setTimeout(() => {
-            setIsDownloading(false);
-            setDownloadProgress(0);
-            setShowDownloadImprovements(true);
-            console.log('✅ showDownloadImprovements set to true');
-          }, 800);
-          
-        } catch (error) {
-          console.error('Erreur lors de la génération du PDF:', error);
-          alert('Erreur lors du téléchargement du PDF');
-          setIsDownloading(false);
-          setDownloadProgress(0);
-        }
-      }, 1000); // Attendre 1 seconde à 90%
-      
-    } catch (error) {
-      console.error('Erreur lors du téléchargement:', error);
-      alert('Erreur lors du téléchargement du PDF');
-      setIsDownloading(false);
-      setDownloadProgress(0);
+    if (generatedCV && uploadedFile) {
+      try {
+        // Générer le nom de fichier basé sur le fichier original
+        const originalName = uploadedFile.name;
+        const nameWithoutExt = originalName.replace(/\.[^/.]+$/, ""); // Enlever l'extension
+        
+        // Utiliser un compteur basé sur le localStorage pour chaque nom de fichier
+        const storageKey = `cv_counter_${nameWithoutExt}`;
+        const currentCounter = parseInt(localStorage.getItem(storageKey) || '0') + 1;
+        localStorage.setItem(storageKey, currentCounter.toString());
+        
+        // Générer le nom de fichier avec le compteur - TOUJOURS en PDF
+        const filename = `${nameWithoutExt}_${currentCounter}.pdf`;
+        
+        console.log(`Téléchargement du CV: ${filename}`);
+        await PDFGenerator.generateCVPDF(generatedCV, filename);
+      } catch (error) {
+        console.error('Erreur lors du téléchargement:', error);
+        alert('Erreur lors du téléchargement du PDF');
+      }
     }
   };
 
@@ -516,13 +383,7 @@ export const HomePage: React.FC = () => {
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      position: 'relative', 
-      overflow: 'visible',
-      maxWidth: '100vw',
-      width: '100%'
-    }}>
+    <div style={{ minHeight: '100vh', position: 'relative', overflow: 'visible' }}>
       {/* Particules flottantes */}
       <div className="floating-particles">
         {[...Array(15)].map((_, i) => (
@@ -550,10 +411,7 @@ export const HomePage: React.FC = () => {
         position: 'sticky',
         top: '12px',
         zIndex: 100,
-        overflow: 'visible',
-        maxWidth: 'calc(100vw - 24px)',
-        width: '100%',
-        boxSizing: 'border-box'
+        overflow: 'visible'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* Logo CVbien */}
@@ -656,7 +514,7 @@ export const HomePage: React.FC = () => {
                     background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent'
-                  }}>{displayCredits}</span>
+                  }}>{user.credits}</span>
                 </div>
 
                 {/* Bouton ajouter crédits */}
@@ -825,7 +683,7 @@ export const HomePage: React.FC = () => {
                   background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent'
-                }}>{displayCredits}</span>
+                }}>{user.credits}</span>
               </div>
             )}
 
@@ -1082,23 +940,13 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="main-content" style={{ 
-        padding: '12px', 
-        maxWidth: 'min(1400px, 100vw)', 
-        margin: '0 auto',
-        width: '100%',
-        boxSizing: 'border-box',
-        overflow: 'hidden'
-      }}>
+      <div className="main-content" style={{ padding: '12px', maxWidth: '1400px', margin: '0 auto' }}>
         {/* Top Row - Responsive layout */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: windowWidth <= 768 ? '1fr' : '1fr 1fr',
           gap: '16px',
-          marginBottom: '20px',
-          width: '100%',
-          maxWidth: '100%',
-          boxSizing: 'border-box'
+          marginBottom: '20px'
         }}>
           {/* Left Frame - CV Upload */}
           <div className="card glass-card slide-in-left zoom-hover" style={{
@@ -1108,10 +956,7 @@ export const HomePage: React.FC = () => {
             borderRadius: '20px',
             padding: '20px',
             position: 'relative',
-            overflow: 'hidden',
-            width: '100%',
-            maxWidth: '100%',
-            boxSizing: 'border-box'
+            overflow: 'hidden'
           }}>
                 <div style={{ marginBottom: '16px' }}>
                   <h3 style={{
@@ -1224,7 +1069,7 @@ export const HomePage: React.FC = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf"
+              accept=".pdf,.docx,.txt"
               onChange={handleFileUpload}
               style={{ display: 'none' }}
             />
@@ -1238,10 +1083,7 @@ export const HomePage: React.FC = () => {
                 borderRadius: '20px',
                 padding: '20px',
                 position: 'relative',
-                overflow: 'hidden',
-                width: '100%',
-                maxWidth: '100%',
-                boxSizing: 'border-box'
+                overflow: 'hidden'
               }}>
                 <div style={{ marginBottom: '16px' }}>
                   <h3 style={{
@@ -1262,7 +1104,7 @@ export const HomePage: React.FC = () => {
                     fontStyle: 'italic',
                     opacity: 0.8
                   }}>
-                    💡 {isEnglish ? 'The generated resume will be in the language of this description (English, French)' : 'Le CV généré sera dans la langue de cette description (anglais, français)'}
+                    💡 {isEnglish ? 'The generated resume will be in the language of this description' : 'Le CV généré sera dans la langue de cette description'}
                   </p>
                 </div>
                 
@@ -1332,8 +1174,8 @@ export const HomePage: React.FC = () => {
               </div>
         </div>
 
-        {/* Generate Button Section - Temporarily hidden */}
-        <div className="fade-in" style={{ textAlign: 'center', marginBottom: '20px', display: 'none' }}>
+        {/* Generate Button Section */}
+        <div className="fade-in" style={{ textAlign: 'center', marginBottom: '20px' }}>
           <div className="glass-card" style={{
             background: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(30px)',
@@ -1341,11 +1183,9 @@ export const HomePage: React.FC = () => {
             borderRadius: '20px',
             padding: '20px',
             margin: '0 auto',
-            maxWidth: 'min(500px, calc(100vw - 24px))',
+            maxWidth: '500px',
             position: 'relative',
-            overflow: 'hidden',
-            width: '100%',
-            boxSizing: 'border-box'
+            overflow: 'hidden'
           }}>
             <button
               className="btn-primary zoom-hover"
@@ -1507,8 +1347,8 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Frame - CV Preview - Temporarily hidden */}
-        <div className="card glass-card slide-up zoom-hover" style={{ display: 'none',
+        {/* Bottom Frame - CV Preview */}
+        <div className="card glass-card slide-up zoom-hover" style={{
           background: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(30px)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -1553,8 +1393,7 @@ export const HomePage: React.FC = () => {
 
           {/* ATS Score Display */}
           {atsScore > 0 && (
-            <div className="glass-card slide-up" style={{
-              display: 'flex',
+            <div className="glass-card slide-up" style={{ display: 'none',
               gap: '16px',
               marginBottom: '20px',
               padding: '16px',
@@ -1562,8 +1401,20 @@ export const HomePage: React.FC = () => {
               borderRadius: '16px',
               border: '1px solid rgba(255, 255, 255, 0.2)'
             }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: '500' }}>{t.main.atsScore.toUpperCase()}</div>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: '500' }}>SCORE ATS INITIAL</div>
+                <div style={{
+                  fontSize: '20px',
+                  fontWeight: '800',
+                  background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}>
+                  {cvText && jobDescription ? calculateInitialATSScore(cvText, jobDescription) : 0}%
+                </div>
+              </div>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '6px', fontWeight: '500' }}>SCORE ATS OPTIMISÉ</div>
                 <div style={{
                   fontSize: '20px',
                   fontWeight: '800',
@@ -1582,7 +1433,7 @@ export const HomePage: React.FC = () => {
           )}
 
           {/* CV Content Preview */}
-          <div className="glass-card" style={{ 
+          <div className="glass-card" style={{ display: 'none', 
             border: '1px solid rgba(255, 255, 255, 0.2)',
             borderRadius: '16px',
             padding: '16px',
@@ -1684,36 +1535,24 @@ export const HomePage: React.FC = () => {
                       marginBottom: '16px',
                       filter: 'drop-shadow(0 4px 20px rgba(102, 126, 234, 0.3))'
                     }}>⚡</div>
-                    <h4 style={{ 
-                      fontSize: '18px', 
-                      fontWeight: '600', 
+                    <h4 style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
                       margin: '0 0 8px 0',
                       color: '#000'
                     }}>
-                      {t.main.waitingForGeneration}
+                      En attente de génération
                     </h4>
                     <p style={{ fontSize: '14px', opacity: 0.8, margin: 0, color: '#000' }}>
-                      {t.main.uploadInstructions}
+                      Uploadez votre CV et saisissez la description du poste pour commencer
                     </p>
                   </div>
                 )}
           </div>
 
-          {/* Download Button - Always visible */}
-          <div className="fade-in" style={{ textAlign: 'center', marginTop: '20px' }}>
-            <div className="glass-card" style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(30px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '20px',
-              padding: '20px',
-              margin: '0 auto',
-              maxWidth: 'min(500px, calc(100vw - 24px))',
-              position: 'relative',
-              overflow: 'hidden',
-              width: '100%',
-              boxSizing: 'border-box'
-            }}>
+          {/* Download Button */}
+          {generatedCV && (
+            <div className="slide-up" style={{ marginTop: '20px' }}>
               <button
                 className="btn-primary zoom-hover"
                 onClick={() => {
@@ -1723,157 +1562,20 @@ export const HomePage: React.FC = () => {
                   }
                   handleDownloadPDF();
                 }}
-                disabled={isDownloading || !uploadedFile || !cvText || !jobDescription}
                 style={{
-                  padding: '16px 32px',
+                  width: '100%',
+                  padding: '12px 24px',
                   fontSize: '16px',
                   fontWeight: '700',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  opacity: (isDownloading || !uploadedFile || !cvText || !jobDescription) ? 0.5 : 1,
-                  cursor: (isDownloading || !uploadedFile || !cvText || !jobDescription) ? 'not-allowed' : 'pointer',
                   borderRadius: '16px',
-                  boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  width: '100%'
+                  boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)'
                 }}
               >
-                {isDownloading ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      border: '2px solid rgba(255, 255, 255, 0.3)',
-                      borderTop: '2px solid white',
-                      borderRadius: '50%',
-                      animation: 'spin 1s linear infinite'
-                    }} />
-                    {t.common.loading.toUpperCase()}
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                    <span>{isEnglish ? 'GET YOUR CV' : 'OBTENEZ VOTRE CV'}</span>
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '6px',
-                      fontSize: '11px', 
-                      fontWeight: '500',
-                      color: 'rgba(255, 255, 255, 0.85)',
-                      background: 'rgba(255, 255, 255, 0.15)',
-                      padding: '3px 8px',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(255, 255, 255, 0.2)'
-                    }}>
-                      <span style={{ fontSize: '10px' }}>💎</span>
-                      <span>{t.main.creditInfo}</span>
-                    </div>
-                  </div>
-                )}
+                📥 {t.main.downloadPDF.toUpperCase()}
               </button>
-
-                {/* Progress Bar */}
-                {isDownloading && (
-                  <div className="slide-up" style={{ 
-                    marginTop: '16px',
-                    maxWidth: '400px',
-                    margin: '16px auto 0 auto'
-                  }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '8px'
-                    }}>
-                      <span style={{ 
-                        fontSize: '14px', 
-                        color: 'var(--text-primary)', 
-                        fontWeight: '600',
-                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent'
-                      }}>
-                        {downloadMessage || progressMessage || 'Génération du PDF...'}
-                      </span>
-                      <span style={{ 
-                        fontSize: '14px', 
-                        color: 'var(--text-secondary)',
-                        fontWeight: '600'
-                      }}>
-                        {downloadProgress}%
-                      </span>
-                    </div>
-                    <div className="progress-bar" style={{
-                      width: '100%',
-                      height: '8px',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(20px)',
-                      borderRadius: '16px',
-                      overflow: 'hidden',
-                      border: '1px solid rgba(255, 255, 255, 0.2)'
-                    }}>
-                      <div className="progress-fill" style={{
-                        width: `${downloadProgress}%`,
-                        height: '100%',
-                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                        borderRadius: '16px',
-                        transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                        position: 'relative',
-                        overflow: 'hidden'
-                      }} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Status Indicators */}
-                <div style={{ 
-                  marginTop: '16px', 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  gap: '16px',
-                  flexWrap: 'wrap'
-                }}>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '6px',
-                    padding: '6px 12px',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(255, 255, 255, 0.2)'
-                  }}>
-                    <div style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      background: uploadedFile ? '#4facfe' : '#e5e5ea'
-                    }} />
-                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      CV: {uploadedFile ? '✓' : '✗'}
-                    </span>
-                  </div>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '6px',
-                    padding: '6px 12px',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(255, 255, 255, 0.2)'
-                  }}>
-                    <div style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      background: jobDescription ? '#f093fb' : '#e5e5ea'
-                    }} />
-                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      Job: {jobDescription ? '✓' : '✗'}
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
+          )}
 
           {/* Improvements List */}
           {improvements.length > 0 && (
@@ -1884,42 +1586,25 @@ export const HomePage: React.FC = () => {
                 borderRadius: '12px',
                 border: '1px solid rgba(255, 255, 255, 0.2)'
               }}>
-                <div style={{ marginBottom: '12px' }}>
-                  <p style={{
-                    fontSize: '12px',
-                    color: 'var(--text-secondary)',
-                    marginBottom: '8px',
-                    fontStyle: 'italic'
-                  }}>
-                    {t.main.improvementsExplanation}
-                  </p>
-                  <h4 style={{ 
-                    fontSize: '14px', 
-                    fontWeight: '600', 
-                    color: 'var(--text-primary)', 
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}>
-                    <div style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-                    }} />
-                    {t.main.improvements.toUpperCase()} :
-                  </h4>
-                </div>
+                <h4 style={{ 
+                  fontSize: '14px', 
+                  fontWeight: '600', 
+                  color: 'var(--text-primary)', 
+                  marginBottom: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <div style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+                  }} />
+                  {t.main.improvements.toUpperCase()} :
+                </h4>
                 <ul style={{ fontSize: '12px', color: 'var(--text-secondary)', paddingLeft: '16px', margin: '0 0 12px 0' }}>
-                  {[
-                    `✅ ${t.main.improvementItems.structure}`,
-                    `✅ ${t.main.improvementItems.keywords}`,
-                    `✅ ${t.main.improvementItems.content}`,
-                    `✅ ${t.main.improvementItems.metrics}`,
-                    `✅ ${t.main.improvementItems.style}`,
-                    `✅ ${t.main.improvementItems.preserved}`,
-                    `✅ ${t.main.improvementItems.training}`
-                  ].map((improvement, index) => (
+                  {(improvements || []).map((improvement, index) => (
                     <li key={index} style={{ marginBottom: '6px', lineHeight: '1.4' }}>{improvement}</li>
                   ))}
                 </ul>
@@ -1944,260 +1629,6 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
           )}
-
-          {/* Download Improvements Section - Above How It Works */}
-          {showDownloadImprovements && uploadedFile && jobDescription && (
-            <div className="slide-up" style={{ marginTop: '20px' }}>
-              <div className="glass-card" style={{
-                padding: '16px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
-              }}>
-                <div style={{ marginBottom: '12px' }}>
-                  <p style={{
-                    fontSize: '12px',
-                    color: 'var(--text-secondary)',
-                    marginBottom: '8px',
-                    fontStyle: 'italic'
-                  }}>
-                    {t.main.improvementsExplanation}
-                  </p>
-                  <h4 style={{ 
-                    fontSize: '14px', 
-                    fontWeight: '600', 
-                    color: 'var(--text-primary)', 
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}>
-                    <div style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-                    }} />
-                    {t.main.improvements.toUpperCase()} :
-                  </h4>
-                </div>
-                <ul style={{ fontSize: '12px', color: 'var(--text-secondary)', paddingLeft: '16px', margin: '0 0 12px 0' }}>
-                  {[
-                    `✅ ${t.main.improvementItems.structure}`,
-                    `✅ ${t.main.improvementItems.keywords}`,
-                    `✅ ${t.main.improvementItems.content}`,
-                    `✅ ${t.main.improvementItems.metrics}`,
-                    `✅ ${t.main.improvementItems.style}`,
-                    `✅ ${t.main.improvementItems.preserved}`,
-                    `✅ ${t.main.improvementItems.training}`
-                  ].map((improvement, index) => (
-                    <li key={index} style={{ marginBottom: '6px', lineHeight: '1.4' }}>{improvement}</li>
-                  ))}
-                </ul>
-                
-                <div style={{
-                  background: 'rgba(249, 115, 22, 0.1)',
-                  padding: '10px',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(249, 115, 22, 0.2)',
-                  marginTop: '8px'
-                }}>
-                  <p style={{
-                    fontSize: '11px',
-                    margin: 0,
-                    color: '#ea580c',
-                    fontWeight: '500',
-                    textAlign: 'center'
-                  }}>
-                    {t.main.advice}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* How It Works Section - Always visible */}
-          <div className="fade-in" style={{ marginTop: '30px' }}>
-            <div className="glass-card" style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(30px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              borderRadius: '20px',
-              padding: '24px',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              <h2 style={{
-                fontSize: '20px',
-                fontWeight: '700',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                margin: '0 0 24px 0',
-                textAlign: 'center'
-              }}>
-                {isEnglish ? 'HOW IT WORKS' : 'COMMENT ÇA MARCHE'}
-              </h2>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(3, 1fr)',
-                gap: '20px',
-                marginBottom: '24px'
-              }}>
-                {/* Step 1 */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 12px',
-                    fontSize: '24px',
-                    fontWeight: '700',
-                    color: 'white',
-                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
-                  }}>
-                    1
-                  </div>
-                  <h3 style={{
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: 'var(--text-primary)',
-                    marginBottom: '8px'
-                  }}>
-                    {isEnglish ? 'Upload your CV' : 'Uploadez votre CV'}
-                  </h3>
-                  <p style={{
-                    fontSize: '12px',
-                    color: 'var(--text-secondary)',
-                    lineHeight: '1.5'
-                  }}>
-                    {isEnglish ? 'Upload your current CV in PDF format' : 'Uploadez votre CV actuel au format PDF'}
-                  </p>
-                </div>
-
-                {/* Step 2 */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 12px',
-                    fontSize: '24px',
-                    fontWeight: '700',
-                    color: 'white',
-                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
-                  }}>
-                    2
-                  </div>
-                  <h3 style={{
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: 'var(--text-primary)',
-                    marginBottom: '8px'
-                  }}>
-                    {isEnglish ? 'Paste job offer' : 'Collez l\'offre d\'emploi'}
-                  </h3>
-                  <p style={{
-                    fontSize: '12px',
-                    color: 'var(--text-secondary)',
-                    lineHeight: '1.5'
-                  }}>
-                    {isEnglish ? 'Copy and paste the job description you\'re applying for' : 'Copiez-collez la description de l\'offre d\'emploi'}
-                  </p>
-                </div>
-
-                {/* Step 3 */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '12px auto',
-                    fontSize: '24px',
-                    fontWeight: '700',
-                    color: 'white',
-                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
-                  }}>
-                    3
-                  </div>
-                  <h3 style={{
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: 'var(--text-primary)',
-                    marginBottom: '8px'
-                  }}>
-                    {isEnglish ? 'Generate CV' : 'Générez le CV'}
-                  </h3>
-                  <p style={{
-                    fontSize: '12px',
-                    color: 'var(--text-secondary)',
-                    lineHeight: '1.5'
-                  }}>
-                    {isEnglish ? 'Click the button and our AI will optimize your CV' : 'Cliquez sur le bouton et notre IA optimisera votre CV'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 4 - Results */}
-              <div style={{
-                background: 'rgba(79, 172, 254, 0.1)',
-                borderRadius: '16px',
-                padding: '20px',
-                border: '1px solid rgba(79, 172, 254, 0.2)'
-              }}>
-                <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-                  <div style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 12px',
-                    boxShadow: '0 4px 15px rgba(79, 172, 254, 0.4)'
-                  }}>
-                    <span style={{ fontSize: '28px' }}>💎</span>
-                  </div>
-                  <h3 style={{
-                    fontSize: '16px',
-                    fontWeight: '700',
-                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    marginBottom: '12px'
-                  }}>
-                    {isEnglish ? 'Get your optimized CV' : 'Obtenez votre CV optimisé'}
-                  </h3>
-                </div>
-
-                <p style={{
-                  fontSize: '13px',
-                  color: 'var(--text-secondary)',
-                  textAlign: 'center',
-                  lineHeight: '1.6',
-                  margin: '0'
-                }}>
-                  {isEnglish 
-                    ? 'In a few seconds, get your perfectly optimized CV with matched keywords, enhanced content, ATS compliance and professional formatting.'
-                    : 'En quelques secondes, obtenez votre CV parfaitement optimisé avec des mots-clés adaptés, un contenu enrichi, une conformité ATS et une mise en page professionnelle.'}
-                </p>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
       
@@ -2353,13 +1784,11 @@ export const HomePage: React.FC = () => {
                         alignItems: 'center',
                         gap: '8px'
                       }}>
-                        🤖 <span>{isEnglish ? 'High ATS Score' : 'Score ATS Élevé'}</span>
+                        🤖 <span>Score ATS Élevé</span>
                       </h3>
                       <p style={{ fontSize: '14px', margin: 0 }}>
-                        {isEnglish 
-                          ? 'Optimization for automated recruitment systems (ATS). Strategic keywords, professional formatting, and optimal structure to pass robot filters.'
-                          : 'Optimisation pour les systèmes de recrutement automatisés (ATS). Mots-clés stratégiques, formatage professionnel, et structure optimale pour passer les filtres robots.'
-                        }
+                        Optimisation pour les systèmes de recrutement automatisés (ATS). 
+                        Mots-clés stratégiques, formatage professionnel, et structure optimale pour passer les filtres robots.
                       </p>
                     </div>
 
@@ -2373,13 +1802,11 @@ export const HomePage: React.FC = () => {
                         alignItems: 'center',
                         gap: '8px'
                       }}>
-                        ✨ <span>{isEnglish ? 'Adaptive Intelligence' : 'Intelligence Adaptative'}</span>
+                        ✨ <span>Intelligence Adaptative</span>
                       </h3>
                       <p style={{ fontSize: '14px', margin: 0 }}>
-                        {isEnglish 
-                          ? 'Intelligent addition of requested soft skills, reformulation of technical skills, and strategic connection between your experiences and job requirements.'
-                          : 'Ajout intelligent des soft skills demandés, reformulation des compétences techniques, et connexion stratégique entre vos expériences et les exigences du poste.'
-                        }
+                        Ajout intelligent des soft skills demandés, reformulation des compétences techniques, 
+                        et connexion stratégique entre vos expériences et les exigences du poste.
                       </p>
                     </div>
 
@@ -2397,10 +1824,7 @@ export const HomePage: React.FC = () => {
                         textAlign: 'center',
                         color: '#1a365d'
                       }}>
-                        <strong>💡 {isEnglish ? 'Result:' : 'Résultat :'}</strong> {isEnglish 
-                          ? 'A professional, ATS-optimized resume that maximizes your chances of being hired!'
-                          : 'Un CV professionnel, optimisé ATS, qui maximise vos chances d\'être recruté !'
-                        }
+                        <strong>💡 Résultat :</strong> Un CV professionnel, optimisé ATS, qui maximise vos chances d'être recruté !
                       </p>
                     </div>
 
@@ -2417,10 +1841,8 @@ export const HomePage: React.FC = () => {
                         color: '#166534',
                         fontWeight: '500'
                       }}>
-                        🔒 <strong>{isEnglish ? 'Confidentiality:' : 'Confidentialité :'}</strong> {isEnglish 
-                          ? 'No personal data is kept. Your information is processed in real-time and deleted immediately after generation.'
-                          : 'Aucune donnée personnelle n\'est conservée. Vos informations sont traitées en temps réel et supprimées immédiatement après génération.'
-                        }
+                        🔒 <strong>Confidentialité :</strong> Aucune donnée personnelle n'est conservée. 
+                        Vos informations sont traitées en temps réel et supprimées immédiatement après génération.
                       </p>
                     </div>
                   </div>
