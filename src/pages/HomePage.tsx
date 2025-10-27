@@ -1574,7 +1574,6 @@ export const HomePage: React.FC = () => {
                 📥 {t.main.downloadPDF.toUpperCase()}
               </button>
             </div>
-          )}
 
           {/* Improvements List */}
           {improvements.length > 0 && (
@@ -1627,7 +1626,7 @@ export const HomePage: React.FC = () => {
                 </div>
               </div>
             </div>
-        </div>
+          )}
       </div>
       
           {/* Footer */}
@@ -1936,5 +1935,6 @@ export const HomePage: React.FC = () => {
             </div>
           )}
         </div>
-      );
-    };
+      </div>
+    );
+  };
