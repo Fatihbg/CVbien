@@ -1174,8 +1174,8 @@ export const HomePage: React.FC = () => {
               </div>
         </div>
 
-        {/* Generate Button Section */}
-        <div className="fade-in" style={{ textAlign: 'center', marginBottom: '20px' }}>
+        {/* Generate Button Section - Hidden */}
+        <div className="fade-in" style={{ display: 'none', textAlign: 'center', marginBottom: '20px' }}>
           <div className="glass-card" style={{
             background: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(30px)',
@@ -1550,9 +1550,8 @@ export const HomePage: React.FC = () => {
                 )}
           </div>
 
-          {/* Download Button */}
-          {generatedCV && (
-            <div className="slide-up" style={{ marginTop: '20px' }}>
+          {/* Download Button - Always visible */}
+          <div className="slide-up" style={{ marginTop: '20px' }}>
               <button
                 className="btn-primary zoom-hover"
                 onClick={() => {
@@ -1628,7 +1627,6 @@ export const HomePage: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
         </div>
       </div>
       
