@@ -32,6 +32,9 @@ export interface Translations {
     atsScore: string;
     improvements: string;
     advice: string;
+    waitingForGeneration: string;
+    uploadInstructions: string;
+    downloadProgress: string;
   };
   
   // Auth modal
@@ -150,7 +153,10 @@ export const translations: Record<string, Translations> = {
       previewTitle: "Aperçu de votre CV optimisé",
       atsScore: "Score ATS",
       improvements: "Améliorations apportées",
-      advice: "💡 Conseil : Plus il y a de chiffres (%, €, années), de liens (LinkedIn, portfolio) et de mots-clés de l'offre, plus le score ATS est élevé !"
+      advice: "💡 Conseil : Plus il y a de chiffres (%, €, années), de liens (LinkedIn, portfolio) et de mots-clés de l'offre, plus le score ATS est élevé !",
+      waitingForGeneration: "En attente de génération",
+      uploadInstructions: "Uploadez votre CV et saisissez la description du poste pour commencer",
+      downloadProgress: "Téléchargement..."
     },
     auth: {
       login: "Connexion",
@@ -252,7 +258,10 @@ export const translations: Record<string, Translations> = {
       previewTitle: "Preview of your optimized resume",
       atsScore: "ATS Score",
       improvements: "Improvements made",
-      advice: "💡 Tip: More numbers (%, $, years), links (LinkedIn, portfolio) and job offer keywords lead to a higher ATS score!"
+      advice: "💡 Tip: More numbers (%, $, years), links (LinkedIn, portfolio) and job offer keywords lead to a higher ATS score!",
+      waitingForGeneration: "Waiting for generation",
+      uploadInstructions: "Upload your resume and enter the job description to start",
+      downloadProgress: "Downloading..."
     },
     auth: {
       login: "Login",
