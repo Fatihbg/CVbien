@@ -1224,7 +1224,7 @@ export const HomePage: React.FC = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.docx,.txt"
+              accept=".pdf"
               onChange={handleFileUpload}
               style={{ display: 'none' }}
             />
@@ -1333,7 +1333,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         {/* Generate Button Section - Temporarily hidden */}
-        <div className="fade-in" style={{ display: 'none', textAlign: 'center', marginBottom: '20px' }}>
+        <div className="fade-in" style={{ textAlign: 'center', marginBottom: '20px', display: 'none' }}>
           <div className="glass-card" style={{
             background: 'rgba(255, 255, 255, 0.1)',
             backdropFilter: 'blur(30px)',
@@ -2075,7 +2075,7 @@ export const HomePage: React.FC = () => {
                     color: 'var(--text-secondary)',
                     lineHeight: '1.5'
                   }}>
-                    {isEnglish ? 'Upload your current CV in PDF, DOCX or TXT format' : 'Uploadez votre CV actuel au format PDF, DOCX ou TXT'}
+                    {isEnglish ? 'Upload your current CV in PDF format' : 'Uploadez votre CV actuel au format PDF'}
                   </p>
                 </div>
 
