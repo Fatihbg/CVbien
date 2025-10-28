@@ -264,7 +264,7 @@ export const HomePage: React.FC = () => {
   };
 
   const handleDownloadPDF = async () => {
-    if (generatedCV && uploadedFile) {
+    if (uploadedFile && (generatedCV || cvText)) {
       try {
         // Générer le nom de fichier basé sur le fichier original
         const originalName = uploadedFile.name;
@@ -279,11 +279,15 @@ export const HomePage: React.FC = () => {
         const filename = `${nameWithoutExt}_${currentCounter}.pdf`;
         
         console.log(`Téléchargement du CV: ${filename}`);
-        await PDFGenerator.generateCVPDF(generatedCV, filename);
+        // Utilise le texte généré s'il existe, sinon le texte saisi
+        const content = generatedCV || cvText;
+        await PDFGenerator.generateCVPDF(content, filename);
       } catch (error) {
         console.error('Erreur lors du téléchargement:', error);
         alert('Erreur lors du téléchargement du PDF');
       }
+    } else {
+      alert("Veuillez d'abord téléverser votre CV et coller l'offre d'emploi.");
     }
   };
 
@@ -1405,11 +1409,54 @@ export const HomePage: React.FC = () => {
                 </div>
               </div>
             </button>
+            {/* Status Indicators */}
+            <div style={{ 
+              marginTop: '12px', 
+              display: 'flex', 
+              justifyContent: 'center', 
+              gap: '16px',
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}>
+                <div style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: uploadedFile ? '#4facfe' : '#e5e5ea'
+                }} />
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>CV: {uploadedFile ? '✓' : '✗'}</span>
+              </div>
+              <div style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.2)'
+              }}>
+                <div style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: jobDescription ? '#f093fb' : '#e5e5ea'
+                }} />
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Job: {jobDescription ? '✓' : '✗'}</span>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Bottom Frame - CV Preview */}
-        <div className="card glass-card slide-up zoom-hover" style={{
+        <div className="card glass-card slide-up zoom-hover" style={{ display: 'none',
           background: 'rgba(255, 255, 255, 0.1)',
           backdropFilter: 'blur(30px)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -1970,6 +2017,45 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
           )}
+        </div>
+
+        {/* How It Works - Always visible */}
+        <div className="fade-in" style={{ marginTop: '24px' }}>
+          <div className="glass-card" style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(30px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '20px',
+            padding: '24px',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <h2 style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: '0 0 16px 0',
+              textAlign: 'center'
+            }}>
+              COMMENT ÇA MARCHE
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(3, 1fr)', gap: '16px' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>1</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Téléversez votre CV (PDF)</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>2</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Collez l'offre d'emploi</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>3</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Cliquez sur « Obtenez votre CV »</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
