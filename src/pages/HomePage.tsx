@@ -286,6 +286,16 @@ export const HomePage: React.FC = () => {
         // Utilise le texte généré s'il existe, sinon le texte saisi
         const content = generatedCV || cvText;
         await PDFGenerator.generateCVPDF(content, filename);
+        
+        // Consommer un crédit après téléchargement réussi
+        if (isAuthenticated && user) {
+          try {
+            await consumeCredits(1);
+          } catch (error) {
+            console.warn('Impossible de consommer des crédits:', error);
+          }
+        }
+        
         setIsDownloading(false);
         setDownloadMessage('');
         alert('PDF téléchargé avec succès !');
@@ -1778,23 +1788,65 @@ export const HomePage: React.FC = () => {
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              margin: '0 0 16px 0',
+              margin: '0 0 24px 0',
               textAlign: 'center'
             }}>
               COMMENT ÇA MARCHE
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(3, 1fr)', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(3, 1fr)', gap: '20px', marginBottom: '24px' }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>1</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Téléversez votre CV (PDF)</div>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px',
+                  fontSize: '24px',
+                  fontWeight: '700',
+                  color: 'white',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                }}>1</div>
+                <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>Téléversez votre CV</h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>Téléversez votre CV actuel au format PDF uniquement</p>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>2</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Collez l'offre d'emploi</div>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px',
+                  fontSize: '24px',
+                  fontWeight: '700',
+                  color: 'white',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                }}>2</div>
+                <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>Collez l'offre d'emploi</h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>Copiez-collez la description du poste pour lequel vous postulez</p>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>3</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Cliquez sur « Obtenez votre CV »</div>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px',
+                  fontSize: '24px',
+                  fontWeight: '700',
+                  color: 'white',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                }}>💎</div>
+                <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>Obtenez votre CV optimisé</h3>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>En quelques secondes, obtenez votre CV parfaitement optimisé avec des mots-clés adaptés ✅, un contenu enrichi ✅, une conformité ATS ✅ et une mise en page professionnelle ✅</p>
               </div>
             </div>
           </div>
