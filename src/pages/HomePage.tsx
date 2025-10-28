@@ -19,6 +19,8 @@ export const HomePage: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showMobileRecommendation, setShowMobileRecommendation] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadMessage, setDownloadMessage] = useState('');
   
   // Hook de traduction
   const { t, language, isEnglish } = useTranslation();
@@ -266,6 +268,8 @@ export const HomePage: React.FC = () => {
   const handleDownloadPDF = async () => {
     if (uploadedFile && (generatedCV || cvText)) {
       try {
+        setIsDownloading(true);
+        setDownloadMessage('Génération du PDF...');
         // Générer le nom de fichier basé sur le fichier original
         const originalName = uploadedFile.name;
         const nameWithoutExt = originalName.replace(/\.[^/.]+$/, ""); // Enlever l'extension
@@ -282,9 +286,14 @@ export const HomePage: React.FC = () => {
         // Utilise le texte généré s'il existe, sinon le texte saisi
         const content = generatedCV || cvText;
         await PDFGenerator.generateCVPDF(content, filename);
+        setIsDownloading(false);
+        setDownloadMessage('');
+        alert('PDF téléchargé avec succès !');
       } catch (error) {
         console.error('Erreur lors du téléchargement:', error);
         alert('Erreur lors du téléchargement du PDF');
+        setIsDownloading(false);
+        setDownloadMessage('');
       }
     } else {
       alert("Veuillez d'abord téléverser votre CV et coller l'offre d'emploi.");
@@ -1390,25 +1399,65 @@ export const HomePage: React.FC = () => {
                 width: '100%'
               }}
             >
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                <span>OBTENEZ VOTRE CV</span>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '6px',
-                  fontSize: '11px', 
-                  fontWeight: '500',
-                  color: 'rgba(255, 255, 255, 0.85)',
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  padding: '3px 8px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
+              {isDownloading ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    borderTop: '2px solid white',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} />
+                  {t.common.loading.toUpperCase()}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <span>OBTENEZ VOTRE CV</span>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px',
+                    fontSize: '11px', 
+                    fontWeight: '500',
+                    color: 'rgba(255, 255, 255, 0.85)',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    padding: '3px 8px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}>
+                    <span style={{ fontSize: '10px' }}>💎</span>
+                    <span>{t.main.creditInfo}</span>
+                  </div>
+                </div>
+              )}
+            </button>
+            
+            {isDownloading && (
+              <div className="slide-up" style={{ 
+                marginTop: '16px',
+                maxWidth: '400px',
+                margin: '16px auto 0 auto'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: '8px'
                 }}>
-                  <span style={{ fontSize: '10px' }}>💎</span>
-                  <span>{t.main.creditInfo}</span>
+                  <span style={{ 
+                    fontSize: '14px', 
+                    color: 'var(--text-primary)', 
+                    fontWeight: '600',
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}>
+                    {downloadMessage || 'Génération du PDF...'}
+                  </span>
                 </div>
               </div>
-            </button>
+            )}
             {/* Status Indicators */}
             <div style={{ 
               marginTop: '12px', 
@@ -1711,6 +1760,45 @@ export const HomePage: React.FC = () => {
             </div>
           )}
       </div>
+
+        {/* How It Works - Always visible */}
+        <div className="fade-in" style={{ marginTop: '24px' }}>
+          <div className="glass-card" style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(30px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '20px',
+            padding: '24px',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <h2 style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: '0 0 16px 0',
+              textAlign: 'center'
+            }}>
+              COMMENT ÇA MARCHE
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(3, 1fr)', gap: '16px' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>1</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Téléversez votre CV (PDF)</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>2</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Collez l'offre d'emploi</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>3</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Cliquez sur « Obtenez votre CV »</div>
+              </div>
+            </div>
+          </div>
+        </div>
       
           {/* Footer */}
           <footer className="glass-card fade-in" style={{
@@ -2017,45 +2105,6 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
-
-        {/* How It Works - Always visible */}
-        <div className="fade-in" style={{ marginTop: '24px' }}>
-          <div className="glass-card" style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(30px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderRadius: '20px',
-            padding: '24px',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <h2 style={{
-              fontSize: '20px',
-              fontWeight: '700',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              margin: '0 0 16px 0',
-              textAlign: 'center'
-            }}>
-              COMMENT ÇA MARCHE
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(3, 1fr)', gap: '16px' }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>1</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Téléversez votre CV (PDF)</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>2</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Collez l'offre d'emploi</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', fontWeight: 700 }}>3</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Cliquez sur « Obtenez votre CV »</div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );
