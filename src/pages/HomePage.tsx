@@ -267,60 +267,106 @@ export const HomePage: React.FC = () => {
   };
 
   const handleDownloadPDF = async () => {
-    if (uploadedFile && (generatedCV || cvText)) {
-      try {
-        setIsDownloading(true);
-        setDownloadMessage('Génération du PDF...');
-        // Simulate progress up to 90%
-        const interval = setInterval(() => {
-          setDownloadProgress((prev) => {
-            const next = prev + 5;
-            return next >= 90 ? 90 : next;
-          });
-        }, 300);
-        // Générer le nom de fichier basé sur le fichier original
-        const originalName = uploadedFile.name;
-        const nameWithoutExt = originalName.replace(/\.[^/.]+$/, ""); // Enlever l'extension
-        
-        // Utiliser un compteur basé sur le localStorage pour chaque nom de fichier
-        const storageKey = `cv_counter_${nameWithoutExt}`;
-        const currentCounter = parseInt(localStorage.getItem(storageKey) || '0') + 1;
-        localStorage.setItem(storageKey, currentCounter.toString());
-        
-        // Générer le nom de fichier avec le compteur - TOUJOURS en PDF
-        const filename = `${nameWithoutExt}_${currentCounter}.pdf`;
-        
-        console.log(`Téléchargement du CV: ${filename}`);
-        // Utilise le texte généré s'il existe, sinon le texte saisi
-        const content = generatedCV || cvText;
-        await PDFGenerator.generateCVPDF(content, filename);
-        
-        // Consommer un crédit après téléchargement réussi
-        if (isAuthenticated && user) {
-          try {
-            await consumeCredits(1);
-          } catch (error) {
-            console.warn('Impossible de consommer des crédits:', error);
+    // Le bouton peut fonctionner avec le CV brut ou le CV généré
+    if (!uploadedFile || !cvText) return;
+    
+    console.log('🚀 handleDownloadPDF appelé');
+    setIsDownloading(true);
+    setDownloadProgress(0);
+    setDownloadMessage('Analyse de votre CV...');
+    
+    try {
+      // Messages de progression comme pour la génération
+      const messages = [
+        { progress: 10, message: 'Analyse de votre CV...' },
+        { progress: 25, message: 'Formatage du document...' },
+        { progress: 45, message: 'Génération du contenu...' },
+        { progress: 65, message: 'Optimisation du PDF...' },
+        { progress: 85, message: 'Finalisation...' }
+      ];
+      
+      let messageIndex = 0;
+      
+      // Simulation de progression qui monte à 90%
+      const progressInterval = setInterval(() => {
+        setDownloadProgress(prev => {
+          const nextProgress = prev + 10;
+          
+          // Mettre à jour le message à chaque étape
+          if (messageIndex < messages.length && nextProgress >= messages[messageIndex].progress) {
+            setDownloadMessage(messages[messageIndex].message);
+            messageIndex++;
           }
-        }
-        
-        clearInterval(interval);
-        setDownloadProgress(100);
-        setTimeout(() => {
+          
+          console.log('📊 Progression:', nextProgress);
+          if (nextProgress >= 90) {
+            clearInterval(progressInterval);
+            console.log('📊 Progression arrêtée à 90%');
+            return 90;
+          }
+          return nextProgress;
+        });
+      }, 200);
+      
+      // Attendre un peu à 90% pour simuler la génération PDF
+      setTimeout(async () => {
+        try {
+          console.log('🎯 Génération PDF démarrée');
+          setDownloadMessage('Génération du PDF final...');
+          
+          // Générer le nom de fichier basé sur le fichier original
+          const originalName = uploadedFile.name;
+          const nameWithoutExt = originalName.replace(/\.[^/.]+$/, ""); // Enlever l'extension
+          
+          // Utiliser un compteur basé sur le localStorage pour chaque nom de fichier
+          const storageKey = `cv_counter_${nameWithoutExt}`;
+          const currentCounter = parseInt(localStorage.getItem(storageKey) || '0') + 1;
+          localStorage.setItem(storageKey, currentCounter.toString());
+          
+          // Générer le nom de fichier avec le compteur - TOUJOURS en PDF
+          const filename = `${nameWithoutExt}_${currentCounter}.pdf`;
+          
+          // Utiliser le CV généré s'il existe, sinon le CV brut
+          const cvContent = generatedCV || cvText;
+          
+          console.log(`Téléchargement du CV: ${filename}`);
+          await PDFGenerator.generateCVPDF(cvContent, jobDescription, filename);
+          console.log('✅ PDF généré avec succès');
+          
+          // Consommer 1 crédit
+          if (isAuthenticated && user) {
+            try {
+              await consumeCredits(1);
+              console.log('✅ Crédit consommé');
+            } catch (error) {
+              console.error('❌ Erreur lors de la consommation du crédit:', error);
+            }
+          }
+          
+          // Finaliser la progression
+          setDownloadProgress(100);
+          
+          // Réinitialiser après un délai
+          setTimeout(() => {
+            setIsDownloading(false);
+            setDownloadProgress(0);
+            setDownloadMessage('');
+            console.log('✅ Download completed');
+          }, 800);
+          
+        } catch (error) {
+          console.error('Erreur lors de la génération du PDF:', error);
+          alert('Erreur lors du téléchargement du PDF');
           setIsDownloading(false);
-          setDownloadMessage('');
           setDownloadProgress(0);
-        }, 500);
-        alert('PDF téléchargé avec succès !');
-      } catch (error) {
-        console.error('Erreur lors du téléchargement:', error);
-        alert('Erreur lors du téléchargement du PDF');
-        setIsDownloading(false);
-        setDownloadMessage('');
-        setDownloadProgress(0);
-      }
-    } else {
-      alert("Veuillez d'abord téléverser votre CV et coller l'offre d'emploi.");
+        }
+      }, 1000); // Attendre 1 seconde à 90%
+      
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+      alert('Erreur lors du téléchargement du PDF');
+      setIsDownloading(false);
+      setDownloadProgress(0);
     }
   };
 
