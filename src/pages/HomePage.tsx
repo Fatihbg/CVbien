@@ -271,6 +271,13 @@ export const HomePage: React.FC = () => {
       try {
         setIsDownloading(true);
         setDownloadMessage('Génération du PDF...');
+        // Simulate progress up to 90%
+        const interval = setInterval(() => {
+          setDownloadProgress((prev) => {
+            const next = prev + 5;
+            return next >= 90 ? 90 : next;
+          });
+        }, 300);
         // Générer le nom de fichier basé sur le fichier original
         const originalName = uploadedFile.name;
         const nameWithoutExt = originalName.replace(/\.[^/.]+$/, ""); // Enlever l'extension
@@ -297,14 +304,20 @@ export const HomePage: React.FC = () => {
           }
         }
         
-        setIsDownloading(false);
-        setDownloadMessage('');
+        clearInterval(interval);
+        setDownloadProgress(100);
+        setTimeout(() => {
+          setIsDownloading(false);
+          setDownloadMessage('');
+          setDownloadProgress(0);
+        }, 500);
         alert('PDF téléchargé avec succès !');
       } catch (error) {
         console.error('Erreur lors du téléchargement:', error);
         alert('Erreur lors du téléchargement du PDF');
         setIsDownloading(false);
         setDownloadMessage('');
+        setDownloadProgress(0);
       }
     } else {
       alert("Veuillez d'abord téléverser votre CV et coller l'offre d'emploi.");
@@ -1128,7 +1141,7 @@ export const HomePage: React.FC = () => {
                     fontStyle: 'italic',
                     opacity: 0.8
                   }}>
-                    💡 {isEnglish ? 'The generated resume will be in the language of this description' : 'Le CV généré sera dans la langue de cette description'}
+                    💡 {isEnglish ? 'The generated resume will be in the language of this description (beta: English, French)' : 'Le CV généré sera dans la langue de cette description (bêta : anglais, français)'}
                   </p>
                 </div>
                 
