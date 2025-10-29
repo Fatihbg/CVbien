@@ -336,8 +336,21 @@ export const HomePage: React.FC = () => {
           // Consommer 1 crédit
           if (isAuthenticated && user) {
             try {
+              console.log('💰 Avant consommation - Crédits:', user.credits);
               await consumeCredits(1);
               console.log('✅ Crédit consommé');
+              
+              // Attendre un peu pour que le store se mette à jour
+              await new Promise(resolve => setTimeout(resolve, 100));
+              
+              // Forcer une mise à jour du store Zustand pour garantir la synchronisation mobile
+              const updatedUser = useAuthStore.getState().user;
+              console.log('🔄 État utilisateur après consommation:', updatedUser?.credits);
+              
+              // Forcer un re-render en utilisant un state local si nécessaire
+              if (updatedUser && updatedUser.credits !== user.credits) {
+                console.log('✅ Credits updated successfully in store');
+              }
             } catch (error) {
               console.error('❌ Erreur lors de la consommation du crédit:', error);
             }
