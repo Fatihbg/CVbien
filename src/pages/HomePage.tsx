@@ -21,6 +21,7 @@ export const HomePage: React.FC = () => {
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadMessage, setDownloadMessage] = useState('');
+  const [downloadProgress, setDownloadProgress] = useState(0);
   
   // Hook de traduction
   const { t, language, isEnglish } = useTranslation();
@@ -1423,7 +1424,7 @@ export const HomePage: React.FC = () => {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                  <span>OBTENEZ VOTRE CV</span>
+                  <span>{isEnglish ? 'GET YOUR CV' : 'OBTENEZ VOTRE CV'}</span>
                   <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -1442,32 +1443,59 @@ export const HomePage: React.FC = () => {
                 </div>
               )}
             </button>
-            
-            {isDownloading && (
-              <div className="slide-up" style={{ 
-                marginTop: '16px',
-                maxWidth: '400px',
-                margin: '16px auto 0 auto'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: '8px'
-                }}>
-                  <span style={{ 
-                    fontSize: '14px', 
-                    color: 'var(--text-primary)', 
-                    fontWeight: '600',
-                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
+
+                {/* Progress Bar */}
+                {isDownloading && (
+                  <div className="slide-up" style={{ 
+                    marginTop: '16px',
+                    maxWidth: '400px',
+                    margin: '16px auto 0 auto'
                   }}>
-                    {downloadMessage || 'Génération du PDF...'}
-                  </span>
-                </div>
-              </div>
-            )}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px'
+                    }}>
+                      <span style={{ 
+                        fontSize: '14px', 
+                        color: 'var(--text-primary)', 
+                        fontWeight: '600',
+                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                      }}>
+                        {downloadMessage || progressMessage || 'Génération du PDF...'}
+                      </span>
+                      <span style={{ 
+                        fontSize: '14px', 
+                        color: 'var(--text-secondary)',
+                        fontWeight: '600'
+                      }}>
+                        {downloadProgress || progress}%
+                      </span>
+                    </div>
+                    <div className="progress-bar" style={{
+                      width: '100%',
+                      height: '8px',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(20px)',
+                      borderRadius: '16px',
+                      overflow: 'hidden',
+                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                    }}>
+                      <div className="progress-fill" style={{
+                        width: `${downloadProgress || progress}%`,
+                        height: '100%',
+                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        borderRadius: '16px',
+                        transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }} />
+                    </div>
+                  </div>
+                )}
             {/* Status Indicators */}
             <div style={{ 
               marginTop: '12px', 
@@ -1791,9 +1819,16 @@ export const HomePage: React.FC = () => {
               margin: '0 0 24px 0',
               textAlign: 'center'
             }}>
-              COMMENT ÇA MARCHE
+              {isEnglish ? 'HOW IT WORKS' : 'COMMENT ÇA MARCHE'}
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(3, 1fr)', gap: '20px', marginBottom: '24px' }}>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(3, 1fr)',
+              gap: '20px',
+              marginBottom: '24px'
+            }}>
+              {/* Step 1 */}
               <div style={{ textAlign: 'center' }}>
                 <div style={{
                   width: '60px',
@@ -1808,10 +1843,27 @@ export const HomePage: React.FC = () => {
                   fontWeight: '700',
                   color: 'white',
                   boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
-                }}>1</div>
-                <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>Téléversez votre CV</h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>Téléversez votre CV actuel au format PDF uniquement</p>
+                }}>
+                  1
+                </div>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary)',
+                  marginBottom: '8px'
+                }}>
+                  {isEnglish ? 'Upload your CV' : 'Uploadez votre CV'}
+                </h3>
+                <p style={{
+                  fontSize: '12px',
+                  color: 'var(--text-secondary)',
+                  lineHeight: '1.5'
+                }}>
+                  {isEnglish ? 'Upload your current CV in PDF format' : 'Uploadez votre CV actuel au format PDF'}
+                </p>
               </div>
+
+              {/* Step 2 */}
               <div style={{ textAlign: 'center' }}>
                 <div style={{
                   width: '60px',
@@ -1826,10 +1878,27 @@ export const HomePage: React.FC = () => {
                   fontWeight: '700',
                   color: 'white',
                   boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
-                }}>2</div>
-                <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>Collez l'offre d'emploi</h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>Copiez-collez la description du poste pour lequel vous postulez</p>
+                }}>
+                  2
+                </div>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary)',
+                  marginBottom: '8px'
+                }}>
+                  {isEnglish ? 'Paste job offer' : 'Collez l\'offre d\'emploi'}
+                </h3>
+                <p style={{
+                  fontSize: '12px',
+                  color: 'var(--text-secondary)',
+                  lineHeight: '1.5'
+                }}>
+                  {isEnglish ? 'Copy and paste the job description you\'re applying for' : 'Copiez-collez la description de l\'offre d\'emploi'}
+                </p>
               </div>
+
+              {/* Step 3 */}
               <div style={{ textAlign: 'center' }}>
                 <div style={{
                   width: '60px',
@@ -1839,15 +1908,76 @@ export const HomePage: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  margin: '0 auto 12px',
+                  margin: '12px auto',
                   fontSize: '24px',
                   fontWeight: '700',
                   color: 'white',
                   boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
-                }}>💎</div>
-                <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>Obtenez votre CV optimisé</h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5' }}>En quelques secondes, obtenez votre CV parfaitement optimisé avec des mots-clés adaptés ✅, un contenu enrichi ✅, une conformité ATS ✅ et une mise en page professionnelle ✅</p>
+                }}>
+                  3
+                </div>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: 'var(--text-primary)',
+                  marginBottom: '8px'
+                }}>
+                  {isEnglish ? 'Generate CV' : 'Générez le CV'}
+                </h3>
+                <p style={{
+                  fontSize: '12px',
+                  color: 'var(--text-secondary)',
+                  lineHeight: '1.5'
+                }}>
+                  {isEnglish ? 'Click the button and our AI will optimize your CV' : 'Cliquez sur le bouton et notre IA optimisera votre CV'}
+                </p>
               </div>
+            </div>
+
+            {/* Step 4 - Results */}
+            <div style={{
+              background: 'rgba(79, 172, 254, 0.1)',
+              borderRadius: '16px',
+              padding: '20px',
+              border: '1px solid rgba(79, 172, 254, 0.2)'
+            }}>
+              <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px',
+                  boxShadow: '0 4px 15px rgba(79, 172, 254, 0.4)'
+                }}>
+                  <span style={{ fontSize: '28px' }}>💎</span>
+                </div>
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  marginBottom: '12px'
+                }}>
+                  {isEnglish ? 'Get your optimized CV' : 'Obtenez votre CV optimisé'}
+                </h3>
+              </div>
+
+              <p style={{
+                fontSize: '13px',
+                color: 'var(--text-secondary)',
+                textAlign: 'center',
+                lineHeight: '1.6',
+                margin: '0'
+              }}>
+                {isEnglish 
+                  ? 'In a few seconds, get your perfectly optimized CV with matched keywords, enhanced content, ATS compliance and professional formatting.'
+                  : 'En quelques secondes, obtenez votre CV parfaitement optimisé avec des mots-clés adaptés, un contenu enrichi, une conformité ATS et une mise en page professionnelle.'}
+              </p>
             </div>
           </div>
         </div>
