@@ -1197,7 +1197,7 @@ export const HomePage: React.FC = () => {
                     fontStyle: 'italic',
                     opacity: 0.8
                   }}>
-                    💡 {isEnglish ? 'The generated resume will be in the language of this description (beta: English, French)' : 'Le CV généré sera dans la langue de cette description (bêta : anglais, français)'}
+                    💡 {isEnglish ? 'The generated resume will be in the language of this description (for now: French only, soon: English and others)' : 'Le CV généré sera dans la langue de cette description (pour l\'instant uniquement français, bientôt anglais et autres)'}
                   </p>
                 </div>
                 
