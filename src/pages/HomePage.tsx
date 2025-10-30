@@ -1875,7 +1875,7 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* Download Improvements Section */}
-      {showDownloadImprovements && (
+      {showDownloadImprovements && uploadedFile && jobDescription && (
         <div className="fade-in" style={{ marginTop: '24px' }}>
           <div className="glass-card" style={{
             background: 'rgba(79, 172, 254, 0.1)',
@@ -1898,74 +1898,128 @@ export const HomePage: React.FC = () => {
               {isEnglish ? 'IMPROVEMENTS MADE' : 'AMÉLIORATIONS APPORTÉES'}
             </h2>
             <p style={{
-              fontSize: '14px',
+              fontSize: '13px',
               color: 'var(--text-secondary)',
               textAlign: 'center',
               lineHeight: '1.6',
-              margin: '0 0 20px 0'
+              margin: '0 0 20px 0',
+              fontWeight: '500',
+              fontStyle: 'italic'
             }}>
               {isEnglish
-                ? 'In a few seconds, get your perfectly optimized CV with matched keywords, enriched content, ATS compliance and professional formatting.'
-                : 'En quelques secondes, obtenez votre CV parfaitement optimisé avec des mots-clés adaptés, un contenu enrichi, une conformité ATS et une mise en page professionnelle.'}
+                ? 'The goal of this new CV is not to be the most beautiful/aesthetic possible, but to be OPTIMIZED to the maximum in a professional and clear structure.'
+                : 'L\'objectif de ce nouveau CV n\'est pas d\'être le plus beau/esthétique possible, mais d\'être OPTIMISÉ au maximum dans une structure professionnelle et claire.'}
             </p>
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(2, 1fr)',
-              gap: '12px',
-              marginTop: '16px'
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              marginBottom: '20px'
             }}>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '12px',
+                gap: '10px',
+                padding: '10px 12px',
                 background: 'rgba(255, 255, 255, 0.05)',
                 borderRadius: '8px'
               }}>
-                <span style={{ fontSize: '18px' }}>✅</span>
-                <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
-                  {isEnglish ? 'Matched keywords' : 'Mots-clés adaptés'}
+                <span style={{ fontSize: '16px' }}>💎</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '500' }}>
+                  {isEnglish ? 'CV optimized with a professional structure' : 'CV optimisé avec une structure professionnelle'}
                 </span>
               </div>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '12px',
+                gap: '10px',
+                padding: '10px 12px',
                 background: 'rgba(255, 255, 255, 0.05)',
                 borderRadius: '8px'
               }}>
-                <span style={{ fontSize: '18px' }}>✅</span>
-                <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
-                  {isEnglish ? 'Enriched content' : 'Contenu enrichi'}
+                <span style={{ fontSize: '16px' }}>💎</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '500' }}>
+                  {isEnglish ? 'ATS keywords integrated' : 'Mots-clés ATS intégrés'}
                 </span>
               </div>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '12px',
+                gap: '10px',
+                padding: '10px 12px',
                 background: 'rgba(255, 255, 255, 0.05)',
                 borderRadius: '8px'
               }}>
-                <span style={{ fontSize: '18px' }}>✅</span>
-                <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
-                  {isEnglish ? 'ATS compliance' : 'Conformité ATS'}
+                <span style={{ fontSize: '16px' }}>💎</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '500' }}>
+                  {isEnglish ? 'Content adapted to the target position' : 'Contenu adapté au poste recherché'}
                 </span>
               </div>
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '12px',
+                gap: '10px',
+                padding: '10px 12px',
                 background: 'rgba(255, 255, 255, 0.05)',
                 borderRadius: '8px'
               }}>
-                <span style={{ fontSize: '18px' }}>✅</span>
-                <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
-                  {isEnglish ? 'Professional layout' : 'Mise en page professionnelle'}
+                <span style={{ fontSize: '16px' }}>💎</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '500' }}>
+                  {isEnglish ? 'Professional style applied' : 'Style professionnel appliqué'}
                 </span>
               </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 12px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '8px'
+              }}>
+                <span style={{ fontSize: '16px' }}>💎</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '500' }}>
+                  {isEnglish ? 'Irrelevant information removed' : 'Informations non pertinentes retirées'}
+                </span>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 12px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '8px'
+              }}>
+                <span style={{ fontSize: '16px' }}>💎</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: '500' }}>
+                  {isEnglish ? 'ATS score boosted' : 'Score ATS boosté'}
+                </span>
+              </div>
+            </div>
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(239, 68, 68, 0.15) 100%)',
+              padding: '14px 16px',
+              borderRadius: '12px',
+              border: '1px solid rgba(249, 115, 22, 0.3)',
+              marginTop: '16px'
+            }}>
+              <p style={{
+                fontSize: '12px',
+                margin: 0,
+                color: '#ea580c',
+                fontWeight: '500',
+                textAlign: 'left',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px',
+                lineHeight: '1.6'
+              }}>
+                <span style={{ fontSize: '16px', flexShrink: 0 }}>💡</span>
+                <span>
+                  {isEnglish 
+                    ? 'Tip: The more numbers (%, €, years), links (LinkedIn, portfolio) and keywords from the offer, the higher the ATS score!'
+                    : 'Conseil : Plus il y a de chiffres (%, €, années), de liens (LinkedIn, portfolio) et de mots-clés de l\'offre, plus le score ATS est élevé !'}
+                </span>
+              </p>
             </div>
           </div>
         </div>
