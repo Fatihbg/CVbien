@@ -202,20 +202,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const currentUser = get().user;
       const currentProfile = get().profile;
       
-      // S'assurer que user et profile ne sont pas null avant de les mettre à jour
-      if (currentUser) {
-        set({ 
-          user: { ...currentUser, credits: result.credits },
-          isLoading: false 
-        });
-      }
-      
-      if (currentProfile) {
-        set({ 
-          profile: { ...currentProfile, credits: result.credits },
-          isLoading: false 
-        });
-      }
+      // Mettre à jour user et profile en une seule opération atomique
+      set({ 
+        user: currentUser ? { ...currentUser, credits: result.credits } : null,
+        profile: currentProfile ? { ...currentProfile, credits: result.credits } : null,
+        isLoading: false 
+      });
     } catch (error) {
       set({ 
         error: error instanceof Error ? error.message : 'Erreur consommation crédits',
