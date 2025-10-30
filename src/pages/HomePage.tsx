@@ -22,6 +22,7 @@ export const HomePage: React.FC = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadMessage, setDownloadMessage] = useState('');
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [showDownloadImprovements, setShowDownloadImprovements] = useState(false);
   
   // Hook de traduction
   const { t, language, isEnglish } = useTranslation();
@@ -274,6 +275,7 @@ export const HomePage: React.FC = () => {
     setIsDownloading(true);
     setDownloadProgress(0);
     setDownloadMessage('Analyse de votre CV...');
+    setShowDownloadImprovements(false);
     
     try {
       // Messages de progression comme pour la génération
@@ -364,6 +366,7 @@ export const HomePage: React.FC = () => {
             setIsDownloading(false);
             setDownloadProgress(0);
             setDownloadMessage('');
+            setShowDownloadImprovements(true);
             console.log('✅ Download completed');
           }, 800);
           
@@ -1871,6 +1874,103 @@ export const HomePage: React.FC = () => {
           )}
       </div>
 
+      {/* Download Improvements Section */}
+      {showDownloadImprovements && (
+        <div className="fade-in" style={{ marginTop: '24px' }}>
+          <div className="glass-card" style={{
+            background: 'rgba(79, 172, 254, 0.1)',
+            backdropFilter: 'blur(30px)',
+            border: '1px solid rgba(79, 172, 254, 0.2)',
+            borderRadius: '20px',
+            padding: '24px',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <h2 style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: '0 0 16px 0',
+              textAlign: 'center'
+            }}>
+              {isEnglish ? 'IMPROVEMENTS MADE' : 'AMÉLIORATIONS APPORTÉES'}
+            </h2>
+            <p style={{
+              fontSize: '14px',
+              color: 'var(--text-secondary)',
+              textAlign: 'center',
+              lineHeight: '1.6',
+              margin: '0 0 20px 0'
+            }}>
+              {isEnglish
+                ? 'In a few seconds, get your perfectly optimized CV with matched keywords, enriched content, ATS compliance and professional formatting.'
+                : 'En quelques secondes, obtenez votre CV parfaitement optimisé avec des mots-clés adaptés, un contenu enrichi, une conformité ATS et une mise en page professionnelle.'}
+            </p>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(2, 1fr)',
+              gap: '12px',
+              marginTop: '16px'
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '8px'
+              }}>
+                <span style={{ fontSize: '18px' }}>✅</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
+                  {isEnglish ? 'Matched keywords' : 'Mots-clés adaptés'}
+                </span>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '8px'
+              }}>
+                <span style={{ fontSize: '18px' }}>✅</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
+                  {isEnglish ? 'Enriched content' : 'Contenu enrichi'}
+                </span>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '8px'
+              }}>
+                <span style={{ fontSize: '18px' }}>✅</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
+                  {isEnglish ? 'ATS compliance' : 'Conformité ATS'}
+                </span>
+              </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '8px'
+              }}>
+                <span style={{ fontSize: '18px' }}>✅</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
+                  {isEnglish ? 'Professional layout' : 'Mise en page professionnelle'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
         {/* How It Works - Always visible */}
         <div className="fade-in" style={{ marginTop: '24px' }}>
           <div className="glass-card" style={{
@@ -1891,7 +1991,7 @@ export const HomePage: React.FC = () => {
               margin: '0 0 24px 0',
               textAlign: 'center'
             }}>
-              {isEnglish ? 'HOW IT WORKS' : 'COMMENT ÇA MARCHE'}
+              {isEnglish ? 'HOW IT WORKS?' : 'COMMENT ÇA MARCHE ?'}
             </h2>
 
             <div style={{
