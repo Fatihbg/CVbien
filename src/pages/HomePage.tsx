@@ -2205,21 +2205,20 @@ export const HomePage: React.FC = () => {
 
         {/* Section Avantages */}
         <div className="glass-card fade-in" style={{
-          margin: '12px',
-          padding: '32px 24px',
+          margin: windowWidth <= 768 ? '12px' : '24px 12px',
+          padding: windowWidth <= 768 ? '32px 24px' : '48px 32px',
           background: 'rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(30px)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '20px'
+          borderRadius: '20px',
+          marginTop: '48px'
         }}>
           <h2 style={{
-            fontSize: '24px',
+            fontSize: windowWidth <= 768 ? '20px' : '28px',
             fontWeight: '700',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: 'var(--text-primary)',
             textAlign: 'center',
-            margin: '0 0 32px 0'
+            margin: '0 0 40px 0'
           }}>
             {isEnglish ? 'WHY CHOOSE CVBIEN?' : 'POURQUOI CHOISIR CVBIEN ?'}
           </h2>
@@ -2227,177 +2226,110 @@ export const HomePage: React.FC = () => {
           <div style={{
             display: 'grid',
             gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(3, 1fr)',
-            gap: '24px',
-            marginTop: '24px'
+            gap: windowWidth <= 768 ? '20px' : '32px'
           }}>
             {/* Carte 1 */}
             <div style={{
-              position: 'relative',
-              padding: '28px',
+              padding: windowWidth <= 768 ? '24px' : '32px',
               background: 'rgba(255, 255, 255, 0.08)',
               backdropFilter: 'blur(20px)',
-              borderRadius: '20px',
-              border: '2px solid transparent',
-              backgroundClip: 'padding-box',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
               transition: 'all 0.3s ease',
               cursor: 'default',
-              animation: 'neonGlow 3s ease-in-out infinite'
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)'
             }}>
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: '20px',
-                padding: '2px',
-                background: 'linear-gradient(45deg, #667eea, #764ba2, #667eea)',
-                backgroundSize: '200% 200%',
-                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude',
-                animation: 'neonMove 3s ease infinite'
-              }}></div>
-              <div style={{
-                fontSize: '48px',
-                textAlign: 'center',
-                marginBottom: '16px'
-              }}>
-                📈
-              </div>
               <h3 style={{
-                fontSize: '16px',
+                fontSize: windowWidth <= 768 ? '18px' : '20px',
                 fontWeight: '700',
                 color: 'var(--text-primary)',
-                textAlign: 'center',
                 marginBottom: '12px'
               }}>
                 {isEnglish ? 'Significantly more interviews' : 'Augmentation significative de vos entretiens'}
               </h3>
               <p style={{
-                fontSize: '13px',
+                fontSize: windowWidth <= 768 ? '13px' : '14px',
                 color: 'var(--text-secondary)',
-                textAlign: 'center',
                 lineHeight: '1.6',
                 margin: 0
               }}>
                 {isEnglish 
-                  ? 'ATS-optimized CVs get you noticed by recruiters' 
-                  : 'CV optimisé ATS pour décrocher plus d\'entretiens'}
+                  ? 'ATS-optimized CVs get you noticed by recruiters and increase your chances of getting interviews.' 
+                  : 'CV optimisé ATS pour décrocher plus d\'entretiens et augmenter vos chances de recrutement.'}
               </p>
             </div>
 
-            {/* Carte 2 */}
+            {/* Carte 2 - Featured */}
             <div style={{
-              position: 'relative',
-              padding: '28px',
+              padding: windowWidth <= 768 ? '24px' : '32px',
               background: 'rgba(255, 255, 255, 0.08)',
               backdropFilter: 'blur(20px)',
-              borderRadius: '20px',
+              borderRadius: '16px',
               border: '2px solid transparent',
-              backgroundClip: 'padding-box',
               transition: 'all 0.3s ease',
               cursor: 'default',
-              animation: 'neonGlow 3s ease-in-out infinite'
+              boxShadow: '0 8px 30px rgba(102, 126, 234, 0.25)',
+              position: 'relative'
             }}>
               <div style={{
                 position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: '20px',
+                inset: '-2px',
+                borderRadius: '16px',
                 padding: '2px',
-                background: 'linear-gradient(45deg, #4facfe, #00f2fe, #4facfe)',
-                backgroundSize: '200% 200%',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                 WebkitMaskComposite: 'xor',
                 maskComposite: 'exclude',
-                animation: 'neonMove 3s ease infinite'
+                zIndex: -1
               }}></div>
-              <div style={{
-                fontSize: '48px',
-                textAlign: 'center',
-                marginBottom: '16px'
-              }}>
-                🤖
-              </div>
               <h3 style={{
-                fontSize: '16px',
+                fontSize: windowWidth <= 768 ? '18px' : '20px',
                 fontWeight: '700',
                 color: 'var(--text-primary)',
-                textAlign: 'center',
                 marginBottom: '12px'
               }}>
                 {isEnglish ? 'ATS no longer a concern' : 'Les robots de recrutement ne nous concernent plus'}
               </h3>
               <p style={{
-                fontSize: '13px',
+                fontSize: windowWidth <= 768 ? '13px' : '14px',
                 color: 'var(--text-secondary)',
-                textAlign: 'center',
                 lineHeight: '1.6',
                 margin: 0
               }}>
                 {isEnglish 
-                  ? 'Your CV passes automated screening filters' 
-                  : 'Votre CV passe les filtres de sélection automatisés'}
+                  ? 'Your CV passes automated screening filters and ATS systems with flying colors.' 
+                  : 'Votre CV passe les filtres de sélection automatisés et les systèmes ATS sans problème.'}
               </p>
             </div>
 
             {/* Carte 3 */}
             <div style={{
-              position: 'relative',
-              padding: '28px',
+              padding: windowWidth <= 768 ? '24px' : '32px',
               background: 'rgba(255, 255, 255, 0.08)',
               backdropFilter: 'blur(20px)',
-              borderRadius: '20px',
-              border: '2px solid transparent',
-              backgroundClip: 'padding-box',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
               transition: 'all 0.3s ease',
               cursor: 'default',
-              animation: 'neonGlow 3s ease-in-out infinite'
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)'
             }}>
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                borderRadius: '20px',
-                padding: '2px',
-                background: 'linear-gradient(45deg, #f093fb, #f5576c, #f093fb)',
-                backgroundSize: '200% 200%',
-                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                WebkitMaskComposite: 'xor',
-                maskComposite: 'exclude',
-                animation: 'neonMove 3s ease infinite'
-              }}></div>
-              <div style={{
-                fontSize: '48px',
-                textAlign: 'center',
-                marginBottom: '16px'
-              }}>
-                ⚡
-              </div>
               <h3 style={{
-                fontSize: '16px',
+                fontSize: windowWidth <= 768 ? '18px' : '20px',
                 fontWeight: '700',
                 color: 'var(--text-primary)',
-                textAlign: 'center',
                 marginBottom: '12px'
               }}>
                 {isEnglish ? 'Perfect CV in just 8 seconds' : 'Un CV parfaitement adapté en à peine 8 secondes'}
               </h3>
               <p style={{
-                fontSize: '13px',
+                fontSize: windowWidth <= 768 ? '13px' : '14px',
                 color: 'var(--text-secondary)',
-                textAlign: 'center',
                 lineHeight: '1.6',
                 margin: 0
               }}>
                 {isEnglish 
-                  ? 'Lightning-fast optimization without losing time' 
-                  : 'Optimisation ultra-rapide sans perdre de temps'}
+                  ? 'Lightning-fast optimization without losing time. Get your perfect CV ready in seconds.' 
+                  : 'Optimisation ultra-rapide sans perdre de temps. Obtenez votre CV parfait en quelques secondes.'}
               </p>
             </div>
           </div>
@@ -2405,12 +2337,13 @@ export const HomePage: React.FC = () => {
 
         {/* Section FAQ */}
         <div className="glass-card fade-in" style={{
-          margin: '12px',
-          padding: '32px 24px',
+          margin: windowWidth <= 768 ? '12px' : '24px 12px',
+          padding: windowWidth <= 768 ? '32px 24px' : '48px 32px',
           background: 'rgba(255, 255, 255, 0.05)',
           backdropFilter: 'blur(30px)',
           border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '20px'
+          borderRadius: '20px',
+          marginTop: '48px'
         }}>
           <h2 style={{
             fontSize: '24px',
