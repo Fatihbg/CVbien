@@ -23,6 +23,7 @@ export const HomePage: React.FC = () => {
   const [downloadMessage, setDownloadMessage] = useState('');
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [showDownloadImprovements, setShowDownloadImprovements] = useState(false);
+  const [openFAQIndex, setOpenFAQIndex] = useState<number | null>(null);
   
   // Hook de traduction
   const { t, language, isEnglish } = useTranslation();
@@ -2199,6 +2200,330 @@ export const HomePage: React.FC = () => {
                   : 'En quelques secondes, obtenez votre CV parfaitement optimisé avec des mots-clés adaptés, un contenu enrichi, une conformité ATS et une mise en page professionnelle.'}
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Section Avantages */}
+        <div className="glass-card fade-in" style={{
+          margin: '12px',
+          padding: '32px 24px',
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(30px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '20px'
+        }}>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            textAlign: 'center',
+            margin: '0 0 32px 0'
+          }}>
+            {isEnglish ? 'WHY CHOOSE CVBIEN?' : 'POURQUOI CHOISIR CVBIEN ?'}
+          </h2>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: windowWidth <= 768 ? '1fr' : 'repeat(3, 1fr)',
+            gap: '24px',
+            marginTop: '24px'
+          }}>
+            {/* Carte 1 */}
+            <div style={{
+              position: 'relative',
+              padding: '28px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '20px',
+              border: '2px solid transparent',
+              backgroundClip: 'padding-box',
+              transition: 'all 0.3s ease',
+              cursor: 'default',
+              animation: 'neonGlow 3s ease-in-out infinite'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderRadius: '20px',
+                padding: '2px',
+                background: 'linear-gradient(45deg, #667eea, #764ba2, #667eea)',
+                backgroundSize: '200% 200%',
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude',
+                animation: 'neonMove 3s ease infinite'
+              }}></div>
+              <div style={{
+                fontSize: '48px',
+                textAlign: 'center',
+                marginBottom: '16px'
+              }}>
+                📈
+              </div>
+              <h3 style={{
+                fontSize: '16px',
+                fontWeight: '700',
+                color: 'var(--text-primary)',
+                textAlign: 'center',
+                marginBottom: '12px'
+              }}>
+                {isEnglish ? 'Significantly more interviews' : 'Augmentation significative de vos entretiens'}
+              </h3>
+              <p style={{
+                fontSize: '13px',
+                color: 'var(--text-secondary)',
+                textAlign: 'center',
+                lineHeight: '1.6',
+                margin: 0
+              }}>
+                {isEnglish 
+                  ? 'ATS-optimized CVs get you noticed by recruiters' 
+                  : 'CV optimisé ATS pour décrocher plus d\'entretiens'}
+              </p>
+            </div>
+
+            {/* Carte 2 */}
+            <div style={{
+              position: 'relative',
+              padding: '28px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '20px',
+              border: '2px solid transparent',
+              backgroundClip: 'padding-box',
+              transition: 'all 0.3s ease',
+              cursor: 'default',
+              animation: 'neonGlow 3s ease-in-out infinite'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderRadius: '20px',
+                padding: '2px',
+                background: 'linear-gradient(45deg, #4facfe, #00f2fe, #4facfe)',
+                backgroundSize: '200% 200%',
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude',
+                animation: 'neonMove 3s ease infinite'
+              }}></div>
+              <div style={{
+                fontSize: '48px',
+                textAlign: 'center',
+                marginBottom: '16px'
+              }}>
+                🤖
+              </div>
+              <h3 style={{
+                fontSize: '16px',
+                fontWeight: '700',
+                color: 'var(--text-primary)',
+                textAlign: 'center',
+                marginBottom: '12px'
+              }}>
+                {isEnglish ? 'ATS no longer a concern' : 'Les robots de recrutement ne nous concernent plus'}
+              </h3>
+              <p style={{
+                fontSize: '13px',
+                color: 'var(--text-secondary)',
+                textAlign: 'center',
+                lineHeight: '1.6',
+                margin: 0
+              }}>
+                {isEnglish 
+                  ? 'Your CV passes automated screening filters' 
+                  : 'Votre CV passe les filtres de sélection automatisés'}
+              </p>
+            </div>
+
+            {/* Carte 3 */}
+            <div style={{
+              position: 'relative',
+              padding: '28px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '20px',
+              border: '2px solid transparent',
+              backgroundClip: 'padding-box',
+              transition: 'all 0.3s ease',
+              cursor: 'default',
+              animation: 'neonGlow 3s ease-in-out infinite'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                borderRadius: '20px',
+                padding: '2px',
+                background: 'linear-gradient(45deg, #f093fb, #f5576c, #f093fb)',
+                backgroundSize: '200% 200%',
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor',
+                maskComposite: 'exclude',
+                animation: 'neonMove 3s ease infinite'
+              }}></div>
+              <div style={{
+                fontSize: '48px',
+                textAlign: 'center',
+                marginBottom: '16px'
+              }}>
+                ⚡
+              </div>
+              <h3 style={{
+                fontSize: '16px',
+                fontWeight: '700',
+                color: 'var(--text-primary)',
+                textAlign: 'center',
+                marginBottom: '12px'
+              }}>
+                {isEnglish ? 'Perfect CV in just 8 seconds' : 'Un CV parfaitement adapté en à peine 8 secondes'}
+              </h3>
+              <p style={{
+                fontSize: '13px',
+                color: 'var(--text-secondary)',
+                textAlign: 'center',
+                lineHeight: '1.6',
+                margin: 0
+              }}>
+                {isEnglish 
+                  ? 'Lightning-fast optimization without losing time' 
+                  : 'Optimisation ultra-rapide sans perdre de temps'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Section FAQ */}
+        <div className="glass-card fade-in" style={{
+          margin: '12px',
+          padding: '32px 24px',
+          background: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(30px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '20px'
+        }}>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            textAlign: 'center',
+            margin: '0 0 32px 0'
+          }}>
+            {isEnglish ? 'FREQUENTLY ASKED QUESTIONS' : 'QUESTIONS FRÉQUENTES'}
+          </h2>
+
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            {[
+              {
+                question: isEnglish ? 'Are my data kept confidential?' : 'Mes données restent-elles confidentielles ?',
+                answer: isEnglish 
+                  ? 'Yes, absolutely. All your CV data and job descriptions are processed securely and are not stored permanently. Your privacy is our priority.'
+                  : 'Oui, absolument. Toutes vos données de CV et descriptions de poste sont traitées de manière sécurisée et ne sont pas stockées de manière permanente. Votre confidentialité est notre priorité.'
+              },
+              {
+                question: isEnglish ? 'Can I customize the design?' : 'Je peux personnaliser le design ?',
+                answer: isEnglish
+                  ? 'No, the goal is speed and efficiency. We provide you with the most effective CV format that works best. We want users to ask as few questions as possible and lose as little time as possible.'
+                  : 'Non, le but c\'est d\'être le plus rapide et efficace possible. Nous on donne le type de CV le plus efficace qui fonctionne le mieux. On veut que l\'utilisateur se pose le moins de questions possible et qu\'il perde le moins de temps possible.'
+              },
+              {
+                question: isEnglish ? 'How many credits does it cost?' : 'Combien ça coûte en crédits ?',
+                answer: isEnglish
+                  ? 'Each CV generation costs 1 credit. You can purchase credits in our pricing section.'
+                  : 'Chaque génération de CV coûte 1 crédit. Vous pouvez acheter des crédits dans notre section tarifs.'
+              },
+              {
+                question: isEnglish ? 'What languages are supported?' : 'Quelles langues sont supportées ?',
+                answer: isEnglish
+                  ? 'Currently, French is fully supported. English and other languages are coming soon.'
+                  : 'Pour l\'instant uniquement le français, bientôt l\'anglais et d\'autres langues.'
+              },
+              {
+                question: isEnglish ? 'What format should my CV be in?' : 'Dans quel format dois-je envoyer mon CV ?',
+                answer: isEnglish
+                  ? 'Your CV must be in PDF format only for optimal text extraction.'
+                  : 'Votre CV doit être au format PDF uniquement pour une extraction optimale du texte.'
+              },
+              {
+                question: isEnglish ? 'How long does it take to generate my CV?' : 'Combien de temps pour générer mon CV ?',
+                answer: isEnglish
+                  ? 'The entire process takes less than 10 seconds from upload to download of your optimized CV.'
+                  : 'Tout le processus prend moins de 10 secondes du téléchargement au téléchargement de votre CV optimisé.'
+              }
+            ].map((faq, index) => (
+              <div key={index} style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                overflow: 'hidden',
+                transition: 'all 0.3s ease'
+              }}>
+                <button
+                  onClick={() => setOpenFAQIndex(openFAQIndex === index ? null : index)}
+                  style={{
+                    width: '100%',
+                    padding: '20px',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <h3 style={{
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    color: 'var(--text-primary)',
+                    margin: 0,
+                    textAlign: 'left'
+                  }}>
+                    {faq.question}
+                  </h3>
+                  <span style={{
+                    fontSize: '20px',
+                    color: '#667eea',
+                    transition: 'transform 0.3s ease',
+                    transform: openFAQIndex === index ? 'rotate(180deg)' : 'rotate(0deg)'
+                  }}>
+                    ▼
+                  </span>
+                </button>
+                {openFAQIndex === index && (
+                  <div style={{
+                    padding: '0 20px 20px 20px',
+                    animation: 'slideDown 0.3s ease'
+                  }}>
+                    <p style={{
+                      fontSize: '14px',
+                      color: 'var(--text-secondary)',
+                      lineHeight: '1.6',
+                      margin: 0
+                    }}>
+                      {faq.answer}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       
