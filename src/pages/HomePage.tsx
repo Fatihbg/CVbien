@@ -274,6 +274,18 @@ export const HomePage: React.FC = () => {
     
     console.log('🚀 handleDownloadPDF appelé');
     
+    // Vérifier si l'utilisateur a des crédits
+    if (isAuthenticated && user) {
+      if (user.credits <= 0) {
+        // Afficher un popup d'alerte
+        const message = isEnglish 
+          ? 'Oops! You don\'t have enough credits.\n\nYou need 1 credit to generate your optimized CV.\nPlease purchase credits to continue.'
+          : 'Oups ! Vous n\'avez pas assez de crédits.\n\nIl vous faut 1 crédit pour générer votre CV optimisé.\nVeuillez acheter des crédits pour continuer.';
+        alert(message);
+        return;
+      }
+    }
+    
     // Consommer 1 crédit IMMÉDIATEMENT au clic
     if (isAuthenticated && user) {
       try {
