@@ -38,33 +38,6 @@ export const HomePage: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Hook pour gérer le retour de paiement Stripe
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentStatus = urlParams.get('payment');
-    const credits = urlParams.get('credits');
-
-    if (paymentStatus === 'success' && credits) {
-      // Paiement réussi
-      const successMessage = isEnglish 
-        ? `🎉 Payment successful!\n✅ ${credits} credits added to your account!`
-        : `🎉 Paiement réussi !\n✅ ${credits} crédits ajoutés à votre compte !`;
-      alert(successMessage);
-      
-      // Nettoyer l'URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
-      // Recharger les crédits utilisateur (si connecté)
-      // updateCredits(parseInt(credits));
-    } else if (paymentStatus === 'cancelled') {
-      // Paiement annulé
-      const cancelMessage = isEnglish ? '❌ Payment cancelled' : '❌ Paiement annulé';
-      alert(cancelMessage);
-      
-      // Nettoyer l'URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
 
   // Afficher le popup de recommandation mobile au chargement
   useEffect(() => {
@@ -112,6 +85,71 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     validateToken();
   }, []);
+
+  // Hook pour gérer le retour de paiement Stripe
+  useEffect(() => {
+    const confirmPayment = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paymentStatus = urlParams.get('payment');
+      const credits = urlParams.get('credits');
+      const sessionId = urlParams.get('session_id');
+
+      if (paymentStatus === 'success' && sessionId) {
+        // Paiement réussi - Confirmer avec le backend
+        try {
+          console.log('🎉 Paiement réussi, confirmation en cours...');
+          
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/payments/confirm-payment-stripe`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ session_id: sessionId }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Crédits ajoutés:', data);
+            
+            // Mettre à jour les crédits dans le store
+            if (user) {
+              await validateToken();
+            }
+            
+            const successMessage = isEnglish 
+              ? `🎉 Payment successful!\n✅ ${data.added} credits added to your account!`
+              : `🎉 Paiement réussi !\n✅ ${data.added} crédits ajoutés à votre compte !`;
+            alert(successMessage);
+          } else {
+            const error = await response.json();
+            console.error('❌ Erreur confirmation:', error);
+            const errorMessage = isEnglish 
+              ? '❌ Error confirming payment'
+              : '❌ Erreur lors de la confirmation du paiement';
+            alert(errorMessage);
+          }
+        } catch (error) {
+          console.error('Erreur confirmation paiement:', error);
+          const errorMessage = isEnglish 
+            ? '❌ Error confirming payment'
+            : '❌ Erreur lors de la confirmation du paiement';
+          alert(errorMessage);
+        }
+        
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (paymentStatus === 'cancelled') {
+        // Paiement annulé
+        const cancelMessage = isEnglish ? '❌ Payment cancelled' : '❌ Paiement annulé';
+        alert(cancelMessage);
+        
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
+
+    confirmPayment();
+  }, [user, validateToken, isEnglish]);
 
   // Fermer les menus quand on clique en dehors
   useEffect(() => {
