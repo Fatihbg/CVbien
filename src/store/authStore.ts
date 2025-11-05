@@ -218,9 +218,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   updateCredits: (newCredits: number) => {
+    const currentUser = get().user;
+    const currentProfile = get().profile;
     set({ 
-      user: { ...get().user, credits: newCredits },
-      profile: { ...get().profile, credits: newCredits }
+      user: currentUser ? { ...currentUser, credits: newCredits } : null,
+      profile: currentProfile ? { ...currentProfile, credits: newCredits } : null
     });
   },
 

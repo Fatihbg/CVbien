@@ -1,12 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { config } from '../config/environment';
+import { useAuthStore } from '../store/authStore';
+import { useRealtimeCredits } from '../hooks/useRealtimeCredits';
 
 export const PaymentSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const { user, updateCredits, loadProfile, validateToken } = useAuthStore();
+
+  // S'assurer que l'utilisateur est chargé
+  useEffect(() => {
+    if (!user) {
+      validateToken();
+    }
+  }, [user, validateToken]);
+
+  // Synchroniser les crédits en temps réel avec Firestore
+  useRealtimeCredits(user?.id || null);
 
   useEffect(() => {
     const confirmPayment = async () => {
@@ -32,7 +45,18 @@ export const PaymentSuccess: React.FC = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setMessage(`✅ Paiement réussi ! ${data.credits} crédits ont été ajoutés à votre compte.`);
+          const creditsAdded = data.added || data.credits_added || 0;
+          const totalCredits = data.credits || data.total_credits;
+          
+          // Mettre à jour les crédits dans le store immédiatement
+          if (totalCredits !== undefined) {
+            updateCredits(totalCredits);
+          } else {
+            // Fallback : recharger le profil pour obtenir les crédits à jour
+            await loadProfile();
+          }
+          
+          setMessage(`✅ Paiement réussi ! ${creditsAdded} crédits ont été ajoutés à votre compte.`);
         } else {
           setMessage('❌ Erreur lors de la confirmation du paiement');
         }

@@ -1,15 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { useAuthStore } from '../store/authStore';
 
 export const useRealtimeCredits = (userId: string | null) => {
-  const [credits, setCredits] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const { updateCredits } = useAuthStore();
 
   useEffect(() => {
     if (!userId) {
-      setCredits(0);
-      setIsLoading(false);
       return;
     }
 
@@ -22,17 +20,16 @@ export const useRealtimeCredits = (userId: string | null) => {
       if (snapshot.exists()) {
         const userData = snapshot.data();
         const newCredits = userData.credits || 0;
-        console.log('🔄 Crédits mis à jour en temps réel:', newCredits);
-        setCredits(newCredits);
-        setIsLoading(false);
+        console.log('🔄 Crédits mis à jour en temps réel depuis Firestore:', newCredits);
+        
+        // Mettre à jour le store Zustand automatiquement
+        updateCredits(newCredits);
       } else {
         console.log('❌ Utilisateur non trouvé dans Firestore');
-        setCredits(0);
-        setIsLoading(false);
+        updateCredits(0);
       }
     }, (error) => {
       console.error('❌ Erreur écoute Firestore:', error);
-      setIsLoading(false);
     });
 
     // ✅ Nettoyage quand le composant se démonte
@@ -40,7 +37,6 @@ export const useRealtimeCredits = (userId: string | null) => {
       console.log('🔄 Arrêt écoute temps réel');
       unsubscribe();
     };
-  }, [userId]);
-
-  return { credits, isLoading };
+  }, [userId, updateCredits]);
 };
+

@@ -9,6 +9,7 @@ import { PaymentModal } from '../components/Payment/PaymentModal';
 import { useTranslation } from '../hooks/useTranslation';
 import { LanguageSelector } from '../components/LanguageSelector';
 import { config } from '../config/environment';
+import { useRealtimeCredits } from '../hooks/useRealtimeCredits';
 
 export const HomePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,13 +80,18 @@ export const HomePage: React.FC = () => {
     isAuthenticated,
     validateToken,
     consumeCredits,
-    logout
+    logout,
+    loadProfile,
+    updateCredits
   } = useAuthStore();
 
   // Initialiser l'authentification au chargement
   useEffect(() => {
     validateToken();
   }, []);
+
+  // Synchroniser les crédits en temps réel avec Firestore
+  useRealtimeCredits(user?.id || null);
 
   // Hook pour gérer le retour de paiement Stripe
   useEffect(() => {
@@ -112,14 +118,17 @@ export const HomePage: React.FC = () => {
             const data = await response.json();
             console.log('✅ Crédits ajoutés:', data);
             
-            // Mettre à jour les crédits dans le store
-            if (user) {
-              await validateToken();
+            // Mettre à jour les crédits dans le store immédiatement
+            if (data.credits !== undefined) {
+              updateCredits(data.credits);
+            } else {
+              // Fallback : recharger le profil pour obtenir les crédits à jour
+              await loadProfile();
             }
             
             const successMessage = isEnglish 
-              ? `🎉 Payment successful!\n✅ ${data.added} credits added to your account!`
-              : `🎉 Paiement réussi !\n✅ ${data.added} crédits ajoutés à votre compte !`;
+              ? `🎉 Payment successful!\n✅ ${data.added || data.credits_added || 0} credits added to your account!`
+              : `🎉 Paiement réussi !\n✅ ${data.added || data.credits_added || 0} crédits ajoutés à votre compte !`;
             alert(successMessage);
           } else {
             const error = await response.json();
