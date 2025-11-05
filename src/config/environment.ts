@@ -18,7 +18,7 @@ export const config = {
   IS_PRODUCTION: import.meta.env.VITE_NODE_ENV === 'production',
   IS_DEVELOPMENT: import.meta.env.VITE_NODE_ENV === 'development',
 
-  // URLs de l'API - VERCEL BACKEND (UPDATED)
+  // URLs de l'API - VERCEL BACKEND (UPDATED - 2025-11-05)
   API_BASE_URL: isProduction ? 'https://cvbien-backend-api.vercel.app' : 'http://localhost:8000',
   AUTH_API_URL: isProduction ? 'https://cvbien-backend-api.vercel.app' : 'http://localhost:8000',
   
