@@ -39,7 +39,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     setIsLoading(true);
     try {
       // Calculer le prix basé sur le nombre de crédits
-      const price = amount === 10 ? 1 : 5;
+      const price = amount === 10 ? 5 : 10;
       await buyCredits(price, 'stripe'); // Simuler Stripe
       alert(`${amount} crédits ajoutés avec succès !`);
     } catch (error) {
@@ -424,8 +424,8 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
             gap: '16px'
           }}>
             {[
-              { amount: 10, price: '1€', popular: false },
-              { amount: 100, price: '5€', popular: true }
+              { amount: 10, price: '5€', popular: false },
+              { amount: 100, price: '10€', popular: true }
             ].map((pack) => (
               <button
                 key={pack.amount}

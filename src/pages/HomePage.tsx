@@ -2720,7 +2720,8 @@ export const HomePage: React.FC = () => {
                       background: 'rgba(34, 197, 94, 0.1)',
                       padding: '12px',
                       borderRadius: '8px',
-                      border: '1px solid rgba(34, 197, 94, 0.2)'
+                      border: '1px solid rgba(34, 197, 94, 0.2)',
+                      marginBottom: '16px'
                     }}>
                       <p style={{ 
                         fontSize: '12px', 
@@ -2731,6 +2732,38 @@ export const HomePage: React.FC = () => {
                       }}>
                         🔒 <strong>Confidentialité :</strong> Aucune donnée personnelle n'est conservée. 
                         Vos informations sont traitées en temps réel et supprimées immédiatement après génération.
+                      </p>
+                    </div>
+
+                    {/* Contact */}
+                    <div style={{ 
+                      marginTop: '20px',
+                      paddingTop: '20px',
+                      borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+                      textAlign: 'center'
+                    }}>
+                      <p style={{ 
+                        fontSize: '14px', 
+                        margin: 0, 
+                        color: '#4a5568',
+                        fontWeight: '500'
+                      }}>
+                        {isEnglish ? 'Contact us:' : 'Contactez-nous :'} <a 
+                          href="mailto:cvbien.io@hotmail.com" 
+                          style={{
+                            color: '#667eea',
+                            textDecoration: 'none',
+                            fontWeight: '600'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.textDecoration = 'underline';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.textDecoration = 'none';
+                          }}
+                        >
+                          cvbien.io@hotmail.com
+                        </a>
                       </p>
                     </div>
                   </div>

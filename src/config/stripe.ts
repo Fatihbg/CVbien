@@ -11,12 +11,12 @@ export const STRIPE_CONFIG = {
   // Configuration des produits
   products: {
     credits_10: {
-      price: 100, // 1€ en centimes
+      price: 500, // 5€ en centimes
       credits: 10,
       name: '10 Crédits'
     },
     credits_100: {
-      price: 500, // 5€ en centimes
+      price: 1000, // 10€ en centimes
       credits: 100,
       name: '100 Crédits'
     }
