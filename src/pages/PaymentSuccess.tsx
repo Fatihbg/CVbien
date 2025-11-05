@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { config } from '../config/environment';
 
 export const PaymentSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -21,7 +22,7 @@ export const PaymentSuccess: React.FC = () => {
         }
 
         // Confirmer le paiement avec le backend
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/payments/confirm-payment-stripe`, {
+        const response = await fetch(`${config.API_BASE_URL}/api/payments/confirm-payment-stripe`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

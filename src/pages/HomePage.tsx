@@ -8,6 +8,7 @@ import { UserProfile } from '../components/User/UserProfile';
 import { PaymentModal } from '../components/Payment/PaymentModal';
 import { useTranslation } from '../hooks/useTranslation';
 import { LanguageSelector } from '../components/LanguageSelector';
+import { config } from '../config/environment';
 
 export const HomePage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -99,7 +100,7 @@ export const HomePage: React.FC = () => {
         try {
           console.log('🎉 Paiement réussi, confirmation en cours...');
           
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/payments/confirm-payment-stripe`, {
+          const response = await fetch(`${config.API_BASE_URL}/api/payments/confirm-payment-stripe`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
